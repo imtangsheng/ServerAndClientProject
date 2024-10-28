@@ -30,4 +30,9 @@
 *.exe
 *.out
 *.app
+
+#编译器生成目录
 /build
+
+#Qt Creator编译器文件
+CMakeLists.txt.user
