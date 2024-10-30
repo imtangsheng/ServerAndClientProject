@@ -29,7 +29,7 @@ public:
             if (plugin)
             {
                 // 尝试转换为插件接口
-                PluginInterfaceDevice *interface = qobject_cast<PluginInterfaceDevice *>(plugin);
+                IPluginDevice *interface = qobject_cast<IPluginDevice *>(plugin);
                 if (interface)
                 {
                     // 初始化插件
@@ -55,20 +55,20 @@ public:
     }
 
     // 获取已加载的插件列表
-    QList<PluginInterfaceDevice *> plugins() const
+    QList<IPluginDevice *> plugins() const
     {
         return m_plugins.values();
     }
 
     // 通过名称获取插件
-    PluginInterfaceDevice *getPlugin(const QString &name)
+    IPluginDevice *getPlugin(const QString &name)
     {
         return m_plugins.value(name, nullptr);
     }
 
 private:
     PluginManager() {}
-    QMap<QString, PluginInterfaceDevice *> m_plugins;
+    QMap<QString, IPluginDevice *> m_plugins;
 };
 
 int main(int argc, char *argv[])
@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
     PluginManager::instance().loadPlugins();
 
     // 遍历所有已加载的插件
-    for (PluginInterfaceDevice *plugin : PluginManager::instance().plugins())
+    for (IPluginDevice *plugin : PluginManager::instance().plugins())
     {
         qDebug() << "\nPlugin Information:";
         qDebug() << "Name:" << plugin->name();
@@ -90,7 +90,32 @@ int main(int argc, char *argv[])
         // for (const QString& feature : plugin->features()) {
         //     plugin->executeFeature(feature);
         // }
+        plugin->handleEvent(DeviceEvent::Custom);
     }
 
+    for (IPluginDevice *device : PluginManager::instance().plugins())
+    {
+        // 初始化
+        if (!device->handleEvent(DeviceEvent::Initialize)) {
+            qDebug() << "Initialization failed";
+        }
+        // 启动
+        if (!device->handleEvent(DeviceEvent::Start)) {
+            qDebug() << "Start failed";
+            continue;
+        }
+
+        // 发送自定义事件
+        device->handleEvent(DeviceEvent::Custom, "Test data");
+
+        // 暂停
+        device->handleEvent(DeviceEvent::Pause);
+
+        // 恢复
+        device->handleEvent(DeviceEvent::Resume);
+
+        // 停止
+        device->handleEvent(DeviceEvent::Stop);
+    }
     return app.exec();
 }
