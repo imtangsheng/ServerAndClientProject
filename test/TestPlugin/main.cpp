@@ -106,7 +106,12 @@ int main(int argc, char *argv[])
         }
 
         // 发送自定义事件
-        device->handleEvent(DeviceEvent::Custom, "Test data");
+        QJsonObject jsonObj;
+        jsonObj["name"] = "Alice";
+        jsonObj["age"] = 30;
+
+        QVariant jsonVariant = QVariant::fromValue(jsonObj);
+        device->handleEvent(DeviceEvent::Custom, jsonVariant);
 
         // 暂停
         device->handleEvent(DeviceEvent::Pause);
