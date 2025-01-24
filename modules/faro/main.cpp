@@ -26,21 +26,6 @@ int main(int argc, char *argv[])
     //     return -1;
     // }
 
-    FaroHandle handle;
-    std::vector<std::vector<PointCloudXYZCT>> pointcloudRes;
-
-    QDateTime startTime = QDateTime::currentDateTime();
-    qDebug() << "startTime: " << startTime.toString("yyyy-MM-dd HH:mm:ss.zzz");
-    handle.init();
-    qDebug() << "init end" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
-    handle.read_pointcloud_from_file("E:\\Scan001.fls",pointcloudRes);
-
-    //unsigned __int64 start, end;
-    //handle.getFaroFlsStartAndEndTime("E:\\Scan001.fls", start, end);
-    //qDebug() << "StartAndEndTime: " <<start<<end<< QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    qDebug() << "endTime: " << QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm:ss.zzz");
-    qDebug() << "time: " << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
-    qDebug() << "pointcloudRes size: " << pointcloudRes.size();
 
     //RealtimeSolving
 

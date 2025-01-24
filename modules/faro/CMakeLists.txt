@@ -42,21 +42,18 @@ add_executable(Test
 
 # 添加共享库
 add_library(MySharedLib STATIC
-  gFaro.h
-  gTask.h TaskHandle.h TaskHandle.cpp
+  TaskHandle.h TaskHandle.cpp
   imageserver.h imageserver.cpp
-  generate_image_map.h generate_image_map.cpp
   FaroHandle.h FaroHandle.cpp
-  PointCloudHandle.h PointCloudHandle.cpp
+  PointCloudImageGenerate.h PointCloudImageGenerate.cpp
   RealtimeSolving.h RealtimeSolving.cpp
 )
 
 # 为MySharedLib添加包含目录
 include_directories(MySharedLib PUBLIC
     # 如果有其他自定义包含目录，可以在这里添加
-    ${THIRD_PARTY_PATH}/SouthAlgorithm/include
-    ${THIRD_PARTY_PATH}/opencv/include
-    ${THIRD_PARTY_PATH}/Eigen/eigen3
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    #${THIRD_PARTY_PATH}/opencv/include
 )
 
 link_libraries(MySharedLib PUBLIC
@@ -68,8 +65,7 @@ target_link_libraries(MySharedLib PUBLIC
   Qt${QT_VERSION_MAJOR}::Gui
   Qt${QT_VERSION_MAJOR}::Network
   Qt${QT_VERSION_MAJOR}::Concurrent
-  OpenMP::OpenMP_CXX
-  ${THIRD_PARTY_PATH}/opencv/x64/vc16/lib/opencv_world480d.lib
+  #${THIRD_PARTY_PATH}/opencv/x64/vc16/lib/opencv_world480d.lib
 )
 
 # 链接共享库到执行文件
