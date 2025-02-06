@@ -70,13 +70,13 @@ static bool FaroInitialized() {
 	}
 	catch (const FlsParseError& error)
 	{
-		qWarning() << QObject::tr("法如扫描初始化错误: %1").arg(static_cast<int>(error));
+		qWarning() << QObject::tr("#Faro:法如扫描初始化错误: %1").arg(static_cast<int>(error));
 		FaroCleanup();
 		return false;
 	}
 	catch (...)
 	{
-		qWarning() << QObject::tr("法如扫描仪初始化发生未知错误");
+		qWarning() << QObject::tr("#Faro:法如扫描仪初始化发生未知错误");
 		FaroCleanup();
 		return false;
 	}
@@ -95,17 +95,17 @@ static bool FaroLoadFlsFile(const char* fileName) {
 		if (libRef->load(filepathBstr) != 0) {
 			throw FlsParseError::kFlsFormatError;
 		}
-		qDebug() << "加载FLS文件:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+		qDebug() << "#Faro:加载FLS文件:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 		return true;
 	}
 	catch (const FlsParseError& error)
 	{
-		qWarning() << QObject::tr("FLS解析错误: %1").arg(static_cast<int>(error));
+		qWarning() << QObject::tr("#Faro:FLS解析错误: %1").arg(static_cast<int>(error));
 		FaroCleanup();
 		return false;
 	}
 	catch (...) {
-		qWarning() << QObject::tr("FLS解析发生未知错误");
+		qWarning() << QObject::tr("#Faro:FLS解析发生未知错误");
 		FaroCleanup();
 		return false;
 	}
@@ -185,7 +185,7 @@ bool ReadFaroFileData(const std::string& fileName, std::vector< std::vector<Poin
 	}
 	delete[] positions;
 	delete[] reflections;
-	qDebug() << "先按列批量读取数据到缓存:" << g_num_cols << g_num_rows << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+	qDebug() << "#Faro:先按列批量读取数据到缓存:" << g_num_cols << g_num_rows << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 	// 然后并行处理数据重排和坐标变换
 	startTime = QDateTime::currentDateTime();
 
@@ -215,7 +215,7 @@ bool ReadFaroFileData(const std::string& fileName, std::vector< std::vector<Poin
 		}
 		pointsRes[c] = pointsRows;
 	}
-	qDebug() << "然后并行处理数据重排和坐标变换:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+	qDebug() << "#Faro:然后并行处理数据重排和坐标变换:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 	return true;
 }
 
@@ -227,7 +227,7 @@ bool GetFaroFileStartAndEndTimestamp(const std::string& fileName, unsigned __int
 	}
 	libRef->getAutomationTimeOfScanPoint(0, g_num_rows - 1, 0, &start);
 	libRef->getAutomationTimeOfScanPoint(0, 0, g_num_cols - 1, &end);
-	qDebug() << "获取一个fls文件的开始和结束时间:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+	qDebug() << "#Faro:获取一个fls文件的开始和结束时间:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 	return true;
 }
 

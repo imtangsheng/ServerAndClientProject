@@ -749,13 +749,8 @@ static void saveImage(const QString& path,Image &img) {
 		memcpy(scanline, img.data[i].data(), img.width);
 	}
 	QImageWriter writer(path);
-	writer.setFormat("tiff"); // 指定格式为 TIFF
-	// 设置 LZW 压缩参数
-	writer.setCompression(1); // 1 对应 TIFF 的 LZW 压缩（Qt 内部定义）
-	// 或使用键值对参数（Qt 5.5+ 支持）
-	// writer.setCompression("LZW");
 	if (!writer.write(qImage)) {
-		qDebug() << "保存失败：" << writer.errorString();
+		qCritical()<< "#图片"<< path<<"保存失败,错误" << writer.errorString();
 	}
 }
 
@@ -777,6 +772,7 @@ static void saveImage(const std::vector<std::vector<unsigned char>>& color,
 bool WritePointCloudImage(TaskFaroPart& part, const QString& grayImagePath, const QString& depthImagePath, int merge_type)
 {
 	// 2024-6-19 fix:通缝使用0.19计算，错缝使用0.09计算
+	static QDateTime startTime = QDateTime::currentDateTime();
 	if (merge_type == 1) g_hole_depth_limit = 0.19;
 	else if (merge_type == 0) g_hole_depth_limit = 0.09;
 	std::vector<MileageEllipse> lme;
@@ -792,6 +788,7 @@ bool WritePointCloudImage(TaskFaroPart& part, const QString& grayImagePath, cons
 	Image grayImage;
 	std::vector<std::vector<unsigned char>> depthImage;
 	bool ret = GetPointCloudDepthAndGrayImage(lme, part.points, grayImage, depthImage, part.start_mileage, part.end_mileage, part.resolving, part.diameter / 2);
+	qDebug() << "#2 图像生成深度图和灰度图数据" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 	if (ret) {
 		saveImage(grayImagePath, grayImage);
 		saveImage(depthImage,depthImagePath);

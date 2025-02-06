@@ -1,4 +1,5 @@
 #include "RealtimeSolving.h"
+#include <QDir>
 RealtimeSolving::RealtimeSolving()
 {
 }
@@ -54,8 +55,8 @@ bool RealtimeSolving::writeFaroImage(TaskFaroPart& task, const QString& imagePat
 
 	//#2 图像生成
 	QString fls_base_name = baseName(task.faro_file.toStdString()).data();
-	QString grayPath = imagePath + fls_base_name + "_gray.tiff";
-	QString depthPath = imagePath + fls_base_name + "_depth.tiff";
+	QString grayPath = QDir(imagePath).filePath(fls_base_name + "_gray.jpg");//该格式更清晰,更小1566KB tiff为无压缩图像格式:6704KB opencv:为5786KB
+	QString depthPath = QDir(imagePath).filePath(fls_base_name + "_depth.jpg");//181KB tiff:6709KB opencv:371KB
 	task.resolving = 1000 / 5;
 	task.diameter = 5.4;
 	if(!WritePointCloudImage(task,grayPath, depthPath)) return false;
@@ -72,7 +73,7 @@ void RealtimeSolving::test()
 	task.task_dir = "E:/Test/test/Task";
 
 	QString imagePath = "E:/Test/test/PointCloudImage/";
-	qDebug() << "#图像生成 深度图和灰度图writeFaroImage" << writeFaroImage(task, imagePath);
+	qDebug() << "#图像生成 深度图和灰度图 结果" << writeFaroImage(task, imagePath);
 	return;
 }
 

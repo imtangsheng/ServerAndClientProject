@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(TestImageServer LANGUAGES CXX)
+project(TestServer LANGUAGES CXX)
 
 # 获取环境变量South_Thirdparty
 set(THIRD_PARTY_PATH E:/works/thirdparty)
@@ -31,17 +31,18 @@ if(OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
-add_executable(TestImageServer
+add_executable(FaroRealtimeSolving
     main.cpp
 )
 
-add_executable(Test 
-    test.cpp
+add_executable(case 
+    case.cpp
 )
 
 
 # 添加共享库
 add_library(MySharedLib STATIC
+  logger.h logger.cpp
   TaskHandle.h TaskHandle.cpp
   imageserver.h imageserver.cpp
   FaroHandle.h FaroHandle.cpp
@@ -57,7 +58,7 @@ include_directories(MySharedLib PUBLIC
 )
 
 link_libraries(MySharedLib PUBLIC
-    ${THIRD_PARTY_PATH}/opencv/x64/vc16/lib
+    #${THIRD_PARTY_PATH}/opencv/x64/vc16/lib
 )
 # 指定共享库的链接库
 target_link_libraries(MySharedLib PUBLIC
@@ -69,15 +70,16 @@ target_link_libraries(MySharedLib PUBLIC
 )
 
 # 链接共享库到执行文件
-target_link_libraries(TestImageServer
+target_link_libraries(FaroRealtimeSolving
   MySharedLib
 )
 
-target_link_libraries(Test
+target_link_libraries(case
   MySharedLib
 )
-include(GNUInstallDirs)
-install(TARGETS TestImageServer
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+
+# include(GNUInstallDirs)
+# install(TARGETS FaroRealtimeSolving
+#    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+#)
