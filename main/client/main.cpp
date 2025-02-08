@@ -1,9 +1,17 @@
-#include <QCoreApplication>
+#include <QApplication>
+
+#include "ui/WebSocket.h"
+
+#include "ui/ImageViewer.h"
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication app(argc, argv);
+    QApplication app(argc, argv);
+    // WebSocket socket;
+    // socket.show();
 
-    qDebug()<<"start client";
+    ImageViewer viewer;
+    viewer.show();
+
     return app.exec();
 }

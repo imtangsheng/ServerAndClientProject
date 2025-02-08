@@ -10,10 +10,10 @@ public:
 	~RealtimeSolving();
 
 	/**
-	 * @brief ½âÎöFLSÎÄ¼ş²¢ÌáÈ¡µãÔÆÊı¾İ,È»ºóÉú³É»Ò¶ÈÍ¼ºÍÉî¶ÈÍ¼
-	 * @param task ÈÎÎñÊı¾İ
-	 * @param imagePath Êä³öµÄÍ¼ÏñÂ·¾¶
-	 * @return ½âÎö,Éú³É»Ò¶ÈÍ¼ºÍÉî¶ÈÍ¼ÊÇ·ñ³É¹¦
+	 * @brief è§£æFLSæ–‡ä»¶å¹¶æå–ç‚¹äº‘æ•°æ®,ç„¶åç”Ÿæˆç°åº¦å›¾å’Œæ·±åº¦å›¾
+	 * @param task ä»»åŠ¡æ•°æ®
+	 * @param imagePath è¾“å‡ºçš„å›¾åƒè·¯å¾„
+	 * @return è§£æ,ç”Ÿæˆç°åº¦å›¾å’Œæ·±åº¦å›¾æ˜¯å¦æˆåŠŸ
 	 */
 	bool writeFaroImage(TaskFaroPart &task,const QString& imagePath);
 	//Acquisition software  Visual data software Visualization software Visual software

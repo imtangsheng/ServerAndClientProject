@@ -10,70 +10,71 @@ RealtimeSolving::~RealtimeSolving()
 
 static std::string baseName(const std::string& filePath)
 {
-	// ÕÒµ½×îºóÒ»¸öÄ¿Â¼·Ö¸ô·û£¨/ »ò \£©
-	size_t pos = filePath.find_last_of("/\\");
-	std::string fileName = (pos != std::string::npos) ? filePath.substr(pos + 1) : filePath;
+    // æ‰¾åˆ°æœ€åä¸€ä¸ªç›®å½•åˆ†éš”ç¬¦ï¼ˆ/ æˆ– \ï¼‰
+    size_t pos = filePath.find_last_of("/\\");
+    std::string fileName = (pos != std::string::npos) ? filePath.substr(pos + 1) : filePath;
 
-	// ÕÒµ½ÎÄ¼şÀ©Õ¹ÃûµÄÆğÊ¼Î»ÖÃ
-	pos = fileName.find_last_of('.');
-	if (pos != std::string::npos) {
-		fileName = fileName.substr(0, pos);  // É¾³ıÀ©Õ¹Ãû
-	}
+    // æ‰¾åˆ°æ–‡ä»¶æ‰©å±•åçš„èµ·å§‹ä½ç½®
+    pos = fileName.find_last_of('.');
+    if (pos != std::string::npos) {
+        fileName = fileName.substr(0, pos);  // åˆ é™¤æ‰©å±•å
+    }
 
-	return fileName;
+    return fileName;
 }
 
 bool RealtimeSolving::writeFaroImage(TaskFaroPart& task, const QString& imagePath)
 {
-	static QDateTime startTime = QDateTime::currentDateTime();
-	//#1-1 Ö´ĞĞµãÔÆ½âÎö ¶ÁÈ¡Àï³Ì
-	if (!get_mileage_from_file(task.task_dir.toStdString(), task.mileage)) return false;
-	task.direction = task.mileage[0].mileage_revision < task.mileage.back().mileage_revision;
-	qDebug() << "#1 ¶ÁÈ¡mileageÎÄ¼ş" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+    static QDateTime startTime = QDateTime::currentDateTime();
+    //#1-1 æ‰§è¡Œç‚¹äº‘è§£æ è¯»å–é‡Œç¨‹
+    if (!get_mileage_from_file(task.task_dir.toStdString(), task.mileage)) return false;
+    task.direction = task.mileage[0].mileage_revision < task.mileage.back().mileage_revision;
+    qDebug() << "#1 è¯»å–mileageæ–‡ä»¶" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 
-	//#1-2 Ö´ĞĞµãÔÆ½âÎö Çã½Ç¼ÆÎÄ¼şºÍÉ¨ÃèÒÇĞ¡³µÊ±¼äÎÄ¼ş "/Inclinometer.txt" "/scannerTime.txt"
-	bool hasClinoData = false;
-	if (get_clinometer_from_file(task.task_dir.toStdString(), task.clinometer)) hasClinoData = true;
-	if (task.clinometer.empty()) hasClinoData = false;
-	qDebug() << "#1 ¶ÁÈ¡Çã½Ç¼ÆÎÄ¼ş" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
-	for (auto& mVecsIt : task.mileage){
-		task.mileageWithTime.insert(std::make_pair(std::abs(mVecsIt.mileage_revision), mVecsIt.time));
-	}
-	for (auto& clinometerVecsIt : task.clinometer){
-		task.clinometerWithTime.insert(std::make_pair(clinometerVecsIt.time, clinometerVecsIt.x));
-	}
-	qDebug() << "#1 É¨ÃèÒÇĞ¡³µÊ±¼äÓëÇã½Ç¼ÆÊı¾İÆ¥Åä" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
-	//#1-¶ÁÈ¡µãÔÆÊı¾İ
-	if (!ReadFaroFileData(task.faro_file.toStdString(), task.points, task.direction)) return false;
-	qDebug() << "#1 ¶ÁÈ¡µãÔÆÊı¾İ" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+    //#1-2 æ‰§è¡Œç‚¹äº‘è§£æ å€¾è§’è®¡æ–‡ä»¶å’Œæ‰«æä»ªå°è½¦æ—¶é—´æ–‡ä»¶ "/Inclinometer.txt" "/scannerTime.txt"
+    bool hasClinoData = false;
+    if (get_clinometer_from_file(task.task_dir.toStdString(), task.clinometer)) hasClinoData = true;
+    if (task.clinometer.empty()) hasClinoData = false;
+    qDebug() << "#1 è¯»å–å€¾è§’è®¡æ–‡ä»¶" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+    for (auto& mVecsIt : task.mileage) {
+        task.mileageWithTime.insert(std::make_pair(std::abs(mVecsIt.mileage_revision), mVecsIt.time));
+    }
+    for (auto& clinometerVecsIt : task.clinometer) {
+        task.clinometerWithTime.insert(std::make_pair(clinometerVecsIt.time, clinometerVecsIt.x));
+    }
+    qDebug() << "#1 æ‰«æä»ªå°è½¦æ—¶é—´ä¸å€¾è§’è®¡æ•°æ®åŒ¹é…" << startTime.msecsTo(QDateTime::currentDateTime()) << " ms";
+    //#1-è¯»å–ç‚¹äº‘æ•°æ®
+    if (!ReadFaroFileData(task.faro_file.toStdString(), task.points, task.direction)) return false; 
 
-	//#2-µãÔÆ½âÎöÕ¹¿ª
-	if (!PointCloudExpand(hasClinoData,task)) return false;
+    qDebug() << "#1 è¯»å–ç‚¹äº‘æ•°æ® " << startTime.msecsTo(QDateTime::currentDateTime()) << " ms";
+
+    //#2-ç‚¹äº‘è§£æå±•å¼€
+    if (!PointCloudExpand(hasClinoData, task)) return false;
 
 
-	qDebug() << "#2 µãÔÆ½âÎöÕ¹¿ª" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+    qDebug() << "#2 ç‚¹äº‘è§£æå±•å¼€ " << startTime.msecsTo(QDateTime::currentDateTime()) << " ms";
 
-	//#2 Í¼ÏñÉú³É
-	QString fls_base_name = baseName(task.faro_file.toStdString()).data();
-	QString grayPath = QDir(imagePath).filePath(fls_base_name + "_gray.jpg");//¸Ã¸ñÊ½¸üÇåÎú,¸üĞ¡1566KB tiffÎªÎŞÑ¹ËõÍ¼Ïñ¸ñÊ½:6704KB opencv:Îª5786KB
-	QString depthPath = QDir(imagePath).filePath(fls_base_name + "_depth.jpg");//181KB tiff:6709KB opencv:371KB
-	task.resolving = 1000 / 5;
-	task.diameter = 5.4;
-	if(!WritePointCloudImage(task,grayPath, depthPath)) return false;
-	qDebug() << "#2 Í¼ÏñÉú³É Éî¶ÈÍ¼ºÍ»Ò¶ÈÍ¼" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
-	return true;
+    //#2 å›¾åƒç”Ÿæˆ
+    QString fls_base_name = baseName(task.faro_file.toStdString()).data();
+    QString grayPath = QDir(imagePath).filePath(fls_base_name + "_gray.jpg");//è¯¥æ ¼å¼æ›´æ¸…æ™°,æ›´å°1566KB tiffä¸ºæ— å‹ç¼©å›¾åƒæ ¼å¼:6704KB opencv:ä¸º5786KB
+    QString depthPath = QDir(imagePath).filePath(fls_base_name + "_depth.jpg");//181KB tiff:6709KB opencv:371KB
+    task.resolving = 1000 / 5;
+    task.diameter = 5.4;
+    if(!WritePointCloudImage(task,grayPath, depthPath)) return false;
+    qDebug() << "#2 å›¾åƒç”Ÿæˆ æ·±åº¦å›¾å’Œç°åº¦å›¾" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+    return true;
 }
 
 void RealtimeSolving::test()
 {
-	TaskFaroPart task;
-	task.faro_file = "E:/Test/test/PointCloud/Scan001.fls";
-	task.mileage_file = "E:/Test/test/Task/mileage.txt";
-	task.clinometer_file = "E:/Test/test/Task/Inclinometer.txt";
-	task.task_dir = "E:/Test/test/Task";
+    TaskFaroPart task;
+    task.faro_file = "E:/Test/test/PointCloud/Scan001.fls";
+    task.mileage_file = "E:/Test/test/Task/mileage.txt";
+    task.clinometer_file = "E:/Test/test/Task/Inclinometer.txt";
+    task.task_dir = "E:/Test/test/Task";
 
-	QString imagePath = "E:/Test/test/PointCloudImage/";
-	qDebug() << "#Í¼ÏñÉú³É Éî¶ÈÍ¼ºÍ»Ò¶ÈÍ¼ ½á¹û" << writeFaroImage(task, imagePath);
-	return;
+    QString imagePath = "E:/Test/test/PointCloudImage/";
+    qDebug() << "#å›¾åƒç”Ÿæˆ æ·±åº¦å›¾å’Œç°åº¦å›¾ ç»“æœ" << writeFaroImage(task, imagePath);
+    return;
 }
 

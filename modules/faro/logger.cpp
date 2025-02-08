@@ -49,17 +49,17 @@ void Logger::log(LogLevel level, const QString& msg,
 
     QMutexLocker locker(&writeMutex);
 
-    // ¼ì²éÎÄ¼ş´óĞ¡
+    // æ£€æŸ¥æ–‡ä»¶å¤§å°
     checkFileSize();
 
-    // Ğ´ÈëÎÄ¼ş
+    // å†™å…¥æ–‡ä»¶
     if (logFile && logFile->isOpen()) {
         QTextStream stream(logFile);
         stream << text << "\n";
         stream.flush();
     }
 
-    // Êä³öµ½¿ØÖÆÌ¨
+    // è¾“å‡ºåˆ°æ§åˆ¶å°
     if (consoleOutput) QTextStream(stdout) << text << "\n";
 }
 
@@ -96,19 +96,19 @@ void Logger::checkFileSize() {
     if (logFile->size() >= maxFileSize) {
         logFile->close();
 
-        // ÎÄ¼şÖØÃüÃû
+        // æ–‡ä»¶é‡å‘½å
         QDir dir(logPath);
         QStringList filters;
         filters << QString("%1*.log").arg(baseName);
         QStringList files = dir.entryList(filters, QDir::Files, QDir::Time);
 
-        // É¾³ı¶àÓàµÄÈÕÖ¾ÎÄ¼ş
+        // åˆ é™¤å¤šä½™çš„æ—¥å¿—æ–‡ä»¶
         while (files.size() >= maxFiles) {
             dir.remove(files.last());
             files.removeLast();
         }
 
-        // ÖØÃüÃûÏÖÓĞÎÄ¼ş
+        // é‡å‘½åç°æœ‰æ–‡ä»¶
         for (int i = files.size() - 1; i >= 0; --i) {
             QString oldName = dir.filePath(files[i]);
             QString newName = QString("%1/%2.%3.log")
@@ -173,7 +173,7 @@ void Logger::messageHandler(QtMsgType type,
         context.line,
         context.function);
 
-    // Èç¹ûÉèÖÃÁËÖ®Ç°µÄ´¦Àíº¯Êı£¬Ò²µ÷ÓÃËü
+    // å¦‚æœè®¾ç½®äº†ä¹‹å‰çš„å¤„ç†å‡½æ•°ï¼Œä¹Ÿè°ƒç”¨å®ƒ
     if (previousMessageHandler) {
         previousMessageHandler(type, context, message);
     }

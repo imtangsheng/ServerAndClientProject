@@ -11,38 +11,38 @@ extern double g_tunnel_face_value;
 extern double g_depth_standard;
 extern double g_depth_variance_standard;
 extern double g_pipe_wall_start_and_end_init_value;
-extern double g_hole_depth_limit;//ÂİË¨¿×Éî¶È¹ıÂËãĞÖµ
+extern double g_hole_depth_limit;//èºæ “å­”æ·±åº¦è¿‡æ»¤é˜ˆå€¼
 //} // namespace poiontcloud_image_generate
 
-//ÄâºÏÍÖÔ²µÄ²ÎÊı
+//æ‹Ÿåˆæ¤­åœ†çš„å‚æ•°
 struct FittingEllipse
 {
-	double A;    //³¤°ëÖá
-	double B;    //¶Ì°ëÖá
-	double x;    //ÄâºÏÍÖÔ²µÄÖĞĞÄx
-	double y;    //ÄâºÏÍÖÔ²µÄÖĞĞÄy
-	double angle;//Æ«ÒÆ½Ç¶È
+	double A;    //é•¿åŠè½´
+	double B;    //çŸ­åŠè½´
+	double x;    //æ‹Ÿåˆæ¤­åœ†çš„ä¸­å¿ƒx
+	double y;    //æ‹Ÿåˆæ¤­åœ†çš„ä¸­å¿ƒy
+	double angle;//åç§»è§’åº¦
 };
 
 /// <summary>
-/// Ã¿50È¦½«ËíµÀµãÔÆ·Ö³ÉÈô¸É¿é£¬Ã¿Ò»¿éµÄĞÅÏ¢
+/// æ¯50åœˆå°†éš§é“ç‚¹äº‘åˆ†æˆè‹¥å¹²å—ï¼Œæ¯ä¸€å—çš„ä¿¡æ¯
 /// </summary>
 struct MileageEllipse
 {
-	double mileage;  //ÆğÊ¼Àï³Ì
-	double dm;       //È¦¼ä¾à
-	int col;         //ÓÃÀ´ÄâºÏÍÖÔ²µÄÈ¦Êı
-	FittingEllipse ep;   //ÄâºÏÍÖÔ²µÄ²ÎÊı
+	double mileage;  //èµ·å§‹é‡Œç¨‹
+	double dm;       //åœˆé—´è·
+	int col;         //ç”¨æ¥æ‹Ÿåˆæ¤­åœ†çš„åœˆæ•°
+	FittingEllipse ep;   //æ‹Ÿåˆæ¤­åœ†çš„å‚æ•°
 };
 
-//ÍÖÔ²²ÎÊı½á¹¹Ìå
+//æ¤­åœ†å‚æ•°ç»“æ„ä½“
 struct EllipseParams
 {
 	double A;
 	double B;
 	double X0;
 	double Y0;
-	double Angle;   //ÍÖÔ²³¤ÖáÓëxÖáÕıÏòµÄ¼Ğ½Ç
+	double Angle;   //æ¤­åœ†é•¿è½´ä¸xè½´æ­£å‘çš„å¤¹è§’
 	EllipseParams() :A(0.0), B(0.0), X0(0.0), Y0(0.0), Angle(0.0) {}
 	EllipseParams(double a, double b, double x0, double y0, double angle) :
 		A(a), B(b), X0(x0), Y0(y0), Angle(angle) {}
@@ -58,18 +58,18 @@ public:
 	Image(int w, int h) : width(w), height(h) {
 		data.resize(h, std::vector<unsigned char>(w));
 	}
-	// resize Ö±½ÓÓ³Éäµ½ data
+	// resize ç›´æ¥æ˜ å°„åˆ° data
 	void resize(int w, int h) {
 		width = w;
 		height = h;
 		data.resize(h, std::vector<unsigned char>(w));
 	}
-	// Ìí¼Ó operator[] ÖØÔØ
+	// æ·»åŠ  operator[] é‡è½½
 	std::vector<unsigned char>& operator[](int index) {
 		return data[index];
 	}
 
-	// Ìí¼Ó const operator[] ÖØÔØ
+	// æ·»åŠ  const operator[] é‡è½½
 	const std::vector<unsigned char>& operator[](int index) const {
 		return data[index];
 	}
@@ -85,16 +85,16 @@ public:
 };
 
 /**
- * @brief Éú³Éfls¶ÔÓ¦µÄÉî¶ÈÍ¼Óë»Ò¶ÈÍ¼
- * @param lme Àï³Ì¼°µã¼ä¾àĞÅÏ¢
- * @param points ËíµÀµãÔÆ
- * @param savephotopathGray ±£´æµÄ»Ò¶ÈÍ¼Â·¾¶
- * @param savephotopathDepth ±£´æµÄÉî¶ÈÍ¼Â·¾¶
- * @param start_mileage ÆğÊ¼Àï³Ì
- * @param end_mileage ÖÕÖ¹Àï³Ì
- * @param expand Õ¹¿ªµÄ¿í¶È
- * @param dDesignSecRadius ËíµÀÉè¼Æ°ë¾¶
- * @param dScannerHeight É¨ÃèÒÇ°²×°¸ß¶È
+ * @brief ç”Ÿæˆflså¯¹åº”çš„æ·±åº¦å›¾ä¸ç°åº¦å›¾
+ * @param lme é‡Œç¨‹åŠç‚¹é—´è·ä¿¡æ¯
+ * @param points éš§é“ç‚¹äº‘
+ * @param savephotopathGray ä¿å­˜çš„ç°åº¦å›¾è·¯å¾„
+ * @param savephotopathDepth ä¿å­˜çš„æ·±åº¦å›¾è·¯å¾„
+ * @param start_mileage èµ·å§‹é‡Œç¨‹
+ * @param end_mileage ç»ˆæ­¢é‡Œç¨‹
+ * @param expand å±•å¼€çš„å®½åº¦
+ * @param dDesignSecRadius éš§é“è®¾è®¡åŠå¾„
+ * @param dScannerHeight æ‰«æä»ªå®‰è£…é«˜åº¦
  * @return
 */
 bool GetPointCloudDepthAndGrayImage(

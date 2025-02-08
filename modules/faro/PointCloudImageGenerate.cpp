@@ -4,32 +4,32 @@
 typedef unsigned char uchar;
 class Matrix;
 
-int g_smooth_step = 5;                 //ÒÆ¶¯²½³¤
-double g_first_thinning = 360;     //µÚÒ»´Î³éÏ¡·İÊı
-double g_second_thinning = 1800;   //µÚ¶ş´Î³éÏ¡·İÊı
-double g_pipe_wall_limit = 0.02;    //¹Ü±ÚµãÏŞÖµ
-double g_tunnel_face_value = 0.02;  //È¥³ıËíµÀ±íÃæµÄãĞÖµ
-double g_depth_standard = 0.005;   //Éî¶È±ê×¼
-double g_depth_variance_standard = 0.0005;   //Éî¶È·½²î±ê×¼
-double g_pipe_wall_start_and_end_init_value = 0.02;   //¹Ü±ÚµãÇ°ºó³¤¶È³õÊ¼»¯
-double g_hole_depth_limit = 0.09;	//ÂİË¨¿×Éî¶È¹ıÂËãĞÖµ
+int g_smooth_step = 5;                 //ç§»åŠ¨æ­¥é•¿
+double g_first_thinning = 360;     //ç¬¬ä¸€æ¬¡æŠ½ç¨€ä»½æ•°
+double g_second_thinning = 1800;   //ç¬¬äºŒæ¬¡æŠ½ç¨€ä»½æ•°
+double g_pipe_wall_limit = 0.02;    //ç®¡å£ç‚¹é™å€¼
+double g_tunnel_face_value = 0.02;  //å»é™¤éš§é“è¡¨é¢çš„é˜ˆå€¼
+double g_depth_standard = 0.005;   //æ·±åº¦æ ‡å‡†
+double g_depth_variance_standard = 0.0005;   //æ·±åº¦æ–¹å·®æ ‡å‡†
+double g_pipe_wall_start_and_end_init_value = 0.02;   //ç®¡å£ç‚¹å‰åé•¿åº¦åˆå§‹åŒ–
+double g_hole_depth_limit = 0.09;	//èºæ “å­”æ·±åº¦è¿‡æ»¤é˜ˆå€¼
 
-//1. * *ÍÖÔ²²ÎÊı¼ÆËã * *£º¸ù¾İÉè¼Æ°ë¾¶ºÍÉ¨ÃèÒÇ¸ß¶ÈÈ·¶¨ÍÖÔ²µÄ²ÎÊı¡£
+//1. * *æ¤­åœ†å‚æ•°è®¡ç®— * *ï¼šæ ¹æ®è®¾è®¡åŠå¾„å’Œæ‰«æä»ªé«˜åº¦ç¡®å®šæ¤­åœ†çš„å‚æ•°ã€‚
 void GetEllipse_(EllipseParams& ellipse, double dRadius, double dScanerHeight);
-//2. * *×ø±êÍ¶Ó° * *£º½«µãÔÆµÄ×ø±êÍ¶Ó°µ½ÍÖÔ²ÉÏ£¬Éú³ÉÓ°ÏñÍ¼µÄ×İ×ø±ê¡£
+//2. * *åæ ‡æŠ•å½± * *ï¼šå°†ç‚¹äº‘çš„åæ ‡æŠ•å½±åˆ°æ¤­åœ†ä¸Šï¼Œç”Ÿæˆå½±åƒå›¾çš„çºµåæ ‡ã€‚
 void SolvePointWithFiltered_(std::vector<PointCloud>& points, FittingEllipse& fitSection, std::vector<PointCloud>& pointAfterSolution, double dDesignSecRadius);
-//3. * *ÍÖÔ²ÄâºÏ * *£ºÊ¹ÓÃ5´Î¶àÏîÊ½ÄâºÏÍÖÔ²²ÎÊı¡£
+//3. * *æ¤­åœ†æ‹Ÿåˆ * *ï¼šä½¿ç”¨5æ¬¡å¤šé¡¹å¼æ‹Ÿåˆæ¤­åœ†å‚æ•°ã€‚
 void EllipseFitting_(const std::vector<PointCloud>& points, double& a, double& b, double& x, double& y, double& angle);
-//4. * *µãÔÆ³éÏ¡ * *£º¸ù¾İ½Ç¶È¶ÔµãÔÆ½øĞĞ³éÏ¡£¬¼õÉÙÊı¾İÁ¿¡£
+//4. * *ç‚¹äº‘æŠ½ç¨€ * *ï¼šæ ¹æ®è§’åº¦å¯¹ç‚¹äº‘è¿›è¡ŒæŠ½ç¨€ï¼Œå‡å°‘æ•°æ®é‡ã€‚
 std::vector<PointCloud> ThinningPoints_(std::vector<PointCloud> &points, double x, double y, double thinning);
-//5. * *ÎÈ¶¨ÍÖÔ²²ÎÊı * *£ºÍ¨¹ıµü´úÌŞ³ıÒì³£µã£¬»ñµÃÎÈ¶¨µÄÍÖÔ²²ÎÊı¡£
+//5. * *ç¨³å®šæ¤­åœ†å‚æ•° * *ï¼šé€šè¿‡è¿­ä»£å‰”é™¤å¼‚å¸¸ç‚¹ï¼Œè·å¾—ç¨³å®šçš„æ¤­åœ†å‚æ•°ã€‚
 void StableFittingParameters_(std::vector<PointCloud> &points, double dDesignSecRadius, double& a, double& b, double& x, double& y, double& angle);
-//6. * *¹Ü±ÚµãÌáÈ¡ * *£º¸ù¾İÄâºÏÍÖÔ²ÌáÈ¡¹Ü±ÚÉÏµÄµã¡£
+//6. * *ç®¡å£ç‚¹æå– * *ï¼šæ ¹æ®æ‹Ÿåˆæ¤­åœ†æå–ç®¡å£ä¸Šçš„ç‚¹ã€‚
 std::vector<PointCloud> ExtractingPipeWall_(std::vector<PointCloud> &points, double a, double b, double x, double y, double angle);
 std::vector<PointCloud> ExtractingPipeWallExtend_(std::vector<PointCloud> &points, double a, double b, double x, double y, double angle);
-//7. * *ËíµÀ·ÖÀà * *£º¶ÔµãÔÆ½øĞĞ·ÖÀà£¬Çø·Ö¹Ü±ÚºÍÆäËû²¿·Ö
+//7. * *éš§é“åˆ†ç±» * *ï¼šå¯¹ç‚¹äº‘è¿›è¡Œåˆ†ç±»ï¼ŒåŒºåˆ†ç®¡å£å’Œå…¶ä»–éƒ¨åˆ†
 std::vector<double> TunnelClassify_(const std::vector<PointCloud> &points);
-//8. * *ÒÆ¶¯Æ½¾ùÆ½»¬ * *£º¶ÔÉî¶ÈÊı¾İ½øĞĞÆ½»¬´¦Àí
+//8. * *ç§»åŠ¨å¹³å‡å¹³æ»‘ * *ï¼šå¯¹æ·±åº¦æ•°æ®è¿›è¡Œå¹³æ»‘å¤„ç†
 std::vector<double> MovingSmooth_(std::vector<double> &depth);
 
 void GetRealOrdinate_(const EllipseParams& ellipse, double x, double z, double& xe);
@@ -41,51 +41,51 @@ static bool _Cmp_(const PointCloud& a, const PointCloud& b)
 }
 
 
-// Ö±·½Í¼¾ùºâ»¯´¦Àí
+// ç›´æ–¹å›¾å‡è¡¡åŒ–å¤„ç†
 static void __HistogramEqualization(const std::vector<std::vector<PointCloud>>& tunnel, std::vector<int>& grayEqual)
 {
 	int row = tunnel.size();
 	int col = tunnel[0].size();
 	int pointsNum = row * col;
 
-	// ³õÊ¼»¯Í³¼ÆÊı×é
+	// åˆå§‹åŒ–ç»Ÿè®¡æ•°ç»„
 	std::vector<int> gray(256, 0);
 	std::vector<double> grayProb(256, 0.0);
 	std::vector<double> grayDist(256, 0.0);
 	grayEqual.resize(256, 0);
 
-	// Í³¼Æ»Ò¶ÈÖµ·Ö²¼
+	// ç»Ÿè®¡ç°åº¦å€¼åˆ†å¸ƒ
 	for (const auto& row : tunnel) {
 		for (const auto& point : row) {
 			gray[point.color]++;
 		}
 	}
 
-	// ¼ÆËã»Ò¶È¸ÅÂÊ·Ö²¼
+	// è®¡ç®—ç°åº¦æ¦‚ç‡åˆ†å¸ƒ
 	const double alpha = 0.05;
 	for (size_t i = 0; i < 256; i++) {
 		grayProb[i] = static_cast<double>(gray[i]) / pointsNum;
 	}
 
-	// ¼ÆËãÀÛ»ı·Ö²¼
+	// è®¡ç®—ç´¯ç§¯åˆ†å¸ƒ
 	grayDist[0] = grayProb[0];
 	for (size_t i = 1; i < 256; i++) {
 		grayDist[i] = grayDist[i - 1] + grayProb[i] * std::pow(i / 255.0, alpha);
 	}
 
-	// ¼ÆËã¾ùºâ»¯ºóµÄ»Ò¶ÈÖµ
+	// è®¡ç®—å‡è¡¡åŒ–åçš„ç°åº¦å€¼
 	for (size_t i = 0; i < 256; i++) {
 		grayEqual[i] = static_cast<uchar>(255 * grayDist[i] + 0.5);
 	}
 }
 
-// ÍÖÔ²ÄâºÏ´¦Àí
+// æ¤­åœ†æ‹Ÿåˆå¤„ç†
 static void __FitEllipseForSection(const std::vector<PointCloud>& section,
 	int index,std::vector<double>& minY,
 	std::vector<MileageEllipse>& lme,double designSecRadius) 
 {
 	std::vector<PointCloud> tunnelDownsample;
-	// µãÔÆ³éÏ¡´¦Àí
+	// ç‚¹äº‘æŠ½ç¨€å¤„ç†
 	if (section.size() > 6000) {
 		std::vector<PointCloud> sortedSection = section;
 		std::sort(sortedSection.begin(), sortedSection.end(), _Cmp_);
@@ -97,7 +97,7 @@ static void __FitEllipseForSection(const std::vector<PointCloud>& section,
 	else {
 		tunnelDownsample = section;
 	}
-	//***ÌáÈ¡ÓĞĞ§µã½øĞĞÍÖÔ²ÄâºÏ ×¢ÒâÕâ¸ö¶ÔÓ¦ÖµÊÇ²»Í¬µÄ×ø±êÖá***
+	//***æå–æœ‰æ•ˆç‚¹è¿›è¡Œæ¤­åœ†æ‹Ÿåˆ æ³¨æ„è¿™ä¸ªå¯¹åº”å€¼æ˜¯ä¸åŒçš„åæ ‡è½´***
 	std::vector<PointCloud> validPoints;
 	for (auto& point : tunnelDownsample) {
 		point.mileage = point.y;point.y = point.z;
@@ -107,12 +107,12 @@ static void __FitEllipseForSection(const std::vector<PointCloud>& section,
 		}
 	}
 
-	// ½øĞĞÍÖÔ²ÄâºÏ
+	// è¿›è¡Œæ¤­åœ†æ‹Ÿåˆ
 	FittingEllipse ellipse;
 	std::vector<PointCloud> filteredPoints;
 	SolvePointWithFiltered_(validPoints, ellipse, filteredPoints, designSecRadius);
 
-	// ¸üĞÂÀï³ÌĞÅÏ¢
+	// æ›´æ–°é‡Œç¨‹ä¿¡æ¯
 	auto minMileage = std::min_element(validPoints.begin(), validPoints.end(),
 		[](const auto& a, const auto& b) { return a.mileage < b.mileage; });
 
@@ -127,17 +127,17 @@ static void __FitEllipseForSection(const std::vector<PointCloud>& section,
 	lme.push_back({ minY.back(), dm, index, ellipse });
 }
 
-//ÂİË¨¿×Éî¶È¹ıÂËãĞÖµ ¸üĞÂÉî¶ÈÍ¼
+//èºæ “å­”æ·±åº¦è¿‡æ»¤é˜ˆå€¼ æ›´æ–°æ·±åº¦å›¾
 static void __UpdateDepthImage(std::vector<std::vector<unsigned char>>& depthImage,
 	int row, int col, double depth) {
 	if (depth < g_hole_depth_limit / 7) {
-		depthImage[row][col] = 0; //0£¨ºÚÉ«£©£º×î½ü¾àÀë¡£
+		depthImage[row][col] = 0; //0ï¼ˆé»‘è‰²ï¼‰ï¼šæœ€è¿‘è·ç¦»ã€‚
 	}
 	else if (depth < g_hole_depth_limit) {
 		depthImage[row][col] = static_cast<unsigned char>(255 * depth / g_hole_depth_limit);
 	}
 	else {
-		depthImage[row][col] = 255; //255£¨°×É«£©£º×îÔ¶¾àÀë¡£
+		depthImage[row][col] = 255; //255ï¼ˆç™½è‰²ï¼‰ï¼šæœ€è¿œè·ç¦»ã€‚
 	}
 }
 
@@ -170,7 +170,7 @@ inline static void __InterpolatePixel_(Image& grayImage,
 static void __ProcessImages(Image& grayImage,
 	std::vector<std::vector<unsigned char>>& depthImage,
 	int height, int width) {
-	// Ìî³ä¿Õ°×ÏñËØ
+	// å¡«å……ç©ºç™½åƒç´ 
 	const int windowSize = 3;
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
@@ -186,56 +186,56 @@ bool GetPointCloudDepthAndGrayImage(
 	Image& gray_data, std::vector<std::vector<unsigned char>>& depth_data,
 	double start_mileage, double end_mileage, int expand, double dDesignSecRadius, double dScannerHeight)
 {
-	EllipseParams m_ellipse;    //ÓÃÓÚÕ¹¿ªÓ°ÏñÍ¼µÄÍÖÔ²²ÎÊı£¬ÓÃÓÚºóÃæÇó³ö×İ×ø±êxe
-	GetEllipse_(m_ellipse, dDesignSecRadius, dScannerHeight);   //ÎŞ¼ÆËãÍÖÔ²²ÎÊıÊ±¸ù¾İÊäÈë²ÎÊıµÃµ½ÍÖÔ²²ÎÊı
+	EllipseParams m_ellipse;    //ç”¨äºå±•å¼€å½±åƒå›¾çš„æ¤­åœ†å‚æ•°ï¼Œç”¨äºåé¢æ±‚å‡ºçºµåæ ‡xe
+	GetEllipse_(m_ellipse, dDesignSecRadius, dScannerHeight);   //æ— è®¡ç®—æ¤­åœ†å‚æ•°æ—¶æ ¹æ®è¾“å…¥å‚æ•°å¾—åˆ°æ¤­åœ†å‚æ•°
 	//std::cout << expand << std::endl;
-	//int splitMap = 0;   //Ã¿50È¦Ò»¿éµÄ»°Ò»¹²ÄÜ·Ö¼¸¿é
-	double diff = end_mileage - start_mileage;   //Ó¦¸ÃÊÇÒ»¸öflsµÄÊµ¼Ê¼ä¾àÀï³Ì
-	// ¼ÆËãÍ¼Ïñ³ß´ç
-	size_t nImageHeight = (size_t)(2 * M_PI * dDesignSecRadius * expand) + 1;  //¸ß
-	size_t nImageWidth = (size_t)(diff * expand) + 1;  //¿í
-	// ´´½¨Í¼Ïñ¾ØÕó
+	//int splitMap = 0;   //æ¯50åœˆä¸€å—çš„è¯ä¸€å…±èƒ½åˆ†å‡ å—
+	double diff = end_mileage - start_mileage;   //åº”è¯¥æ˜¯ä¸€ä¸ªflsçš„å®é™…é—´è·é‡Œç¨‹
+	// è®¡ç®—å›¾åƒå°ºå¯¸
+	size_t nImageHeight = (size_t)(2 * M_PI * dDesignSecRadius * expand) + 1;  //é«˜
+	size_t nImageWidth = (size_t)(diff * expand) + 1;  //å®½
+	// åˆ›å»ºå›¾åƒçŸ©é˜µ
 	//cv::Mat img(nImageHeight, nColCount, CV_8UC1);
 	//cv::Mat gray_data(cv::Size(nColCount, nImageHeight), CV_8UC1);
 	//std::vector<std::vector<unsigned char>> depth_data(nImageHeight + 1, std::vector<unsigned char>(nColCount + 1));
 	gray_data.resize(nImageWidth, nImageHeight);
 	depth_data.resize(nImageHeight + 1, std::vector<unsigned char>(nImageWidth + 1));
 
-	// #½øĞĞÖ±·½Í¼¾ùºâ»¯
+	// #è¿›è¡Œç›´æ–¹å›¾å‡è¡¡åŒ–
 	std::vector<int> gray_equal;
 	__HistogramEqualization(points, gray_equal);
 	
-	// #´¦ÀíÃ¿Ò»È¦µÄµãÔÆÊı¾İ
+	// #å¤„ç†æ¯ä¸€åœˆçš„ç‚¹äº‘æ•°æ®
 	std::vector<double> minY;
-	std::vector<std::vector<double>> depth;  //Ã¿Ò»µãµÄÉî¶È
+	std::vector<std::vector<double>> depth;  //æ¯ä¸€ç‚¹çš„æ·±åº¦
 	for (int i = 0; i < points.size(); i++) {
-		// Ã¿30È¦½øĞĞÒ»´ÎÍÖÔ²ÄâºÏ
+		// æ¯30åœˆè¿›è¡Œä¸€æ¬¡æ¤­åœ†æ‹Ÿåˆ
 		if (i % 30 == 0) {
 			__FitEllipseForSection(points[i], i, minY, lme, dDesignSecRadius);
 		}
-		// ´¦ÀíÃ¿¸öµã
+		// å¤„ç†æ¯ä¸ªç‚¹
 		for (auto& point : points[i]){
-			// ¼ÆËãÕ¹¿ª×ø±ê
+			// è®¡ç®—å±•å¼€åæ ‡
 			GetRealOrdinate_(m_ellipse, point.x, point.z, point.xe);
 			int height = static_cast<int>(point.xe * expand);
 			int width = static_cast<int>((point.y - start_mileage) * expand);
 			//if (height < nImageHeight && width < nImageWidth)
-			gray_data.at<uchar>(height, width) = gray_equal[point.color];// ¸üĞÂ»Ò¶ÈÍ¼ Í¨¹ıĞĞË÷ÒıÎªxe*n£¬ÁĞË÷ÒıÎªnC-x1µÄÎ»ÖÃÀ´·ÃÎÊÍ¼ÏñÖĞµÄÏñËØÖµ
+			gray_data.at<uchar>(height, width) = gray_equal[point.color];// æ›´æ–°ç°åº¦å›¾ é€šè¿‡è¡Œç´¢å¼•ä¸ºxe*nï¼Œåˆ—ç´¢å¼•ä¸ºnC-x1çš„ä½ç½®æ¥è®¿é—®å›¾åƒä¸­çš„åƒç´ å€¼
 			point.depth = GetDxyc_(point.x, point.z,
 				lme.back().ep.x, lme.back().ep.y, lme.back().ep.A, lme.back().ep.B, lme.back().ep.angle);
 			if (point.depth == 0) {
 				point.depth = std::sqrt(point.x * point.x + point.z * point.z) - dDesignSecRadius;
 			}
-			__UpdateDepthImage(depth_data, height, width, point.depth);//Éú³ÉÉî¶ÈÍ¼²¿·Ö
+			__UpdateDepthImage(depth_data, height, width, point.depth);//ç”Ÿæˆæ·±åº¦å›¾éƒ¨åˆ†
 		}
 	}
 
-	// Í¼Ïñºó´¦Àí ²¹ºÚÉ«ÏñËØµã
+	// å›¾åƒåå¤„ç† è¡¥é»‘è‰²åƒç´ ç‚¹
 	__ProcessImages(gray_data, depth_data, nImageHeight, nImageWidth);
 	return true;
 }
 
-// ¾ØÕóÀà
+// çŸ©é˜µç±»
 class Matrix {
 private:
 	std::vector<std::vector<double>> data;
@@ -247,19 +247,19 @@ public:
 	double& operator()(int i, int j) {
 		return data[i][j];
 	}
-	// ¾ØÕóÇóÄæ (²ÉÓÃ¸ßË¹-Ô¼µ©ÏûÔª·¨)
+	// çŸ©é˜µæ±‚é€† (é‡‡ç”¨é«˜æ–¯-çº¦æ—¦æ¶ˆå…ƒæ³•)
 	Matrix inverse() {
 		Matrix augmented(rows, 2 * cols);
-		// ¹¹½¨Ôö¹ã¾ØÕó
+		// æ„å»ºå¢å¹¿çŸ©é˜µ
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
 				augmented(i, j) = data[i][j];
 				augmented(i, j + cols) = (i == j) ? 1.0 : 0.0;
 			}
 		}
-		// ¸ßË¹-Ô¼µ©ÏûÔª
+		// é«˜æ–¯-çº¦æ—¦æ¶ˆå…ƒ
 		for (int i = 0; i < rows; i++) {
-			// Ñ°ÕÒÖ÷Ôª
+			// å¯»æ‰¾ä¸»å…ƒ
 			double maxEl = std::abs(augmented(i, i));
 			int maxRow = i;
 			for (int k = i + 1; k < rows; k++) {
@@ -268,18 +268,18 @@ public:
 					maxRow = k;
 				}
 			}
-			// ½»»»ĞĞ
+			// äº¤æ¢è¡Œ
 			if (maxRow != i) {
 				for (int k = i; k < 2 * cols; k++) {
 					std::swap(augmented(maxRow, k), augmented(i, k));
 				}
 			}
-			// ½«Ö÷¶Ô½ÇÏßÔªËØ¹éÒ»»¯
+			// å°†ä¸»å¯¹è§’çº¿å…ƒç´ å½’ä¸€åŒ–
 			double div = augmented(i, i);
 			for (int j = i; j < 2 * cols; j++) {
 				augmented(i, j) /= div;
 			}
-			// ÏûÔª
+			// æ¶ˆå…ƒ
 			for (int j = 0; j < rows; j++) {
 				if (i != j) {
 					double mult = augmented(j, i);
@@ -289,7 +289,7 @@ public:
 				}
 			}
 		}
-		// ÌáÈ¡Äæ¾ØÕó²¿·Ö
+		// æå–é€†çŸ©é˜µéƒ¨åˆ†
 		Matrix inverse(rows, cols);
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < cols; j++) {
@@ -298,7 +298,7 @@ public:
 		}
 		return inverse;
 	}
-	// ¾ØÕó³Ë·¨
+	// çŸ©é˜µä¹˜æ³•
 	Matrix operator*(const Matrix& other) {
 		Matrix result(rows, other.cols);
 		for (int i = 0; i < rows; i++) {
@@ -321,7 +321,7 @@ double GetDxyc_(double x, double y, double x0, double y0, double a, double b, do
 	double dy = y - y0;
 	double A = std::atan2(y - y0, x - x0);
 	A -= angle;
-	double r = a * b / std::sqrt(std::pow(a * std::sin(A), 2) + std::pow(b * std::cos(A), 2));  //ÍÖÔ²ÉÏÒ»µãµ½Ô­µãµÄ¾àÀë
+	double r = a * b / std::sqrt(std::pow(a * std::sin(A), 2) + std::pow(b * std::cos(A), 2));  //æ¤­åœ†ä¸Šä¸€ç‚¹åˆ°åŸç‚¹çš„è·ç¦»
 	return (std::sqrt(dx * dx + dy * dy) - r);
 }
 
@@ -362,10 +362,10 @@ void GetEllipse_(EllipseParams& ellipse, double dRadius, double dScanerHeight)
 	}
 }
 
-//ÊäÈëÍÖÔ²²ÎÊıÒÔ¼°É¨ÃèµãµÄx¡¢z×ø±ê£¬½«µãÔÆ°´Í¶Ó°µ½ÄâºÏÔ²ÂÖÀªÉÏ£¬Êä³öÓ°ÏñÍ¼µÄ×İ×ø±ê£¬ºá×ø±êÎªÀï³Ì
+//è¾“å…¥æ¤­åœ†å‚æ•°ä»¥åŠæ‰«æç‚¹çš„xã€zåæ ‡ï¼Œå°†ç‚¹äº‘æŒ‰æŠ•å½±åˆ°æ‹Ÿåˆåœ†è½®å»“ä¸Šï¼Œè¾“å‡ºå½±åƒå›¾çš„çºµåæ ‡ï¼Œæ¨ªåæ ‡ä¸ºé‡Œç¨‹
 void GetRealOrdinate_(const EllipseParams& ellipse, double x, double z, double& xe)
 {
-	double r = ellipse.A; //A,B¶¼µÈÓÚr
+	double r = ellipse.A; //A,Béƒ½ç­‰äºr
 	double Xr, Yr;
 	if (x == 0)
 	{
@@ -374,7 +374,7 @@ void GetRealOrdinate_(const EllipseParams& ellipse, double x, double z, double& 
 	}
 	else
 	{
-		//ÁªÁ¢Yr=ta*XrºÍ£¨Xr-ellipse.X0)^2+(Yr-ellipse.Y0)^2=r^2¿ÉÇó½âXr£¬Yr
+		//è”ç«‹Yr=ta*Xrå’Œï¼ˆXr-ellipse.X0)^2+(Yr-ellipse.Y0)^2=r^2å¯æ±‚è§£Xrï¼ŒYr
 		double ta = z / x;
 		double yX_1 = ellipse.Y0 * ta + ellipse.X0;
 		double yX_2 = 1 + ta * ta;
@@ -388,35 +388,35 @@ void GetRealOrdinate_(const EllipseParams& ellipse, double x, double z, double& 
 		}
 		Yr = Xr * ta;
 	}
-	xe = (M_PI - std::atan2(Xr - ellipse.X0, Yr - ellipse.Y0)) * r;     //Ã¿µã»ùÓÚÍÖÔ²Õ¹¿ª
+	xe = (M_PI - std::atan2(Xr - ellipse.X0, Yr - ellipse.Y0)) * r;     //æ¯ç‚¹åŸºäºæ¤­åœ†å±•å¼€
 }
 
 /// <summary>
-/// ÍÖÔ²ÄâºÏ´¦Àíµã²¢ÂË²¨
+/// æ¤­åœ†æ‹Ÿåˆå¤„ç†ç‚¹å¹¶æ»¤æ³¢
 /// </summary>
-/// <param name="points">¶şÎ¬µãÁ´±í</param>
-/// <param name="fitSection">´æ´¢ĞÅÏ¢µÄÄâºÏÍÖÔ²</param>
-/// <param name="pointAfterSolution">ÂË²¨ºóµãÁ´±í</param>
+/// <param name="points">äºŒç»´ç‚¹é“¾è¡¨</param>
+/// <param name="fitSection">å­˜å‚¨ä¿¡æ¯çš„æ‹Ÿåˆæ¤­åœ†</param>
+/// <param name="pointAfterSolution">æ»¤æ³¢åç‚¹é“¾è¡¨</param>
 void SolvePointWithFiltered_(std::vector<PointCloud>& points, FittingEllipse& fitSection, std::vector<PointCloud>& pointAfterSolution, double dDesignSecRadius)
 {
 	double firstThinning = 360;
 	double secondThinning = 1800;
 	double a, b, x, y, angle;
-	//Ò»´ÎÄâºÏ
+	//ä¸€æ¬¡æ‹Ÿåˆ
 	EllipseFitting_(points, a, b, x, y, angle);
-	//³éÏ¡
+	//æŠ½ç¨€
 	std::vector<PointCloud> pointAfterThinning = ThinningPoints_(points, x, y, firstThinning);
-	//¶ş´ÎÄâºÏ
+	//äºŒæ¬¡æ‹Ÿåˆ
 	EllipseFitting_(pointAfterThinning, a, b, x, y, angle);
-	//ÕÒÎÈ¶¨µÄÍÖÔ²²ÎÊı
+	//æ‰¾ç¨³å®šçš„æ¤­åœ†å‚æ•°
 	StableFittingParameters_(points, dDesignSecRadius, a, b, x, y, angle);
-	//¸ù¾İÉÏÃæÎÈ¶¨µÄÍÖÔ²²ÎÊıÇó¹Ü±Úµã
+	//æ ¹æ®ä¸Šé¢ç¨³å®šçš„æ¤­åœ†å‚æ•°æ±‚ç®¡å£ç‚¹
 	std::vector<PointCloud> pipeWallPoint = ExtractingPipeWall_(points, a, b, x, y, angle);
-	//¸ù¾İÉÏÃæÎÈ¶¨µÄÍÖÔ²²ÎÊıÂË²¨È«²¿¹Ü±Úµã£¬ÉÏÒ»²½µãÊıÉÙ
+	//æ ¹æ®ä¸Šé¢ç¨³å®šçš„æ¤­åœ†å‚æ•°æ»¤æ³¢å…¨éƒ¨ç®¡å£ç‚¹ï¼Œä¸Šä¸€æ­¥ç‚¹æ•°å°‘
 	pointAfterSolution = ExtractingPipeWallExtend_(points, a, b, x, y, angle);
-	//³éÏ¡
+	//æŠ½ç¨€
 	std::vector<PointCloud> pointAfterDownsampling = ThinningPoints_(pipeWallPoint, x, y, secondThinning);
-	//Èı´ÎÄâºÏ
+	//ä¸‰æ¬¡æ‹Ÿåˆ
 	EllipseFitting_(pointAfterDownsampling, a, b, x, y, angle);
 	fitSection.A = a;
 	fitSection.B = b;
@@ -426,17 +426,17 @@ void SolvePointWithFiltered_(std::vector<PointCloud>& points, FittingEllipse& fi
 }
 
 /// <summary>
-/// ÓÃ5´Î¶àÏîÊ½ÄâºÏÍÖÔ²²ÎÊı
+/// ç”¨5æ¬¡å¤šé¡¹å¼æ‹Ÿåˆæ¤­åœ†å‚æ•°
 /// </summary>
-/// <param name="points">¶şÎ¬µã</param>
-/// <param name="a">³¤°ëÖá</param>
-/// <param name="b">¶Ì°ëÖá</param>
-/// <param name="x">Ô²ĞÄ</param>
-/// <param name="y">Ô²ĞÄ</param>
-/// <param name="angle">Æ«×ª½Ç</param>
+/// <param name="points">äºŒç»´ç‚¹</param>
+/// <param name="a">é•¿åŠè½´</param>
+/// <param name="b">çŸ­åŠè½´</param>
+/// <param name="x">åœ†å¿ƒ</param>
+/// <param name="y">åœ†å¿ƒ</param>
+/// <param name="angle">åè½¬è§’</param>
 void EllipseFitting_(const std::vector<PointCloud>& points, double& a, double& b, double& x, double& y, double& angle)
 {
-	//5´Î¶àÏîÊ½ÓÃ 5*5 µÃÏµÊı¾ØÕóºÍ 5*1 µÄ³£Êı¾ØÕó
+	//5æ¬¡å¤šé¡¹å¼ç”¨ 5*5 å¾—ç³»æ•°çŸ©é˜µå’Œ 5*1 çš„å¸¸æ•°çŸ©é˜µ
 	//Eigen::Matrix<double, 5, 5> conf = Eigen::MatrixXd::Zero(5, 5);
 	//Eigen::Matrix<double, 5, 1> cons = Eigen::MatrixXd::Zero(5, 1);
 	Matrix conf(5, 5);
@@ -492,7 +492,7 @@ void EllipseFitting_(const std::vector<PointCloud>& points, double& a, double& b
 	//Eigen::Matrix<double, 5, 1> fittingResult = conf.inverse() * cons;
 	Matrix fittingResult = conf.inverse() * cons;
 	double A = fittingResult(0, 0), B = fittingResult(1, 0), C = fittingResult(2, 0), D = fittingResult(3, 0), E = fittingResult(4, 0);
-	//¹«Ê½
+	//å…¬å¼
 	x = (2 * B * C - A * D) / (A * A - 4 * B);
 	y = (2 * D - A * C) / (A * A - 4 * B);
 	double t = 2 * (A * C * D - B * C * C - D * D + 4 * B * E - A * A * E);
@@ -508,16 +508,16 @@ void EllipseFitting_(const std::vector<PointCloud>& points, double& a, double& b
 }
 
 /// <summary>
-/// ¶şÎ¬µã³éÏ¡(°´½Ç¶È)
+/// äºŒç»´ç‚¹æŠ½ç¨€(æŒ‰è§’åº¦)
 /// </summary>
-/// <param name="points">¶şÎ¬µã</param>
-/// <param name="x">Ô²ĞÄ</param>
-/// <param name="y">Ô²ĞÄ</param>
-/// <param name="thinning">³éÏ¡·İÊı</param>
-/// <returns>³éÏ¡ºóµÄ¶şÎ¬µã</returns>
+/// <param name="points">äºŒç»´ç‚¹</param>
+/// <param name="x">åœ†å¿ƒ</param>
+/// <param name="y">åœ†å¿ƒ</param>
+/// <param name="thinning">æŠ½ç¨€ä»½æ•°</param>
+/// <returns>æŠ½ç¨€åçš„äºŒç»´ç‚¹</returns>
 std::vector<PointCloud> ThinningPoints_(std::vector<PointCloud>& points, double x, double y, double thinning)
 {
-	//¼ÆËãµãµÄ·½Î»½Ç£¬Ëæºó°´·½Î»½Ç´óĞ¡ÅÅÁĞ£¬ÒÔ±ãÓÚ°´·İÊı³éÏ¡
+	//è®¡ç®—ç‚¹çš„æ–¹ä½è§’ï¼ŒéšåæŒ‰æ–¹ä½è§’å¤§å°æ’åˆ—ï¼Œä»¥ä¾¿äºæŒ‰ä»½æ•°æŠ½ç¨€
 	for (int i = 0; i < points.size(); i++)
 	{
 		double dy = points[i].y - y, dx = points[i].x - x;
@@ -525,13 +525,13 @@ std::vector<PointCloud> ThinningPoints_(std::vector<PointCloud>& points, double 
 	}
 	sort(points.begin(), points.end(), [](const PointCloud& A, const PointCloud& B) {return A.angle < B.angle; });
 	if (points.size() == 0) return points;
-	double angleMin = points[0].angle;//×îĞ¡µÄ½Ç
-	double angleMax = points[points.size() - 1].angle;//×î´óµÄ½Ç
-	double interval = 2 * M_PI / thinning;//³éÏ¡·İÊı
-	int index = 0; //±ê¼Ç
+	double angleMin = points[0].angle;//æœ€å°çš„è§’
+	double angleMax = points[points.size() - 1].angle;//æœ€å¤§çš„è§’
+	double interval = 2 * M_PI / thinning;//æŠ½ç¨€ä»½æ•°
+	int index = 0; //æ ‡è®°
 	std::vector<PointCloud> selectPoint;
 	double piece = (angleMax - angleMin) / interval;
-	//Ô­Àí£º¸ø¶¨Ò»¸ö³éÏ¡·İÊı£¬È»ºóÇóÔÚÕâ¸ö³éÏ¡Ğ¡·İÖĞ°üº¬µÄ·½Î»½Ç£¬´ï³É³éÏ¡
+	//åŸç†ï¼šç»™å®šä¸€ä¸ªæŠ½ç¨€ä»½æ•°ï¼Œç„¶åæ±‚åœ¨è¿™ä¸ªæŠ½ç¨€å°ä»½ä¸­åŒ…å«çš„æ–¹ä½è§’ï¼Œè¾¾æˆæŠ½ç¨€
 	for (int i = 0; i < piece; i++)
 	{
 		double startAngle = i * interval + angleMin;
@@ -550,32 +550,32 @@ std::vector<PointCloud> ThinningPoints_(std::vector<PointCloud>& points, double 
 }
 
 /// <summary>
-/// ÎÈ¶¨ÍÖÔ²²ÎÊı
+/// ç¨³å®šæ¤­åœ†å‚æ•°
 /// </summary>
-/// <param name="points">¶şÎ¬µã</param>
-/// <param name="dDesignSecRadius">¶ÏÃæÉè¼Æ°ë¾¶</param>
-/// <param name="a">³¤°ëÖá</param>
-/// <param name="b">¶Ì°ëÖá</param>
-/// <param name="x">Ô²ĞÄ</param>
-/// <param name="y">Ô²ĞÄ</param>
-/// <param name="angle">Æ«×ª½Ç</param>
+/// <param name="points">äºŒç»´ç‚¹</param>
+/// <param name="dDesignSecRadius">æ–­é¢è®¾è®¡åŠå¾„</param>
+/// <param name="a">é•¿åŠè½´</param>
+/// <param name="b">çŸ­åŠè½´</param>
+/// <param name="x">åœ†å¿ƒ</param>
+/// <param name="y">åœ†å¿ƒ</param>
+/// <param name="angle">åè½¬è§’</param>
 void StableFittingParameters_(std::vector<PointCloud>& points, double dDesignSecRadius, double& a, double& b, double& x, double& y, double& angle)
 {
-	//ÏÈÈÃÔ²ĞÄÉÔÎ¢Æ«ÒÆ£¬ÈÃµÚÒ»´ÎÑ­»·¿ÉÒÔÅÜÆğÀ´
+	//å…ˆè®©åœ†å¿ƒç¨å¾®åç§»ï¼Œè®©ç¬¬ä¸€æ¬¡å¾ªç¯å¯ä»¥è·‘èµ·æ¥
 	double xLast = x + 1;
 	double yLast = y + 1;
-	//ÅĞ¶ÏÁ½´ÎÔ²ĞÄµÄ¾àÀëÆ«²îÖµÊÇ·ñ>0.001
+	//åˆ¤æ–­ä¸¤æ¬¡åœ†å¿ƒçš„è·ç¦»åå·®å€¼æ˜¯å¦>0.001
 	while (std::max(abs(xLast - x), std::abs(yLast - y)) > 0.001)
 	{
-		double errorAddition = 0;//Æ½¾ùÎó²î
-		//¼ÆËãÎó²î
+		double errorAddition = 0;//å¹³å‡è¯¯å·®
+		//è®¡ç®—è¯¯å·®
 		for (int i = 0; i < points.size(); i++)
 		{
 			points[i].error = abs(std::sqrt((points[i].x - x) * (points[i].x - x) + (points[i].y - y) * (points[i].y - y)) - dDesignSecRadius);
 			errorAddition += points[i].error;
 		}
 		errorAddition = errorAddition / points.size();
-		//½«Îó²î´óÓÚ2±¶Îó²îµÄµãÌŞ³ı
+		//å°†è¯¯å·®å¤§äº2å€è¯¯å·®çš„ç‚¹å‰”é™¤
 		for (int i = 0; i < points.size(); i++)
 		{
 			if (points[i].error > 2 * errorAddition)
@@ -587,36 +587,36 @@ void StableFittingParameters_(std::vector<PointCloud>& points, double dDesignSec
 		}
 		xLast = x;
 		yLast = y;
-		//½øĞĞÒ»´ÎÍÖÔ²ÄâºÏ
+		//è¿›è¡Œä¸€æ¬¡æ¤­åœ†æ‹Ÿåˆ
 		EllipseFitting_(points, a, b, x, y, angle);
 	}
 }
 
 /// <summary>
-/// »ùÓÚÄâºÏÍÖÔ²¼ÆËãÃ¿µãµ½ÍÖÔ²µÄ¾àÀë£¬ÌáÈ¡¹Ü±Úµã
+/// åŸºäºæ‹Ÿåˆæ¤­åœ†è®¡ç®—æ¯ç‚¹åˆ°æ¤­åœ†çš„è·ç¦»ï¼Œæå–ç®¡å£ç‚¹
 /// </summary>
-/// <param name="points">¶şÎ¬µã</param>
-/// <param name="a">³¤°ëÖá</param>
-/// <param name="b">¶Ì°ëÖá</param>
-/// <param name="x">Ô²ĞÄ</param>
-/// <param name="y">Ô²ĞÄ</param>
-/// <param name="angle">Æ«×ª½Ç</param>
-/// <returns>·µ»Ø¹Ü±ÚÉÏµÄµã</returns>
+/// <param name="points">äºŒç»´ç‚¹</param>
+/// <param name="a">é•¿åŠè½´</param>
+/// <param name="b">çŸ­åŠè½´</param>
+/// <param name="x">åœ†å¿ƒ</param>
+/// <param name="y">åœ†å¿ƒ</param>
+/// <param name="angle">åè½¬è§’</param>
+/// <returns>è¿”å›ç®¡å£ä¸Šçš„ç‚¹</returns>
 std::vector<PointCloud> ExtractingPipeWall_(std::vector<PointCloud>& points, double a, double b, double x, double y, double angle)
 {
-	double averageR = (a + b) / 2;	//È¡³¤¶Ì°ëÖáµÄÆ½¾ùÖµ
-	double pointAngle;  //µãµÄÆ«×ª½Ç
-	double length; //µã¶ÔÓ¦µÄ³¤¶È
+	double averageR = (a + b) / 2;	//å–é•¿çŸ­åŠè½´çš„å¹³å‡å€¼
+	double pointAngle;  //ç‚¹çš„åè½¬è§’
+	double length; //ç‚¹å¯¹åº”çš„é•¿åº¦
 	for (int i = 0; i < points.size(); i++)
 	{
 		pointAngle = atan2(points[i].y - y, points[i].x - x);
-		//ÓÉÍÖÔ²·½³ÌµÃµ½µãµ½ÍÖÔ²Ô²ĞÄµÄ¾àÀë
+		//ç”±æ¤­åœ†æ–¹ç¨‹å¾—åˆ°ç‚¹åˆ°æ¤­åœ†åœ†å¿ƒçš„è·ç¦»
 		length = a * b / sqrt(pow(a * sin(pointAngle - angle), 2) + pow(b * cos(pointAngle - angle), 2));
 		points[i].error = sqrt(pow(points[i].y - y, 2) + pow(points[i].x - x, 2)) - length;
 		points[i].area = (M_PI - pointAngle) * averageR;
 		points[i].angle = pointAngle;
 	}
-	//¸ù¾İÉ¨¹ıµÄÇøÓò½øĞĞ´ÓĞ¡µ½´óÅÅÁĞ
+	//æ ¹æ®æ‰«è¿‡çš„åŒºåŸŸè¿›è¡Œä»å°åˆ°å¤§æ’åˆ—
 	sort(points.begin(), points.end(), [](const PointCloud& A, const PointCloud& B) {return A.area < B.area; });
 	std::vector<double> temp = TunnelClassify_(points);
 	std::vector<PointCloud> selectPoint;
@@ -631,30 +631,30 @@ std::vector<PointCloud> ExtractingPipeWall_(std::vector<PointCloud>& points, dou
 }
 
 /// <summary>
-/// »ùÓÚÄâºÏÍÖÔ²¼ÆËãÃ¿µãµ½ÍÖÔ²µÄ¾àÀë£¬ÌáÈ¡¹Ü±Úµã£¬±ÈÉÏÃæµÄãĞÖµÒª¿í·º£¬ÓÃÓÚÂË²¨
+/// åŸºäºæ‹Ÿåˆæ¤­åœ†è®¡ç®—æ¯ç‚¹åˆ°æ¤­åœ†çš„è·ç¦»ï¼Œæå–ç®¡å£ç‚¹ï¼Œæ¯”ä¸Šé¢çš„é˜ˆå€¼è¦å®½æ³›ï¼Œç”¨äºæ»¤æ³¢
 /// </summary>
-/// <param name="points">¶şÎ¬µã</param>
-/// <param name="a">³¤°ëÖá</param>
-/// <param name="b">¶Ì°ëÖá</param>
-/// <param name="x">Ô²ĞÄ</param>
-/// <param name="y">Ô²ĞÄ</param>
-/// <param name="angle">Æ«×ª½Ç</param>
-/// <returns>·µ»Ø¹Ü±ÚÉÏµÄµã</returns>
+/// <param name="points">äºŒç»´ç‚¹</param>
+/// <param name="a">é•¿åŠè½´</param>
+/// <param name="b">çŸ­åŠè½´</param>
+/// <param name="x">åœ†å¿ƒ</param>
+/// <param name="y">åœ†å¿ƒ</param>
+/// <param name="angle">åè½¬è§’</param>
+/// <returns>è¿”å›ç®¡å£ä¸Šçš„ç‚¹</returns>
 std::vector<PointCloud> ExtractingPipeWallExtend_(std::vector<PointCloud>& points, double a, double b, double x, double y, double angle)
 {
-	double averageR = (a + b) / 2;	//È¡³¤¶Ì°ëÖáµÄÆ½¾ùÖµ
-	double pointAngle;  //µãµÄÆ«×ª½Ç
-	double length; //µã¶ÔÓ¦µÄ³¤¶È
+	double averageR = (a + b) / 2;	//å–é•¿çŸ­åŠè½´çš„å¹³å‡å€¼
+	double pointAngle;  //ç‚¹çš„åè½¬è§’
+	double length; //ç‚¹å¯¹åº”çš„é•¿åº¦
 	for (int i = 0; i < points.size(); i++)
 	{
 		pointAngle = atan2(points[i].y - y, points[i].x - x);
-		//ÓÉÍÖÔ²·½³ÌµÃµ½µãµ½ÍÖÔ²Ô²ĞÄµÄ¾àÀë
+		//ç”±æ¤­åœ†æ–¹ç¨‹å¾—åˆ°ç‚¹åˆ°æ¤­åœ†åœ†å¿ƒçš„è·ç¦»
 		length = a * b / sqrt(pow(a * sin(pointAngle - angle), 2) + pow(b * cos(pointAngle - angle), 2));
 		points[i].error = sqrt(pow(points[i].y - y, 2) + pow(points[i].x - x, 2)) - length;
 		points[i].area = (M_PI - pointAngle) * averageR;
 		points[i].angle = pointAngle;
 	}
-	//¸ù¾İÉ¨¹ıµÄÇøÓò½øĞĞ´ÓĞ¡µ½´óÅÅÁĞ
+	//æ ¹æ®æ‰«è¿‡çš„åŒºåŸŸè¿›è¡Œä»å°åˆ°å¤§æ’åˆ—
 	sort(points.begin(), points.end(), [](const PointCloud& A, const PointCloud& B) {return A.area < B.area; });
 	std::vector<double> temp = TunnelClassify_(points);
 	std::vector<PointCloud> selectPoint;
@@ -670,36 +670,36 @@ std::vector<PointCloud> ExtractingPipeWallExtend_(std::vector<PointCloud>& point
 }
 
 /// <summary>
-/// ÌáÈ¡¹Ü±Úµã
+/// æå–ç®¡å£ç‚¹
 /// </summary>
-/// <param name="points">¶şÎ¬µã</param>
-/// <returns>ËíµÀµã</returns>
+/// <param name="points">äºŒç»´ç‚¹</param>
+/// <returns>éš§é“ç‚¹</returns>
 std::vector<double> TunnelClassify_(const std::vector<PointCloud>& points)
 {
 	std::vector<double> area;
 	std::vector<double> error;
 	std::vector<double> result;
-	//·Ö±ğ¼ÇÂ¼µãµÄ²î¾àºÍÉ¨¹ıµÄÃæ»ı
+	//åˆ†åˆ«è®°å½•ç‚¹çš„å·®è·å’Œæ‰«è¿‡çš„é¢ç§¯
 	for (int i = 0; i < points.size(); i++)
 	{
 		area.push_back(points[i].area);
 		error.push_back(points[i].error);
 	}
 	int num = points.size();
-	//¼ÇÂ¼Ç°ºóÁ½Îó²îµÄÉî¶ÈÖµ
+	//è®°å½•å‰åä¸¤è¯¯å·®çš„æ·±åº¦å€¼
 	std::vector<double> depth;
 	depth.push_back(0);
 	for (int i = 1; i < num; i++)
 	{
 		depth.push_back(error[i] - error[i - 1]);
 	}
-	//¼ÆËãÉî¶È
+	//è®¡ç®—æ·±åº¦
 	std::vector<double> depthAfterSmooth = MovingSmooth_(depth);
-	//¼ÆËãÉî¶È²î
+	//è®¡ç®—æ·±åº¦å·®
 	std::vector<double> depthDifference;
-	//Éî¶ÈÆ½¾ù
+	//æ·±åº¦å¹³å‡
 	double depthAverage = 0;
-	//Éî¶È·½²î
+	//æ·±åº¦æ–¹å·®
 	double depthVariance = 0;
 	for (int i = 0; i < depthAfterSmooth.size(); i++)
 	{
@@ -725,23 +725,23 @@ std::vector<double> TunnelClassify_(const std::vector<PointCloud>& points)
 	{
 		double hd = depthAfterSmooth[i];
 		if (abs(depth[i]) < abs(depthAfterSmooth[i]) || abs(depth[i]) > ht) hd = depth[i];
-		//¸ù¾İÇ°Ãæ¼ÆËãµÄÉî¶È²î¾ùÖµdepthAverage £¬·½²îdepthvariance£¬¹Ü±ÚµãµÄÉî¶È²î´ó¸Åht1-ht2Ö®¼ä
+		//æ ¹æ®å‰é¢è®¡ç®—çš„æ·±åº¦å·®å‡å€¼depthAverage ï¼Œæ–¹å·®depthvarianceï¼Œç®¡å£ç‚¹çš„æ·±åº¦å·®å¤§æ¦‚ht1-ht2ä¹‹é—´
 		if (hd < ht1 && hd > ht2)
 		{
 			st += 1;
 			sd += area[i] - area[i - 1];
-			//¶ÔÂú×ãÉî¶È²îÔÙht1~ht2Ö®¼ä£¬Ç°ºó³¤¶Èsd>lt£¬µ¥µãÉî¶ÈÔÚÒ»¶¨·¶Î§µÄµã¼¯£¬¿´×÷¹Ü±Úµã
+			//å¯¹æ»¡è¶³æ·±åº¦å·®å†ht1~ht2ä¹‹é—´ï¼Œå‰åé•¿åº¦sd>ltï¼Œå•ç‚¹æ·±åº¦åœ¨ä¸€å®šèŒƒå›´çš„ç‚¹é›†ï¼Œçœ‹ä½œç®¡å£ç‚¹
 			if (sd > lt && (abs(error[i]) < ht || abs(error[i] - s[i - 1]) < ht))
 			{
-				s[i] = (error[i] * 4 + s[i - 1] * 3) / 7;//¹Ü±Úµã²ÎÓësµÄ¼ÆËã
+				s[i] = (error[i] * 4 + s[i - 1] * 3) / 7;//ç®¡å£ç‚¹å‚ä¸sçš„è®¡ç®—
 				for (int j = st - 1; j > 0; j--)
 				{
-					s[i - j] = (error[i - j] * 3 + s[i - j - 1] * 4) / 7;//¹Ü±Úµã²ÎÓësµÄ¼ÆËã
+					s[i - j] = (error[i - j] * 3 + s[i - j - 1] * 4) / 7;//ç®¡å£ç‚¹å‚ä¸sçš„è®¡ç®—
 				}
 			}
 			else
 			{
-				s[i] = s[i - 1];//·Ç¹Ü±ÚµãsÖµ²»±ä
+				s[i] = s[i - 1];//éç®¡å£ç‚¹så€¼ä¸å˜
 			}
 		}
 		else
@@ -749,29 +749,29 @@ std::vector<double> TunnelClassify_(const std::vector<PointCloud>& points)
 			st = 0;
 			sd = 0;
 			s[i] = s[i - 1];
-		}//·Ç¹Ü±ÚµãsÖµ²»±ä
+		}//éç®¡å£ç‚¹så€¼ä¸å˜
 	}
 	return s;
 }
 
 /// <summary>
-/// ÒÆ¶¯Æ½¾ù
+/// ç§»åŠ¨å¹³å‡
 /// </summary>
-/// <param name="depth">Éî¶È</param>
-/// <returns>Éî¶È</returns>
+/// <param name="depth">æ·±åº¦</param>
+/// <returns>æ·±åº¦</returns>
 std::vector<double> MovingSmooth_(std::vector<double>& depth)
 {
-	//ÒÆ¶¯Æ½¾ù²½³¤Ğ¡ÓÚ2Ö±½ÓÍË³ö
+	//ç§»åŠ¨å¹³å‡æ­¥é•¿å°äº2ç›´æ¥é€€å‡º
 	if (g_smooth_step < 2) return depth;
 	int n = depth.size();
-	int span = std::min(n, g_smooth_step); //²½³¤
-	int width = span - 1 + span % 2;  //±£Ö¤²½³¤ÎªÆæÊı
-	if (width == 1) return depth; //µãÊıĞ¡ÓÚ3»òÕß²½³¤Ğ¡ÓÚ3Ê±·µ»ØÊı×é
+	int span = std::min(n, g_smooth_step); //æ­¥é•¿
+	int width = span - 1 + span % 2;  //ä¿è¯æ­¥é•¿ä¸ºå¥‡æ•°
+	if (width == 1) return depth; //ç‚¹æ•°å°äº3æˆ–è€…æ­¥é•¿å°äº3æ—¶è¿”å›æ•°ç»„
 	int height = (width - 1) / 2;
 	double sumBegin = 0, sumBehind = 0;
 	int length = width - 2;
 	double* tmp = new double[n]();
-	for (int i = 0; i < length; i++)//Ç°ºó°ë²½²½³¤ÄÚ
+	for (int i = 0; i < length; i++)//å‰ååŠæ­¥æ­¥é•¿å†…
 	{
 		sumBegin += depth[i];
 		sumBehind += depth[n - 1 - i];

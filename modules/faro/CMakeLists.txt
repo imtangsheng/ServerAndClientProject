@@ -1,16 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(TestServer LANGUAGES CXX)
+project(DevTools LANGUAGES CXX)
 
-# 获取环境变量South_Thirdparty
-set(THIRD_PARTY_PATH E:/works/thirdparty)
-if(NOT THIRD_PARTY_PATH)
-    message(FATAL_ERROR "Please set South_Thirdparty environment variable")
-endif()
+# 获取环境变量South_Thirdparty 调试第三方库
+#set(THIRD_PARTY_PATH E:/works/thirdparty)
+#if(NOT THIRD_PARTY_PATH)
+#    message(FATAL_ERROR "Please set South_Thirdparty environment variable")
+#endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Core核心需要包含
+# Gui图像保存需要gui模块
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui Network Concurrent)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Network Concurrent)
 
@@ -31,9 +33,9 @@ add_executable(FaroRealtimeSolving
     main.cpp
 )
 
-add_executable(case 
-    case.cpp
-)
+#add_executable(case 
+#    case.cpp
+#)
 
 
 # 添加共享库
@@ -70,9 +72,9 @@ target_link_libraries(FaroRealtimeSolving
   MySharedLib
 )
 
-target_link_libraries(case
-  MySharedLib
-)
+#target_link_libraries(case
+#  MySharedLib
+#)
 
 # include(GNUInstallDirs)
 # install(TARGETS FaroRealtimeSolving

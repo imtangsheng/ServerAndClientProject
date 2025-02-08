@@ -1,12 +1,12 @@
 #pragma once
 #include "iTask.h"
 
-//std::vector ±¾Éí²»ÊÇÏß³Ì°²È«µÄ,Ê¹ÓÃ¶ÁÈ¡txtµÄÖµ
+//std::vector æœ¬èº«ä¸æ˜¯çº¿ç¨‹å®‰å…¨çš„,ä½¿ç”¨è¯»å–txtçš„å€¼
 bool get_mileage_from_file(const std::string& taskPath, std::vector<Mileage>& mileage);
-//Çã½Ç¼Æ
+//å€¾è§’è®¡
 bool get_clinometer_from_file(const std::string& taskPath, std::vector<Clinometer>& vec);
 
-//µãÔÆÕ¹¿ª ÓÃÓÚÑ¡ÔñÊ¹ÓÃ expandPointcloud Ê¹ÓÃµÄÄ£ĞÍ
+//ç‚¹äº‘å±•å¼€ ç”¨äºé€‰æ‹©ä½¿ç”¨ expandPointcloud ä½¿ç”¨çš„æ¨¡å‹
 bool PointCloudExpand(bool hasClinometer, TaskFaroPart &part);
 
 //template <class T> static std::pair<int, int> binarySearch(const std::vector<T>& dataMap, const T& target);
@@ -17,7 +17,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, const std::map<double, double>& mileageWithTime, const std::map<double, double>& clinometerWithTime,
 	Speed flag, bool Reverse, double& start_mileage, double& end_mileage);
 
-//±£´æµãÔÆ×ª»»Õ¹¿ªµÄÍ¼Æ¬
+//ä¿å­˜ç‚¹äº‘è½¬æ¢å±•å¼€çš„å›¾ç‰‡
 bool WritePointCloudImage(TaskFaroPart& part,
 	const QString& grayImagePath, const QString& depthImagePath,
 	int merge_type = 0

@@ -8,7 +8,7 @@
 #include <QDateTime>
 #include <QTextStream>
 #include <QMutex>
-// ÈÕÖ¾¼¶±ðÃ¶¾Ù
+// æ—¥å¿—çº§åˆ«æžšä¸¾
 enum LogLevel {
     Debug = 0x0001,
     Info = 0x0002,
@@ -21,19 +21,19 @@ enum LogLevel {
 class Logger {
 public:
     static Logger* getInstance();
-    // ³õÊ¼»¯ÈÕÖ¾ÏµÍ³
+    // åˆå§‹åŒ–æ—¥å¿—ç³»ç»Ÿ
     void init(const QString& path = QString(),
         const QString& name = QString(),
         LogLevel level = All,
         bool console = false);
 
-    // Ð´ÈÕÖ¾½Ó¿Ú             
+    // å†™æ—¥å¿—æŽ¥å£             
     void log(LogLevel level, const QString& msg,
         const char* file = nullptr,
         int line = 0,
         const char* function = nullptr);
 
-    // ÉèÖÃ/»ñÈ¡ÅäÖÃ
+    // è®¾ç½®/èŽ·å–é…ç½®
     void setLogLevel(LogLevel level);
     void setMaxFileSize(qint64 bytes);
     void setMaxFileCount(int count);
@@ -41,9 +41,9 @@ public:
 
     bool isLevelEnabled(LogLevel level) const;
 
-    // °²×°ÏûÏ¢´¦Àí¹³×Ó
+    // å®‰è£…æ¶ˆæ¯å¤„ç†é’©å­
     void installMessageHandler();
-    // ÒÆ³ýÏûÏ¢´¦Àí¹³×Ó
+    // ç§»é™¤æ¶ˆæ¯å¤„ç†é’©å­
     void uninstallMessageHandler();
     ~Logger();
 private:
@@ -60,13 +60,13 @@ private:
     void openLogFile();
     QString getFileName() const;
 
-    // ÓÃÓÚ±£´æÖ®Ç°µÄÏûÏ¢´¦Àíº¯Êý,Êä³öÖØ¶¨Ïò
+    // ç”¨äºŽä¿å­˜ä¹‹å‰çš„æ¶ˆæ¯å¤„ç†å‡½æ•°,è¾“å‡ºé‡å®šå‘
     static QtMessageHandler previousMessageHandler;
-    // ×Ô¶¨ÒåÏûÏ¢´¦Àíº¯Êý
+    // è‡ªå®šä¹‰æ¶ˆæ¯å¤„ç†å‡½æ•°
     static void messageHandler(QtMsgType type,
         const QMessageLogContext& context,
         const QString& message);
-    // ½«QtÏûÏ¢ÀàÐÍ×ª»»ÎªÈÕÖ¾¼¶±ð                         
+    // å°†Qtæ¶ˆæ¯ç±»åž‹è½¬æ¢ä¸ºæ—¥å¿—çº§åˆ«                         
     static LogLevel qtTypeToLogLevel(QtMsgType type);
 
 private:
@@ -79,13 +79,13 @@ private:
     bool consoleOutput{false};
 
     QFile* logFile{nullptr};
-    qint64 maxFileSize{ 10 * 1024 * 1024 };// Ä¬ÈÏ10MB
+    qint64 maxFileSize{ 10 * 1024 * 1024 };// é»˜è®¤10MB
     int maxFiles{100};
 
     QMutex writeMutex;
 };
 
-// ÈÕÖ¾ºê
+// æ—¥å¿—å®
 #ifdef QT_DEBUG
 #define LOG_DEBUG(msg) Logger::getInstance()->log(Debug, msg, __FILE__, __LINE__, Q_FUNC_INFO)
 #else

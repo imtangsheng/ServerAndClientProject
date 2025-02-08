@@ -5,7 +5,7 @@
 #include "PointCloudImageGenerate.h"
 #include <mutex>
 
-// ´´½¨JSONÊı¾İ
+// åˆ›å»ºJSONæ•°æ®
 QJsonObject createTaskJson()
 {
 	QJsonObject missionObj;
@@ -37,7 +37,7 @@ QJsonObject createTaskJson()
 	return taskObj;
 }
 
-// ±£´æJSONµ½ÎÄ¼ş
+// ä¿å­˜JSONåˆ°æ–‡ä»¶
 bool saveJsonToFile(const QJsonObject& jsonObj, const QString& filePath)
 {
 	QJsonDocument doc(jsonObj);
@@ -45,12 +45,12 @@ bool saveJsonToFile(const QJsonObject& jsonObj, const QString& filePath)
 	if (!file.open(QIODevice::WriteOnly)) {
 		return false;
 	}
-	file.write(doc.toJson(QJsonDocument::Indented)); // Indented ¸ñÊ½»¯Êä³ö
+	file.write(doc.toJson(QJsonDocument::Indented)); // Indented æ ¼å¼åŒ–è¾“å‡º
 	file.close();
 	return true;
 }
 
-// ´ÓÎÄ¼ş¶ÁÈ¡JSON
+// ä»æ–‡ä»¶è¯»å–JSON
 QJsonObject loadJsonFromFile(const QString& filePath)
 {
 	QFile file(filePath);
@@ -77,13 +77,13 @@ static bool GetMile(const std::string& path, std::vector<MileageData>& data) {
 	}
 
 	std::string line;
-	std::getline(file, line); // Ìø¹ı±êÌâĞĞ
+	std::getline(file, line); // è·³è¿‡æ ‡é¢˜è¡Œ
 
 	while (std::getline(file, line)) {
 		std::istringstream iss(line);
 		MileageData entry;
 
-		// °´¿Õ¸ñ»òÖÆ±í·û½âÎöÃ¿Ò»ĞĞ
+		// æŒ‰ç©ºæ ¼æˆ–åˆ¶è¡¨ç¬¦è§£ææ¯ä¸€è¡Œ
 		if (iss >> entry.ID >> entry.LeftMileage >> entry.LeftTime >> entry.LeftTimeRaw
 			>> entry.RightMileage >> entry.RightTime >> entry.RightTimeRaw) {
 			data.push_back(entry);
@@ -106,13 +106,13 @@ static void Interp1(const std::vector<long long>& Time, const std::vector<Mileag
 		Mixdata[i].RightTimeRaw = Time[i];
 		Mixdata[i].LeftTimeRaw = Time[i];
 	}
-	//×óÀï³Ì²åÖµ
+	//å·¦é‡Œç¨‹æ’å€¼
 	int i = 1; int j; double ratio, ratio1, ratio2, Mile; long long MileRaw;
 	for (j = 1; j < numIn; j++) {
 		while (Time[i] <= data[j].LeftTimeRaw) {
 			ratio = static_cast<double>(Time[i] - data[j - 1].LeftTimeRaw) / static_cast<double>(data[j].LeftTimeRaw - data[j - 1].LeftTimeRaw);
-			Mile = data[j].LeftMileage - data[j - 1].LeftMileage;//Ä³¸öÇø¶ÎÀï³ÌÔöÁ¿
-			MileRaw = data[j].LeftTime - data[j - 1].LeftTime;//Ä³¸öÇø¶ÎÊ±¼äÔöÁ¿
+			Mile = data[j].LeftMileage - data[j - 1].LeftMileage;//æŸä¸ªåŒºæ®µé‡Œç¨‹å¢é‡
+			MileRaw = data[j].LeftTime - data[j - 1].LeftTime;//æŸä¸ªåŒºæ®µæ—¶é—´å¢é‡
 			Mixdata[i].LeftMileage = Mile * ratio + data[j - 1].LeftMileage;
 			Mixdata[i].LeftTime = MileRaw * ratio + data[j - 1].LeftTime;
 			i++;
@@ -130,13 +130,13 @@ static void Interp1(const std::vector<long long>& Time, const std::vector<Mileag
 		Mixdata[num - 1].LeftTime = Time[num - 1] - data[numIn - 1].LeftTimeRaw + data[numIn - 1].LeftTime;
 	}
 	Mixdata[0].LeftMileage = 0.0; Mixdata[0].LeftTime = Mixdata[1].LeftTime - 1e5;
-	//ÓÒÀï³Ì²åÖµ
+	//å³é‡Œç¨‹æ’å€¼
 	i = 1;
 	for (j = 1; j < numIn; j++) {
 		while (Time[i] <= data[j].RightTimeRaw) {
 			ratio = static_cast<double>(Time[i] - data[j - 1].RightTimeRaw) / static_cast<double>(data[j].RightTimeRaw - data[j - 1].RightTimeRaw);
-			Mile = data[j].RightMileage - data[j - 1].RightMileage;//Ä³¸öÇø¶ÎÀï³ÌÔöÁ¿
-			MileRaw = data[j].RightTime - data[j - 1].RightTime;//Ä³¸öÇø¶ÎÊ±¼äÔöÁ¿
+			Mile = data[j].RightMileage - data[j - 1].RightMileage;//æŸä¸ªåŒºæ®µé‡Œç¨‹å¢é‡
+			MileRaw = data[j].RightTime - data[j - 1].RightTime;//æŸä¸ªåŒºæ®µæ—¶é—´å¢é‡
 			Mixdata[i].RightMileage = Mile * ratio + data[j - 1].RightMileage;
 			Mixdata[i].RightTime = MileRaw * ratio + data[j - 1].RightTime;
 			i++;
@@ -159,7 +159,7 @@ static void Interp1(const std::vector<long long>& Time, const std::vector<Mileag
 static bool LeftRightMileageFusion(const std::string& path, std::vector<Mileage>& result) {
 	std::vector<MileageData> data, Mixdata;
 
-	// ¶ÁÈ¡Êı¾İ
+	// è¯»å–æ•°æ®
 	if (!GetMile(path, data)) {
 		std::cerr << "Error: Failed to read data from file: " << path << std::endl;
 		return false;
@@ -169,7 +169,7 @@ static bool LeftRightMileageFusion(const std::string& path, std::vector<Mileage>
 		std::cerr << "Error: No data found in file: " << path << std::endl;
 		return false;
 	}
-	// ¸ù¾İÊı¾İÀàĞÍ´¦Àí
+	// æ ¹æ®æ•°æ®ç±»å‹å¤„ç†
 	long long TimeStart = 0, TimeEnd = 0;
 	if (data[num - 1].RightTimeRaw < data[num - 1].LeftTimeRaw) {
 		TimeStart = data[1].RightTimeRaw;
@@ -182,33 +182,33 @@ static bool LeftRightMileageFusion(const std::string& path, std::vector<Mileage>
 
 	size_t Timenum = std::ceil((TimeEnd - TimeStart) / 1e5);
 	std::vector<long long> Time(Timenum + 2);
-	long long interval = 1e5; // ¼ä¸ô 0.1s
-	// Éú³ÉÊ±¼äĞòÁĞ
+	long long interval = 1e5; // é—´éš” 0.1s
+	// ç”Ÿæˆæ—¶é—´åºåˆ—
 	for (size_t i = 1; i < (Timenum + 1); ++i) {
 		Time[i] = TimeStart + (i - 1) * interval;
 	}
 	Time[0] = Time[1] - 1e5;
 	Time[Timenum + 1] = TimeEnd;
-	// ²åÖµ
+	// æ’å€¼
 	Interp1(Time, data, Mixdata);
 	size_t Resnum = Timenum + 2; // Mixdata.size()
 	result.resize(Resnum);
-	// ³õÊ¼»¯µÚÒ»¸ö½á¹û
+	// åˆå§‹åŒ–ç¬¬ä¸€ä¸ªç»“æœ
 	result[0].id = 1;
 	result[0].mileage = data[0].RightMileage;
 	result[0].time = data[0].RightTime;
 	result[0].mileage_align = result[0].mileage;
 	result[0].mileage_revision = result[0].mileage;
 	result[0].time_raw = data[0].RightTimeRaw;
-	// ¼ÆËãÊ£Óà½á¹û
+	// è®¡ç®—å‰©ä½™ç»“æœ
 	double dMLeft = 0.0, dMRight = 0.0, maxAbsValue = 0.0, dMileage = 0.0;
 	for (size_t i = 1; i < Resnum; ++i) {
 		result[i].id = static_cast<long long>(i + 1);
-		// ¼ÆËã×óÓÒÀï³Ì²îÖµÖµ
+		// è®¡ç®—å·¦å³é‡Œç¨‹å·®å€¼å€¼
 		dMLeft = Mixdata[i].LeftMileage - Mixdata[i - 1].LeftMileage;
 		dMRight = Mixdata[i].RightMileage - Mixdata[i - 1].RightMileage;
 		maxAbsValue = (std::abs(dMLeft) > std::abs(dMRight)) ? dMLeft : dMRight;
-		// ÅĞ¶Ï²îÖµÊÇ·ñ³¬¹ıãĞÖµ
+		// åˆ¤æ–­å·®å€¼æ˜¯å¦è¶…è¿‡é˜ˆå€¼
 		const double LeftAndRightMileageMaximumDifferenceValue = 0.3;
 		if (std::abs((dMLeft - dMRight) / maxAbsValue) >= 0.3) {
 			dMileage = maxAbsValue;
@@ -216,7 +216,7 @@ static bool LeftRightMileageFusion(const std::string& path, std::vector<Mileage>
 		else {
 			dMileage = (dMLeft + dMRight) / 2;
 		}
-		// ¸üĞÂ½á¹û
+		// æ›´æ–°ç»“æœ
 		result[i].mileage = result[i - 1].mileage + dMileage;
 		result[i].time = (Mixdata[i].LeftTime + Mixdata[i].RightTime) / 2;
 		result[i].mileage_revision = result[i].mileage;
@@ -252,23 +252,23 @@ bool get_clinometer_from_file(const std::string& taskPath, std::vector<Clinomete
 	std::vector<long long> trolleyTimes;
 	std::vector<long long> scannerTimes;
 
-	// ¼ì²éÎÄ¼ş´æÔÚĞÔ²¢³¢ÊÔ´ò¿ªÎÄ¼ş
+	// æ£€æŸ¥æ–‡ä»¶å­˜åœ¨æ€§å¹¶å°è¯•æ‰“å¼€æ–‡ä»¶
 	std::ifstream fc(sctimePath), f(srcPath);
 	if (!fc.is_open() || !f.is_open()) {
 		return false;
 	}
 
-	// Ìø¹ı±íÍ·ĞĞ
+	// è·³è¿‡è¡¨å¤´è¡Œ
 	char tableHeader[1024] = { 0 };
 	fc.getline(tableHeader, 1024);
-	// ¼ì²éÎÄ¼şÊÇ·ñÔÚ±íÍ·ºóÖ±½Óµ½´ïÎ²²¿
+	// æ£€æŸ¥æ–‡ä»¶æ˜¯å¦åœ¨è¡¨å¤´åç›´æ¥åˆ°è¾¾å°¾éƒ¨
 	if (fc.eof()) {
 		fc.close();
 		f.close();
-		return false;  // ÎÄ¼şÖ»ÓĞ±íÍ·£¬Ã»ÓĞÊı¾İĞĞ£¬Ö±½Ó·µ»Ø false
+		return false;  // æ–‡ä»¶åªæœ‰è¡¨å¤´ï¼Œæ²¡æœ‰æ•°æ®è¡Œï¼Œç›´æ¥è¿”å› false
 	}
 
-	// ÖğĞĞ¶ÁÈ¡ÎÄ¼şÄÚÈİ
+	// é€è¡Œè¯»å–æ–‡ä»¶å†…å®¹
 	while (!fc.eof()) {
 		char data[128] = { 0 };
 		fc.getline(data, 128);
@@ -291,7 +291,7 @@ bool get_clinometer_from_file(const std::string& taskPath, std::vector<Clinomete
 		if (datas.size() < 3) {
 			fc.close();
 			f.close();
-			return false; // Êı¾İĞĞ¸ñÊ½²»ÕıÈ·
+			return false; // æ•°æ®è¡Œæ ¼å¼ä¸æ­£ç¡®
 		}
 		long long trolleyTime = std::stoll(datas[1]);
 		long long scannerTime = std::stoll(datas[2]);
@@ -300,9 +300,9 @@ bool get_clinometer_from_file(const std::string& taskPath, std::vector<Clinomete
 	}
 	fc.close();
 
-	// ¿ªÊ¼´¦Àí clinometer ÎÄ¼ş
+	// å¼€å§‹å¤„ç† clinometer æ–‡ä»¶
 	int i = 0; double dt = 1.0;
-	f.getline(tableHeader, 1024); // Ìø¹ı±íÍ·ĞĞ
+	f.getline(tableHeader, 1024); // è·³è¿‡è¡¨å¤´è¡Œ
 	while (!f.eof()) {
 		char data[128] = { 0 };
 		f.getline(data, 128);
@@ -329,11 +329,11 @@ bool get_clinometer_from_file(const std::string& taskPath, std::vector<Clinomete
 			dt = 1.0;
 		}
 		else {
-			// Ñ°ÕÒÕıÈ·µÄ i Öµ£¬Ê¹ currentTrolleyTime ÔÚ trolleyTimes[i] ºÍ trolleyTimes[i+1] Ö®¼ä
+			// å¯»æ‰¾æ­£ç¡®çš„ i å€¼ï¼Œä½¿ currentTrolleyTime åœ¨ trolleyTimes[i] å’Œ trolleyTimes[i+1] ä¹‹é—´
 			while (i < trolleyTimes.size() - 2 && currentTrolleyTime > trolleyTimes[i + 1]) {
 				i++;
 			}
-			// ¼ÆËãÏßĞÔ²åÖµµÄÊ±¼ä±ÈÀı
+			// è®¡ç®—çº¿æ€§æ’å€¼çš„æ—¶é—´æ¯”ä¾‹
 			dt = static_cast<double>(scannerTimes[i + 1] - scannerTimes[i]) / (trolleyTimes[i + 1] - trolleyTimes[i]);
 		}
 		temp.time = scannerTimes[i] + (currentTrolleyTime - trolleyTimes[i]) * dt;
@@ -365,19 +365,19 @@ std::pair<int, int> binarySearch(const std::vector<T>& dataMap, const T& target)
 		int mid = (left + right) / 2;
 		if (mid > 0 && target >= dataMap[mid - 1] && target <= dataMap[mid])
 		{
-			return std::pair<int, int>(mid - 1, mid); // ÕÒµ½Ä¿±êÖµ£¬·µ»ØË÷Òı
+			return std::pair<int, int>(mid - 1, mid); // æ‰¾åˆ°ç›®æ ‡å€¼ï¼Œè¿”å›ç´¢å¼•
 		}
 
 		if (target < dataMap[mid])
 		{
-			right = mid - 1; // Ä¿±êÖµÔÚ×ó°ë±ß£¬ËõĞ¡ÓÒ¶Ëµã
+			right = mid - 1; // ç›®æ ‡å€¼åœ¨å·¦åŠè¾¹ï¼Œç¼©å°å³ç«¯ç‚¹
 		}
 		else
 		{
-			left = mid + 1; // Ä¿±êÖµÔÚÓÒ°ë±ß£¬Ôö´ó×ó¶Ëµã
+			left = mid + 1; // ç›®æ ‡å€¼åœ¨å³åŠè¾¹ï¼Œå¢å¤§å·¦ç«¯ç‚¹
 		}
 	}
-	return std::pair<int, int>(0, 1); // Î´ÕÒµ½Ä¿±êÖµ£¬·µ»ØµÚÒ»¸ö
+	return std::pair<int, int>(0, 1); // æœªæ‰¾åˆ°ç›®æ ‡å€¼ï¼Œè¿”å›ç¬¬ä¸€ä¸ª
 }
 
 
@@ -409,11 +409,11 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			{
 				std::pair<int, int> pos = binarySearch<double>(timeSet, t);
 				std::map<double, double>::const_iterator it = mileageWithTime.begin();
-				std::advance(it, pos.first);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.first);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t1 = it->second;
 				double s1 = it->first;
 				it = mileageWithTime.begin();
-				std::advance(it, pos.second);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.second);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t2 = it->second;
 				double s2 = it->first;
 				double s = ((s2 - s1) / (t2 - t1)) * (t - t1) + s1;
@@ -441,11 +441,11 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			{
 				std::pair<int, int> pos = binarySearch<double>(timeSet, t);
 				std::map<double, double>::const_iterator it = mileageWithTime.begin();
-				std::advance(it, pos.first);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.first);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t1 = it->second;
 				double s1 = it->first;
 				it = mileageWithTime.begin();
-				std::advance(it, pos.second);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.second);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t2 = it->second;
 				double s2 = it->first;
 				double s = ((s2 - s1) / (t2 - t1)) * (t - t1) + s1;
@@ -461,7 +461,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 				{
 					for (int k = 0; k < pointcloudRes[j].size(); k++)
 					{
-						time_t deltaT = pointcloudRes[j][k].time - beginT; // ÓëµÚÒ»¸öµãµÄÊ±¼ä²î
+						time_t deltaT = pointcloudRes[j][k].time - beginT; // ä¸ç¬¬ä¸€ä¸ªç‚¹çš„æ—¶é—´å·®
 						double d_mileage = deltaT * _speed + beginS;
 						pointcloudRes[j][k].y = d_mileage;
 					}
@@ -482,7 +482,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 	return true;
 }
 
-//24/10/30 µãÔÆÕ¹¿ª Àï³Ì¼Æ+Çã½Ç¼Æ 
+//24/10/30 ç‚¹äº‘å±•å¼€ é‡Œç¨‹è®¡+å€¾è§’è®¡ 
 bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, const std::map<double, double>& mileageWithTime, const std::map<double, double>& clinometerWithTime,
 	Speed flag, bool Resverse, double& start_mileage, double& end_mileage)
 {
@@ -491,7 +491,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 	{
 		timeSet.push_back(iter->second);
 	}
-	// 1. ¼ÆËãÇã½Ç¼ÆµÄÊ±¼ä²åÖµ·¶Î§ 24/10/30
+	// 1. è®¡ç®—å€¾è§’è®¡çš„æ—¶é—´æ’å€¼èŒƒå›´ 24/10/30
 	std::vector<double> clinometertimeSet;
 	for (auto iter = clinometerWithTime.begin(); iter != clinometerWithTime.end(); iter++)
 	{
@@ -518,11 +518,11 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			{
 				std::pair<int, int> pos = binarySearch<double>(timeSet, t);
 				std::map<double, double>::const_iterator it = mileageWithTime.begin();
-				std::advance(it, pos.first);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.first);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t1 = it->second;
 				double s1 = it->first;
 				it = mileageWithTime.begin();
-				std::advance(it, pos.second);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.second);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t2 = it->second;
 				double s2 = it->first;
 				double s = ((s2 - s1) / (t2 - t1)) * (t - t1) + s1;
@@ -530,7 +530,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			}
 		}
 
-		// 2. Í¨¹ı²åÖµ¼ÆËãµãÔÆ¿éµÄ×îºóÒ»¸öµãµÄÇã½Ç 24/10/30
+		// 2. é€šè¿‡æ’å€¼è®¡ç®—ç‚¹äº‘å—çš„æœ€åä¸€ä¸ªç‚¹çš„å€¾è§’ 24/10/30
 		double clinometermin;
 		{
 			double t = pointcloudRes.at(i).back().time;
@@ -546,11 +546,11 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			{
 				std::pair<int, int> clinometerpos = binarySearch<double>(clinometertimeSet, t);
 				std::map<double, double>::const_iterator it = clinometerWithTime.begin();
-				std::advance(it, clinometerpos.first);  // ¶¨Î»µ½²åÖµÇø¼äµÄÆğÊ¼µã
+				std::advance(it, clinometerpos.first);  // å®šä½åˆ°æ’å€¼åŒºé—´çš„èµ·å§‹ç‚¹
 				double s1 = it->second;
 				double t1 = it->first;
 				it = clinometerWithTime.begin();
-				std::advance(it, clinometerpos.second);  // ¶¨Î»µ½²åÖµÇø¼äµÄ½áÊøµã
+				std::advance(it, clinometerpos.second);  // å®šä½åˆ°æ’å€¼åŒºé—´çš„ç»“æŸç‚¹
 				double s2 = it->second;
 				double t2 = it->first;
 				double s = ((s2 - s1) / (t2 - t1)) * (t - t1) + s1;
@@ -579,11 +579,11 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			{
 				std::pair<int, int> pos = binarySearch<double>(timeSet, t);
 				std::map<double, double>::const_iterator it = mileageWithTime.begin();
-				std::advance(it, pos.first);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.first);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t1 = it->second;
 				double s1 = it->first;
 				it = mileageWithTime.begin();
-				std::advance(it, pos.second);  // ¶¨Î»µ½µÚ x ¶ÔµÄµü´úÆ÷
+				std::advance(it, pos.second);  // å®šä½åˆ°ç¬¬ x å¯¹çš„è¿­ä»£å™¨
 				double t2 = it->second;
 				double s2 = it->first;
 				double s = ((s2 - s1) / (t2 - t1)) * (t - t1) + s1;
@@ -591,7 +591,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			}
 		}
 
-		// 3. Í¨¹ı²åÖµ¼ÆËãµãÔÆ¿éµÄµÚÒ»¸öµãµÄÇã½Ç 24/10/30
+		// 3. é€šè¿‡æ’å€¼è®¡ç®—ç‚¹äº‘å—çš„ç¬¬ä¸€ä¸ªç‚¹çš„å€¾è§’ 24/10/30
 		double clinometermax;
 		{
 			double t = pointcloudRes.at(num).front().time;
@@ -607,11 +607,11 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 			{
 				std::pair<int, int> clinometerpos = binarySearch<double>(clinometertimeSet, t);
 				std::map<double, double>::const_iterator it = clinometerWithTime.begin();
-				std::advance(it, clinometerpos.first);  // ¶¨Î»µ½²åÖµÇø¼äµÄÆğÊ¼µã
+				std::advance(it, clinometerpos.first);  // å®šä½åˆ°æ’å€¼åŒºé—´çš„èµ·å§‹ç‚¹
 				double s1 = it->second;
 				double t1 = it->first;
 				it = clinometerWithTime.begin();
-				std::advance(it, clinometerpos.second);  // ¶¨Î»µ½²åÖµÇø¼äµÄ½áÊøµã
+				std::advance(it, clinometerpos.second);  // å®šä½åˆ°æ’å€¼åŒºé—´çš„ç»“æŸç‚¹
 				double s2 = it->second;
 				double t2 = it->first;
 				double s = ((s2 - s1) / (t2 - t1)) * (t - t1) + s1;
@@ -622,7 +622,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 
 		// average
 		double tempSpeed = (pointcloudRes[num].back().y - pointcloudRes[i].front().y) / (pointcloudRes[num].back().time - pointcloudRes[i].front().time);
-		// 4. ¼ÆËãÇã½Ç±ä»¯ËÙÂÊ£¨½ÇËÙ¶È£©24/10/30
+		// 4. è®¡ç®—å€¾è§’å˜åŒ–é€Ÿç‡ï¼ˆè§’é€Ÿåº¦ï¼‰24/10/30
 		double tempclinometerSpeed = (clinometermin - clinometermax) / (pointcloudRes[i].back().time - pointcloudRes.at(i).front().time);
 		double kangle = 1.0; if (Resverse) { kangle = -1.0; }
 
@@ -633,7 +633,7 @@ bool expandPointcloud(std::vector<std::vector<PointCloud> >& pointcloudRes, cons
 				{
 					for (int k = 0; k < pointcloudRes[j].size(); k++)
 					{
-						time_t deltaT = pointcloudRes[j][k].time - beginT; // ÓëµÚÒ»¸öµãµÄÊ±¼ä²î
+						time_t deltaT = pointcloudRes[j][k].time - beginT; // ä¸ç¬¬ä¸€ä¸ªç‚¹çš„æ—¶é—´å·®
 						double d_mileage = deltaT * _speed + beginS;
 						pointcloudRes[j][k].y = d_mileage;
 
@@ -674,10 +674,10 @@ void save_baseinfo_file(const std::string& taskPath, const std::string& targetNa
 
 	if (file.open(QIODevice::WriteOnly))
 	{
-		// ´´½¨Ö÷JSON¶ÔÏó
+		// åˆ›å»ºä¸»JSONå¯¹è±¡
 		QJsonObject root;
 
-		// ´¦ÀíÍÖÔ²ĞÅÏ¢
+		// å¤„ç†æ¤­åœ†ä¿¡æ¯
 		QJsonArray ellipseInf;
 		for (const auto& it : lme)
 		{
@@ -693,21 +693,21 @@ void save_baseinfo_file(const std::string& taskPath, const std::string& targetNa
 			ellipseInf.append(ellipseItem);
 		}
 
-		// ´¦ÀíµãÔÆÊıÁ¿ĞÅÏ¢
+		// å¤„ç†ç‚¹äº‘æ•°é‡ä¿¡æ¯
 		QJsonArray pointNumInf;
 		for (const auto& it : pointcloudResTemp)
 		{
 			pointNumInf.append(static_cast<int>(it.size()));
 		}
 
-		// Ìí¼Óµ½¸ù¶ÔÏó
+		// æ·»åŠ åˆ°æ ¹å¯¹è±¡
 		root["ellipse_info"] = ellipseInf;
 		root["point_num"] = pointNumInf;
 
-		// ´´½¨JSONÎÄµµ
+		// åˆ›å»ºJSONæ–‡æ¡£
 		QJsonDocument doc(root);
 
-		// Ğ´ÈëÎÄ¼ş
+		// å†™å…¥æ–‡ä»¶
 		file.write(doc.toJson(QJsonDocument::Indented));
 		file.close();
 	}
@@ -717,21 +717,21 @@ void save_baseinfo_file(const std::string& taskPath, const std::string& targetNa
 #include <QImageWriter>
 //#include <opencv2/opencv.hpp>
 static void saveImage(const QString& path,Image &img) {
-	//Ê¹ÓÃ±ê×¼ c++Ğ´ÈëÍ¼Æ¬
+	//ä½¿ç”¨æ ‡å‡† c++å†™å…¥å›¾ç‰‡
 	//std::ofstream file(path, std::ios::binary);
 	//if (!file) return;
-	//// Ğ´ÈëTIFFÎÄ¼şÍ·
+	//// å†™å…¥TIFFæ–‡ä»¶å¤´
 	//writeTiffHeader(file);
-	//// Ğ´ÈëIFD
+	//// å†™å…¥IFD
 	//writeIFD(file);
-	//// Ğ´ÈëÍ¼ÏñÊı¾İ
+	//// å†™å…¥å›¾åƒæ•°æ®
 	//for (const auto& row : data) {
 	//    file.write(reinterpret_cast<const char*>(row.data()), width);
 	//}
 	
-	 //Ê¹ÓÃopencvĞ´ÈëÍ¼Æ¬
+	 //ä½¿ç”¨opencvå†™å…¥å›¾ç‰‡
 	//cv::Mat grayImage(cv::Size(img.width, img.height), CV_8UC1);
-	////½«¶şÎ¬Êı×é¸³Öµ¸øMat¶ÔÏó
+	////å°†äºŒç»´æ•°ç»„èµ‹å€¼ç»™Matå¯¹è±¡
 	//for (int i = 0; i < img.height; ++i)
 	//{
 	//	for (int j = 0; j <img. width; ++j)
@@ -741,7 +741,7 @@ static void saveImage(const QString& path,Image &img) {
 	//}
 	//cv::imwrite(path.toStdString(), grayImage);
 
-	//Ê¹ÓÃqtĞ´ÈëÍ¼Æ¬
+	//ä½¿ç”¨qtå†™å…¥å›¾ç‰‡
 	QImage qImage(img.width, img.height, QImage::Format_Grayscale8);
 	for (int i = 0; i < img.height; ++i)
 	{
@@ -750,7 +750,7 @@ static void saveImage(const QString& path,Image &img) {
 	}
 	QImageWriter writer(path);
 	if (!writer.write(qImage)) {
-		qCritical()<< "#Í¼Æ¬"<< path<<"±£´æÊ§°Ü,´íÎó" << writer.errorString();
+		qCritical()<< "#å›¾ç‰‡"<< path<<"ä¿å­˜å¤±è´¥,é”™è¯¯" << writer.errorString();
 	}
 }
 
@@ -760,7 +760,7 @@ static void saveImage(const std::vector<std::vector<unsigned char>>& color,
 	int width = color[0].size();
 	int height = color.size();
 	Image grayImage(width, height);
-	// ¸´ÖÆÍ¼ÏñÊı¾İ
+	// å¤åˆ¶å›¾åƒæ•°æ®
 	for (int i = 0; i < height; ++i) {
 		for (int j = 0; j < width; ++j) {
 			grayImage.at<unsigned char>(i, j) = color[i][j];
@@ -771,7 +771,7 @@ static void saveImage(const std::vector<std::vector<unsigned char>>& color,
 
 bool WritePointCloudImage(TaskFaroPart& part, const QString& grayImagePath, const QString& depthImagePath, int merge_type)
 {
-	// 2024-6-19 fix:Í¨·ìÊ¹ÓÃ0.19¼ÆËã£¬´í·ìÊ¹ÓÃ0.09¼ÆËã
+	// 2024-6-19 fix:é€šç¼ä½¿ç”¨0.19è®¡ç®—ï¼Œé”™ç¼ä½¿ç”¨0.09è®¡ç®—
 	static QDateTime startTime = QDateTime::currentDateTime();
 	if (merge_type == 1) g_hole_depth_limit = 0.19;
 	else if (merge_type == 0) g_hole_depth_limit = 0.09;
@@ -788,7 +788,7 @@ bool WritePointCloudImage(TaskFaroPart& part, const QString& grayImagePath, cons
 	Image grayImage;
 	std::vector<std::vector<unsigned char>> depthImage;
 	bool ret = GetPointCloudDepthAndGrayImage(lme, part.points, grayImage, depthImage, part.start_mileage, part.end_mileage, part.resolving, part.diameter / 2);
-	qDebug() << "#2 Í¼ÏñÉú³ÉÉî¶ÈÍ¼ºÍ»Ò¶ÈÍ¼Êı¾İ" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+	//qDebug() << "#2 å›¾åƒç”Ÿæˆæ·±åº¦å›¾å’Œç°åº¦å›¾æ•°æ®" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 	if (ret) {
 		saveImage(grayImagePath, grayImage);
 		saveImage(depthImage,depthImagePath);

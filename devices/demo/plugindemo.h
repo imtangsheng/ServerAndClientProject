@@ -19,9 +19,13 @@ public:
         // 注册自定义事件处理器
         registerEventHandler(DeviceState::Started, DeviceEvent::Custom,
                              [&](const QVariant& data) -> Result {
-                                 // 处理自定义事件
-                                 qDebug() << "PluginDemo Custom event handled with data:" << data;
-                                 return Result(true, "PluginDemo Custom event processed");
+                                // 处理自定义事件
+                                QJsonObject newJsonObj = data.value<QJsonObject>();
+                                // 输出 JSON 对象的内容
+                                qDebug() << "Name: " << newJsonObj["name"].toString();
+
+                                qDebug() << "PluginDemo Custom event handled with data:" << data;
+                                return Result(true, "PluginDemo Custom event processed");
                              });
 
         initializeStateTransitions();
