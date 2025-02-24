@@ -1,0 +1,2 @@
+add_subdirectory(QtRemoteObjectsServer)
+add_subdirectory(QtRemoteObjectsClient)
