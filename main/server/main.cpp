@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
 	qDebug() << "Qt version: " << QT_VERSION_STR << "C++ version:" << __cplusplus;
 	WebSocketServer server(port);
 	qDebug() << "server start port:" << port << " source by:" << typeid(server).name();
-
+	server.initialize();
 	QObject::connect(&server, &WebSocketServer::closed, &app, &QCoreApplication::quit);
 	return app.exec();
 }

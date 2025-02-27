@@ -9,8 +9,12 @@ set(CMAKE_AUTOUIC ON)
 
 add_executable(${APP_NAME}
     main.cpp
+    MainController.h MainController.cpp
+    MainView.h MainView.cpp
     ui/WebSocket.h ui/WebSocket.cpp ui/WebSocket.ui
     ui/ImageViewer.h ui/ImageViewer.cpp ui/ImageViewer.ui
+    ui/farowidget.h ui/farowidget.cpp ui/farowidget.ui
+    controller/farocontroller.h controller/farocontroller.cpp
 )
 
 # 链接 Qt 库

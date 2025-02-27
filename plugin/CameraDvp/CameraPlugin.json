@@ -1,0 +1,6 @@
+{
+  "Keys": [ "examplecamera" ],
+  "Version": "1.0.0",
+  "Name": "Example Camera SDK Plugin",
+  "Description": "Plugin for Example Camera SDK"
+}

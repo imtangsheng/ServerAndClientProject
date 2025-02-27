@@ -9,7 +9,7 @@ class CameraController: public ControllerBase
 {
 	Q_OBJECT
 public:
-	explicit CameraController(QObject* parent = nullptr, const QString& module = "DvpCamera");
+	explicit CameraController(QObject* parent = nullptr, const QString& module = "camera");
 	~CameraController();
 	void initialize()  override;
 public slots:

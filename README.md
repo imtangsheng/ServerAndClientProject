@@ -1,6 +1,6 @@
 # 采集软件开发
 
-Develop: Qt6 C++ 
+Develop: Qt6 C++ cmake VS2022 QtCreator
 
 # 适配多个Qt5的版本
 1.使用vs2022

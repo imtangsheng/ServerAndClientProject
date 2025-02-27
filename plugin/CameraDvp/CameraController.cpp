@@ -1,8 +1,3 @@
-/*!
- * @file DvpCameraControllerServer.cpp
- * @brief 度申科技线阵相机控制器的实现文件->cn
- * @date 2025-02-24
- */
 #include "CameraController.h"
 CameraController::CameraController(QObject* parent, const QString& module) :
 	ControllerBase(module, parent) {
@@ -16,17 +11,21 @@ CameraController::~CameraController()
 
 void CameraController::initialize()
 {
+	qDebug() << "#DVP2API:void CameraController::initialize()";
 }
 
 Result CameraController::prepare()
 {
 	qDebug() << "DvpCameraController::prepare()";
+
 	return Result();
 }
 
 Result CameraController::start()
 {
 	qDebug() << "DvpCameraController::start()";
+	//toRequestString(int id, const QString & module, const QString & method, const QJsonValue & params)
+	emit sigSouthSend(Session::toRequestString(10, selfName,"start",1));
 	return Result();
 }
 

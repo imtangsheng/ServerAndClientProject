@@ -8,6 +8,16 @@
  * Date: 2025-02
  * Version: 0.0.1
 */
+
+#include <QtCore/qglobal.h>
+
+#if defined(SHAREDLIB_API)
+#define SHAREDLIB_EXPORT Q_DECL_EXPORT
+#else
+#define SHAREDLIB_EXPORT Q_DECL_IMPORT
+#endif
+
+#include <QObject>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -33,7 +43,10 @@ struct Result
     bool success{ true };
     QString message{""};
     Result(bool s = true, const QString& msg = "") :success(s), message(msg) {}
+    static Result Success(const QString& msg = "") { return Result(true, msg); } 
+    static Result Failure(const QString& msg = "") { return Result(false, msg); }
     operator bool() const { return success; }//重载了 bool 操作符，使其可以像之前的 bool 返回值一样使用例如：if (result)
+
 };
 // 声明结构体为元类型
 //Q_DECLARE_METATYPE(Result)
@@ -78,5 +91,69 @@ struct AtomicPtr
     operator T() const { return get(); }
 };
 
+#include <QPointer>
+// 不需要手动删除，QPointer 会自动处理 当对象被删除时自动置空
+// 用于ws通信协议参考JSON-RPC 2.0 协议
+// 请求模型
+struct Session {
+	int id{ 0 };///< @brief 请求ID 可选
+	int code{ 0 };///< @brief 执行的错误码,非0为执行异常 可选
+	QPointer<QObject> socket;///< @brief 请求的socket 可选
+	QString module{ "" }; ///< @brief 可选
+	QString method;///< @brief 需要调用的函数,槽等 必须
+	QJsonValue params;///< @brief  请求参数,如果是一个数组,则反射动态调用槽函数，可以为空;否则调用默认的带完整请求的槽函数 可选
+	QJsonValue result;///< @brief 执行的结果 可选
+	QVariant context;///< @brief  上下文信息 可选
 
+	// 默认构造函数
+	Session() = default; // 默认构造函数
+	~Session() {
+		//if (socket) delete socket;
+	}
+	operator bool() const { return code == 0; }
+	// 从 JSON 字符串解析为 Request
+	Session(QJsonObject json) {
+		if (json.contains("id")) id = json["id"].toInt(0);
+		if (json.contains("code")) code = json["code"].toInt(-1);
+		if (json.contains("module")) module = json["module"].toString("");
+		if (json.contains("method")) method = json["method"].toString("");
+		if (json.contains("params")) params = json["params"];
+		if (json.contains("result")) result = json["result"];
+		if (json.contains("context")) context = json["context"].toVariant();
+	}
+	// 请求的Request发送
+	static QString toRequestString(int id, const QString& module, const QString& method, const QJsonValue& params) {
+		return jsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
+	}
+	QString toErrorString(int errorCode, const QString& message) const {
+		return jsonToString({ {"id", id}, {"code", errorCode}, {"method", method}, {"message", message} });
+	}
+	QString toResponseString(const QJsonValue& ExecutionResult = QJsonValue(), const QString& ExecutionMessage = QString()) {
+		return jsonToString({ {"id", id}, {"code",code}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
+	}
+};
+///用std::function定义处理器类型 QFunctionPointer 为Qt的函数指针类型无参数无类型返回值;不支持通过字符串动态查找函数。
+///不支持跨线程调用（需要手动实现线程安全）。不支持信号槽机制。
+///依赖于 Qt 的元对象系统，需要 Q_OBJECT 宏和 moc 预处理。性能开销较大，因为需要通过字符串查找函数。
+using SessionHandler = std::function<void(Session&)>;
+
+/*!
+ * @var map gSession
+ * @brief 全局会话默认处理方法,需要注册 使用宏定义自动生成映射
+ *
+ * @details 使用手动注册映射,无需查找元对象直接进行调用
+
+ * @see SessionHandler
+ */
+inline QMap<QString, SessionHandler> gSession;
+#define REGISTER_HANDLER(name) \
+    gSession[#name] = &Class::name
+
+inline void RegisterHandler(const QString& module, const QString& method, SessionHandler handler) {
+	gSession[module + "." + method] = handler;
+}
+template<typename F>
+void register_handler(const std::string& name, F&& handler) {//“万能引用”（Universal Reference）的语法。它可以绑定到左值或右值引用，具体取决于传入的参数类型。这使得函数可以接受各种类型的参数，包括临时对象和可移动对象。
+	gSession[name] = std::forward<F>(handler);// 模板函数，使用 std::forward 完美转发参数
+}
 #endif // SOUTHGLOBAL_H

@@ -1,13 +1,17 @@
+# 设置 C++ 标准
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # 设置编译器选项
 if(MSVC)
-    add_compile_options(/W4 /MP)
+    add_compile_options(/W4 /MP) # Windows下的警告级别
     add_compile_definitions(
         _CRT_SECURE_NO_WARNINGS
         NOMINMAX
         WIN32_LEAN_AND_MEAN
     )
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
+    add_compile_options(-Wall -Wextra -Wpedantic) # Unix下的警告级别
 endif()
 
 # 设置默认的构建类型
@@ -22,16 +26,23 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # 可执行文�
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/dll)  # 动态库输出目录
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态库输出目录
 
-# Qt设置
+# 启用 Qt 的自动 moc、rcc 和 uic
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+#set(CMAKE_AUTORCC ON)
+#set(CMAKE_AUTOUIC ON)
+# Specify MSVC UTF-8 (65001) encoding 编码不对会导致 MOC 无法正确解析文件，从而生成的元对象代码不完整或错误，最终引发链接错误。
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 # 版本信息
 set(PROJECT_VERSION_MAJOR 1)
 set(PROJECT_VERSION_MINOR 0)
 set(PROJECT_VERSION_PATCH 0)
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # 通用包含目录
 set(COMMON_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include)
@@ -61,8 +72,12 @@ function(set_common_target_properties TARGET_NAME)
         PUBLIC
             ${COMMON_INCLUDE_DIRS}
     )
+    # 启用预编译头文件
+    target_precompile_headers(${TARGET_NAME} PRIVATE stdafx.h)
 endfunction()
 
-
 add_subdirectory(main/server)
-add_subdirectory(main/client)
+#add_subdirectory(main/client)
+
+#用于指定目标之间的构建依赖关系。它确保 dependee（被依赖的目标，South）在 target（Server）构建之前完成编译。
+add_dependencies(server South)

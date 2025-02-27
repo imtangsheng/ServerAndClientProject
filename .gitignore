@@ -1,3 +1,11 @@
+#编译器生成目录
+/.vs
+/.vscode
+/build
+/out
+#Qt Creator编译器文件
+CMakeLists.txt.user
+
 # Prerequisites
 *.d
 
@@ -31,8 +39,3 @@
 *.out
 *.app
 
-#编译器生成目录
-/build
-
-#Qt Creator编译器文件
-CMakeLists.txt.user
