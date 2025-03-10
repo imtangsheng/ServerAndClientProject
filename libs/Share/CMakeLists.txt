@@ -1,14 +1,18 @@
 # 设置可执行文件名称
 set(SHARE_NAME South)
 
-#include(qt.cmake)
-
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
+# 使用file命令自动查找所有源文件
+file(GLOB_RECURSE PROJECT_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+)
+
 add_library(${SHARE_NAME} SHARED
-  ${INCLUDE_DIR}South.h 
-  South.cpp
+  ${INCLUDE_DIR}share.h ${INCLUDE_DIR}Logger.h
+  ${PROJECT_SOURCES}
 )
 
 target_link_libraries(${SHARE_NAME} PRIVATE

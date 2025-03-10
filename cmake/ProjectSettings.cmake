@@ -77,7 +77,7 @@ function(set_common_target_properties TARGET_NAME)
 endfunction()
 
 add_subdirectory(main/server)
-#add_subdirectory(main/client)
+add_subdirectory(main/client)
 
 #用于指定目标之间的构建依赖关系。它确保 dependee（被依赖的目标，South）在 target（Server）构建之前完成编译。
 add_dependencies(server South)

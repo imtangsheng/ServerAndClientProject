@@ -40,12 +40,15 @@ inline static QString jsonToString(const QJsonObject& jsonObject) {
 /**定义一个结构体来包含更详细的结果信息**/
 struct Result
 {
-    bool success{ true };
+    int code{ -1 };
     QString message{""};
-    Result(bool s = true, const QString& msg = "") :success(s), message(msg) {}
+	Result(int i, const QString& msg = "") :code(i), message(msg) {}
+    Result(bool s = true, const QString& msg = "") :message(msg) {
+		if (s) {code = 0;}
+	}//隐式构造函数调用
     static Result Success(const QString& msg = "") { return Result(true, msg); } 
     static Result Failure(const QString& msg = "") { return Result(false, msg); }
-    operator bool() const { return success; }//重载了 bool 操作符，使其可以像之前的 bool 返回值一样使用例如：if (result)
+    operator bool() const { return code==0; }//重载了 bool 操作符，使其可以像之前的 bool 返回值一样使用例如：if (result)
 
 };
 // 声明结构体为元类型
@@ -103,6 +106,7 @@ struct Session {
 	QString method;///< @brief 需要调用的函数,槽等 必须
 	QJsonValue params;///< @brief  请求参数,如果是一个数组,则反射动态调用槽函数，可以为空;否则调用默认的带完整请求的槽函数 可选
 	QJsonValue result;///< @brief 执行的结果 可选
+	QString message;///< @brief 执行的消息 可选
 	QVariant context;///< @brief  上下文信息 可选
 
 	// 默认构造函数
@@ -119,6 +123,7 @@ struct Session {
 		if (json.contains("method")) method = json["method"].toString("");
 		if (json.contains("params")) params = json["params"];
 		if (json.contains("result")) result = json["result"];
+		if (json.contains("message")) message = json["message"].toString("");
 		if (json.contains("context")) context = json["context"].toVariant();
 	}
 	// 请求的Request发送
@@ -128,8 +133,8 @@ struct Session {
 	QString toErrorString(int errorCode, const QString& message) const {
 		return jsonToString({ {"id", id}, {"code", errorCode}, {"method", method}, {"message", message} });
 	}
-	QString toResponseString(const QJsonValue& ExecutionResult = QJsonValue(), const QString& ExecutionMessage = QString()) {
-		return jsonToString({ {"id", id}, {"code",code}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
+	QString toResponseString(const QJsonValue& ExecutionResult = QJsonValue(), const QString& ExecutionMessage = QString()) const {
+		return jsonToString({ {"id", id}, {"code",0}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
 	}
 };
 ///用std::function定义处理器类型 QFunctionPointer 为Qt的函数指针类型无参数无类型返回值;不支持通过字符串动态查找函数。
@@ -156,4 +161,5 @@ template<typename F>
 void register_handler(const std::string& name, F&& handler) {//“万能引用”（Universal Reference）的语法。它可以绑定到左值或右值引用，具体取决于传入的参数类型。这使得函数可以接受各种类型的参数，包括临时对象和可移动对象。
 	gSession[name] = std::forward<F>(handler);// 模板函数，使用 std::forward 完美转发参数
 }
+
 #endif // SOUTHGLOBAL_H
