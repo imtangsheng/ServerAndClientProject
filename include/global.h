@@ -1,15 +1,16 @@
-#ifndef SOUTHGLOBAL_H
-#define SOUTHGLOBAL_H
 /**
- * @brief 该文件是通用的数据接口接口类模板，声明全局变量
- *
- * @details
- * Author: Tang
- * Date: 2025-02
- * Version: 0.0.1
-*/
-
+ * @file global.h
+ * @brief 全局文件,常用的内联函数,函数返回类型,网络通信类型等数据结构类型进行定义
+ * @author Tang
+ * @date 2025-03-10
+ */
+#ifndef GLOBAL_H
+#define GLOBAL_H
 #include <QtCore/qglobal.h>
+#include <QObject>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 #if defined(SHAREDLIB_API)
 #define SHAREDLIB_EXPORT Q_DECL_EXPORT
@@ -17,11 +18,7 @@
 #define SHAREDLIB_EXPORT Q_DECL_IMPORT
 #endif
 
-#include <QObject>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonDocument>
-inline static QJsonObject stringToJson(const QString& jsonString) {
+inline static QJsonObject StringToJson(const QString& jsonString) {
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
 	if (!jsonDoc.isNull() && jsonDoc.isObject()) {
 		return jsonDoc.object();
@@ -32,7 +29,7 @@ inline static QJsonObject stringToJson(const QString& jsonString) {
 }
 
 // 内联函数，将JSON对象转换为字符串
-inline static QString jsonToString(const QJsonObject& jsonObject) {
+inline static QString JsonToString(const QJsonObject& jsonObject) {
 	QJsonDocument jsonDoc(jsonObject);
 	return QString::fromUtf8(jsonDoc.toJson());
 }
@@ -40,7 +37,7 @@ inline static QString jsonToString(const QJsonObject& jsonObject) {
 /**定义一个结构体来包含更详细的结果信息**/
 struct Result
 {
-    int code{ -1 };
+    int code{ -1 }; //错误码,0为成功
     QString message{""};
 	Result(int i, const QString& msg = "") :code(i), message(msg) {}
     Result(bool s = true, const QString& msg = "") :message(msg) {
@@ -67,17 +64,17 @@ struct Atomic
     // Release - 确保之前的写入对其他线程可见
     // Acquire - 确保之后的读取能看到其他线程的Release写入
     // Ordered - 完全内存屏障
-    T get() const { return value.loadAcquire(); }
-    void set(T s) { value.storeRelease(s); }
+    T Get() const { return value.loadAcquire(); }
+    void Set(T s) { value.storeRelease(s); }
     //在构造函数中，可以直接用 T 类型的值初始化它
     Atomic(T t = T(), const QString& msg = QString()) : value(t), message(msg) {}
     // 重载赋值运算符，允许直接赋值
     Atomic& operator=(T value) {
-        set(value);
+        Set(value);
         return *this;
     }
     // 重载类型转换运算符，允许隐式转换为 T 类型
-    operator T() const { return get(); }
+    operator T() const { return Get(); }
 };
 #include <QAtomicPointer>
 template<typename T>
@@ -85,13 +82,13 @@ struct AtomicPtr
 {
     QAtomicPointer<T> value;
     AtomicPtr(T t = nullptr) : value(t) {}
-    T get() const { return value.load(); }
-    void set(T s) { value.storeRelease(s); }
+    T Get() const { return value.load(); }
+    void Set(T s) { value.storeRelease(s); }
     AtomicPtr& operator=(T value) {
-        set(value);
+        Set(value);
         return *this;
     }
-    operator T() const { return get(); }
+    operator T() const { return Get(); }
 };
 
 #include <QPointer>
@@ -127,14 +124,14 @@ struct Session {
 		if (json.contains("context")) context = json["context"].toVariant();
 	}
 	// 请求的Request发送
-	static QString toRequestString(int id, const QString& module, const QString& method, const QJsonValue& params) {
-		return jsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
+	static QString RequestString(int id, const QString& module, const QString& method, const QJsonValue& params) {
+		return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
 	}
-	QString toErrorString(int errorCode, const QString& message) const {
-		return jsonToString({ {"id", id}, {"code", errorCode}, {"method", method}, {"message", message} });
+	QString ErrorString(int errorCode, const QString& message) const {
+		return JsonToString({ {"id", id}, {"code", errorCode}, {"method", method}, {"message", message} });
 	}
-	QString toResponseString(const QJsonValue& ExecutionResult = QJsonValue(), const QString& ExecutionMessage = QString()) const {
-		return jsonToString({ {"id", id}, {"code",0}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
+	QString ResponseString(const QJsonValue& ExecutionResult = QJsonValue(), const QString& ExecutionMessage = QString()) const {
+		return JsonToString({ {"id", id}, {"code",0}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
 	}
 };
 ///用std::function定义处理器类型 QFunctionPointer 为Qt的函数指针类型无参数无类型返回值;不支持通过字符串动态查找函数。
@@ -162,4 +159,4 @@ void register_handler(const std::string& name, F&& handler) {//“万能引用�
 	gSession[name] = std::forward<F>(handler);// 模板函数，使用 std::forward 完美转发参数
 }
 
-#endif // SOUTHGLOBAL_H
+#endif // GLOBAL_H

@@ -1,7 +1,7 @@
 #include "share.h"
 using namespace south;
 
-Result Share::findFilePath(const QString& fileName, QString& validConfigPath) {
+Result Share::FindFilePath(const QString& fileName, QString& validConfigPath) {
 	// 创建搜索路径列表
 	QStringList searchPaths;
 	// 应用程序所在目录
@@ -28,7 +28,7 @@ Result Share::findFilePath(const QString& fileName, QString& validConfigPath) {
 	return true;
 }
 
-Result Share::readJsonFile(const QString& filePath, QJsonObject& json) {
+Result Share::ReadJsonFile(const QString& filePath, QJsonObject& json) {
 	QFile configFile(filePath);
 	// 尝试打开文件
 	if (!configFile.open(QIODevice::ReadOnly)) {
@@ -51,7 +51,7 @@ Result Share::readJsonFile(const QString& filePath, QJsonObject& json) {
 	return true;
 }
 
-Result Share::writeJsonFile(const QString& filePath, const QJsonObject& json) {
+Result Share::WriteJsonFile(const QString& filePath, const QJsonObject& json) {
 	// 创建JSON文档
 	QJsonDocument doc(json);
 	QByteArray jsonData = doc.toJson(QJsonDocument::Indented);
@@ -70,14 +70,14 @@ Result Share::writeJsonFile(const QString& filePath, const QJsonObject& json) {
 }
 
 
-void Share::onSend(const Result& result, const Session& session)
+void Share::on_send(const Result& result, const Session& session)
 {
 	if (result)
 	{
-		emit sigSend(session.toResponseString(result.message), session.socket);
+        emit sent(session.ResponseString(result.message), session.socket);
 	}
 	else
 	{
-		emit sigSend(session.toErrorString(result.code, result.message), session.socket);
+        emit sent(session.ErrorString(result.code, result.message), session.socket);
 	}
 }

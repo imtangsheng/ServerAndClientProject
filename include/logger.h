@@ -1,6 +1,11 @@
+/**
+ * @file logger.h
+ * @brief 日志类头文件
+ * @author Tang
+ * @date 2025-03-10
+ */
 #ifndef LOGGER_H
 #define LOGGER_H
-
 #include <QObject>
 #include <QFile>
 #include <QTextStream>
@@ -80,9 +85,9 @@ public:
 	*/
 	void init(const QString& path = QString(), const QString& name = QString(), LogLevel level = LogLevel::All, bool console = false);
 	// 安装消息处理钩子
-	void installMessageHandler();
+	void InstallMessageHandler();
 	// 移除消息处理钩子
-	void uninstallMessageHandler();
+	void UninstallMessageHandler();
 	/**
 	 * @brief 写入日志
 	 * @param message 日志消息
@@ -104,12 +109,12 @@ protected:
 	// 用于保存之前的消息处理函数,输出重定向
 	static QtMessageHandler previousMessageHandler;
 	// 自定义消息处理函数
-	static void messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& message);
+    static void MessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& message);
 	// 将Qt消息类型转换为日志级别
-	static LogLevel qtTypeToLogLevel(QtMsgType type);
+    static LogLevel QtTypeToLogLevel(QtMsgType type);
 
-	void setupLogUpdateTimer();// 设置午夜计时器
-	void cleanupOldLogFiles() const;//清理旧日志文件
+    void SetupLogUpdateTimer();// 设置午夜计时器
+    void CleanupOldLogFiles() const;//清理旧日志文件
 
 signals:
 	/**
@@ -117,15 +122,15 @@ signals:
 	 * @param message 格式化后的日志消息
 	 * @param level 日志级别
 	 */
-	void newMessage(const QString& message, LogLevel level);
+    void new_message(const QString& message, LogLevel level);
 
 private slots:
 	/**
 	 * @brief 检查日志文件日期
 	 */
-	void checkLogFileDate();
+    void check_log_file_date();
 
-	void logToAfile(const QString& message, LogLevel level);
+    void log_a_file(const QString& message, LogLevel level);
 };
 
 

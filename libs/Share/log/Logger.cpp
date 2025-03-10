@@ -4,7 +4,7 @@ QtMessageHandler Logger::previousMessageHandler = nullptr;
 Logger::Logger(QObject* parent)
 	: QObject(parent)
 {
-	connect(this, &Logger::newMessage, this, &Logger::logToAfile);
+	connect(this, &Logger::new_message, this, &Logger::log_a_file);
 }
 
 void Logger::init(const QString& path, const QString& name,
@@ -18,9 +18,9 @@ void Logger::init(const QString& path, const QString& name,
 	if (!dir.exists()) { dir.mkpath("."); }
 	currentLogDate = QDate::currentDate();
 	// 初始创建日志文件
-	checkLogFileDate();
+	check_log_file_date();
 	// 设置计时器
-	setupLogUpdateTimer();
+	SetupLogUpdateTimer();
 }
 
 Logger::~Logger()
@@ -38,7 +38,7 @@ void Logger::log(const QString& message, LogLevel level, const char* function, i
 	}
 	QString logMessage = FormatTheMessage(message, level, function, line, className);
 	//记录发送到信号
-	emit newMessage(logMessage, level);
+	emit new_message(logMessage, level);
 
 	// 同时输出到控制台
 #ifdef QT_DEBUG
@@ -101,15 +101,15 @@ QString Logger::FormatTheMessage(const QString& message, LogLevel level, const c
 	return result;
 }
 
-void Logger::installMessageHandler() {
-	previousMessageHandler = qInstallMessageHandler(messageHandler);
+void Logger::InstallMessageHandler() {
+	previousMessageHandler = qInstallMessageHandler(MessageHandler);
 }
 
-void Logger::uninstallMessageHandler() {
+void Logger::UninstallMessageHandler() {
 	qInstallMessageHandler(previousMessageHandler);
 }
-void Logger::messageHandler(QtMsgType type, const QMessageLogContext& context, const QString& message) {
-	LogLevel level = qtTypeToLogLevel(type);
+void Logger::MessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& message) {
+	LogLevel level = QtTypeToLogLevel(type);
 	Logger::instance().log(message, level, context.function, context.line, context.category);
 	// 如果设置了之前的处理函数，也调用它
 	if (previousMessageHandler) {
@@ -117,7 +117,7 @@ void Logger::messageHandler(QtMsgType type, const QMessageLogContext& context, c
 	}
 }
 
-LogLevel Logger::qtTypeToLogLevel(QtMsgType type) {
+LogLevel Logger::QtTypeToLogLevel(QtMsgType type) {
 	switch (type) {
 	case QtDebugMsg:return LogLevel::Debug;
 	case QtInfoMsg:return LogLevel::Info;
@@ -128,7 +128,7 @@ LogLevel Logger::qtTypeToLogLevel(QtMsgType type) {
 	}
 }
 #include<QTimer>
-void Logger::setupLogUpdateTimer()
+void Logger::SetupLogUpdateTimer()
 {
 	// 计算到今天午夜的时间
 	QTime currentTime = QTime::currentTime();
@@ -147,14 +147,14 @@ void Logger::setupLogUpdateTimer()
 	// 设置单次触发计时器
 	midnightTimer.setSingleShot(true);
 	connect(&midnightTimer, &QTimer::timeout, this, [this]() {
-		checkLogFileDate();
-		setupLogUpdateTimer(); // 重新设置下一个午夜的计时器
+		check_log_file_date();
+		SetupLogUpdateTimer(); // 重新设置下一个午夜的计时器
 		});
 
 	midnightTimer.start(msecToMidnight);
 }
 
-void Logger::cleanupOldLogFiles() const
+void Logger::CleanupOldLogFiles() const
 {
 	// 限制最大日志文件的数量
 	static const int maxFiles = 100;
@@ -170,7 +170,7 @@ void Logger::cleanupOldLogFiles() const
 		files.removeFirst();
 	}
 }
-void Logger::checkLogFileDate()
+void Logger::check_log_file_date()
 {
 	QDate newDate = QDate::currentDate();
 	// 只有日期变更时才创建新文件
@@ -192,11 +192,11 @@ void Logger::checkLogFileDate()
 			return;
 		}
 		// 清理旧日志文件
-		cleanupOldLogFiles();
+		CleanupOldLogFiles();
 	}
 }
 
-void Logger::logToAfile(const QString& message, LogLevel level) {
+void Logger::log_a_file(const QString& message, LogLevel level) {
 	// 检查日志级别
 	if (level < logLevel) {
 		return;

@@ -9,7 +9,6 @@
 #include <QFuture>
 #include <QSettings>
 #include "global.h"
-#include "Logger.h"
 #include <qcoreapplication.h>
  //定义快捷方式
 #define gSouth south::Share::instance()
@@ -32,10 +31,10 @@ namespace south {
 		void init(const QString& appPath, const QString& appName) {
 			appDirPath = appPath;
 			RegisterSettings.reset(new QSettings("South_Software", appName));
-			getConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath).arg(appName), QSettings::IniFormat));
+            GetConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath).arg(appName), QSettings::IniFormat));
 		}
 		// 注册处理器实例
-		void registerHandler(const QString& module, QObject* handler) {
+        void RegisterHandler(const QString& module, QObject* handler) {
 			qDebug() << "Registering handler for module:" << module << QThread::currentThread();
 			handlers[module] = handler;//静态变量的生命周期与程序相同，无法在 Controller 销毁时释放资源
 			//handler->setParent(this);//QObject::setParent: Cannot set parent, new parent is in a different thread
@@ -49,7 +48,7 @@ namespace south {
 			Session session(json);
 			if (!handlers.contains(session.module)) {
 				qWarning() << "Module not found:" << session.module;
-				return Result(false, session.toErrorString(-1, tr("设备模块未找到:%1").arg(session.module)));
+				return Result(false, session.ErrorString(-1, tr("设备模块未找到:%1").arg(session.module)));
 			}
 			session.socket = client; //Q_INVOKABLE 使方法可以通过信号与槽机制、或者通过 QMetaObject::invokeMethod 等方式动态调用
 			return invoke(session);
@@ -70,7 +69,7 @@ namespace south {
 				int paramCount = array.size();
 				if (paramCount > 10) { // QMetaObject::invokeMethod 最多支持 10 个参数
 					qWarning() << "Too many parameters for invokeMethod!";
-					return Result(false, session.toErrorString(-2, tr("最多支持 10 个参数")));
+					return Result(false, session.ErrorString(-2, tr("最多支持 10 个参数")));
 				}
 				QGenericArgument* argv = new QGenericArgument[paramCount];  // 动态分配参数数组
 				QList<QVariant> tempStorage;  // 用来临时存储数据，避免悬空指针,字符传入失败
@@ -94,7 +93,7 @@ namespace south {
 					}
 					else {
 						delete[] argv;  // 释放内存
-						return Result(false, session.toErrorString(-2, tr("发送的参数类型是不支持的参数类型")));
+						return Result(false, session.ErrorString(-2, tr("发送的参数类型是不支持的参数类型")));
 					}
 				}
 				switch (paramCount) {
@@ -122,7 +121,7 @@ namespace south {
 			}
 			if (!success)//如果未找到调用的方法,返回失败,支持函数重载
 			{
-				return Result(false, session.toErrorString(-3, tr("方法调用失败,请检测模块%1的方法:%2使用的参数是否正确").arg(session.module).arg(session.method)));
+				return Result(false, session.ErrorString(-3, tr("方法调用失败,请检测模块%1的方法:%2使用的参数是否正确").arg(session.module).arg(session.method)));
 			}
 			return true;
 		}
@@ -143,7 +142,7 @@ namespace south {
 				// 处理错误
 			}
 		**/
-		QFuture<Result> invokeAsync(const Session& session) {
+        QFuture<Result> invoke_async(const Session& session) {
 			// 1. 创建Promise和Future
 			// 使用 std::make_shared 来存储 promise
 			// 使用 QSharedPointer 创建 promise
@@ -159,13 +158,13 @@ namespace south {
 						promise->addResult(Result(true, "成功"));// 成功时返回结果
 					}
 					else {
-						emit sigSend(session.toErrorString(-2, tr("调用失败")), session.socket);
+                        emit sent(session.ErrorString(-2, tr("调用失败")), session.socket);
 						qWarning() << "Failed to invoke handler" << session.module;
 						promise->addResult(Result(false, "调用失败"));// 成功时返回结果
 					}
 				}
 				catch (const std::exception& e) {
-					emit sigSend(session.toErrorString(-2, e.what()), session.socket);
+                    emit sent(session.ErrorString(-2, e.what()), session.socket);
 					qWarning() << "Failed to invoke handler" << e.what();
 					promise->addResult(Result(false, e.what()));// 成功时返回结果
 				}
@@ -176,17 +175,17 @@ namespace south {
 			return future;
 		}
 
-		static QSharedPointer<QSettings>& getConfigSettings() {
+        static QSharedPointer<QSettings>& GetConfigSettings() {
 			static QSharedPointer<QSettings> settings;
 			return settings;
 		}
 
-		Result findFilePath(const QString& fileName, QString& validConfigPath);
-		Result readJsonFile(const QString& filePath, QJsonObject& json);
-		Result writeJsonFile(const QString& filePath, const QJsonObject& json);
+        Result FindFilePath(const QString& fileName, QString& validConfigPath);
+        Result ReadJsonFile(const QString& filePath, QJsonObject& json);
+        Result WriteJsonFile(const QString& filePath, const QJsonObject& json);
 
 	public slots:
-		void onSend(const Result& result, const Session& session);
+        void on_send(const Result& result, const Session& session);
 	protected:
 		// 保护构造函数,只能继承使用
 		explicit Share(QObject* parent = nullptr) : QObject(parent) {
@@ -202,7 +201,7 @@ namespace south {
 		Share(const Share&) = delete;
 		Share& operator=(const Share&) = delete;
 	signals:
-		void sigSend(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
+        void sent(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
 	};
 
 }//end namespace south
