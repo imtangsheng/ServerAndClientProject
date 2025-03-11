@@ -5,7 +5,7 @@
  */
 #ifndef QTPLUGINDEVICEINTERFACE_H
 #define QTPLUGINDEVICEINTERFACE_H
-#include"./SouthGlobal.h"
+#include"./global.h"
 //#include <QtPlugin>
 
 QT_BEGIN_NAMESPACE

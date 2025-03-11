@@ -1,1 +1,1 @@
-add_subdirectory(faro)
+add_subdirectory(faro_solving)
