@@ -13,13 +13,13 @@ public:
     explicit WebSocketServer(quint16 port, QObject* parent = nullptr);
     ~WebSocketServer();
 
-    void initialize() const;
-
+    void initialize();
+    QMutex mutex;
     QSet<QWebSocket*> clients;
     QSet<QWebSocket*> others;
 
 public slots:
-    void sendMessage(const QString& message, QObject* wsclient);
+    void sent_message(const QString& message, QObject* wsclient);
 Q_SIGNALS:
     void closed();
 
@@ -32,5 +32,4 @@ private Q_SLOTS:
 
 private:
     QWebSocketServer* m_pWebSocketServer;
-    QMutex mutex;
 };

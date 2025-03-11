@@ -4,6 +4,8 @@ ManagerPlugin::ManagerPlugin(QObject* parent)
 	: QObject(parent)
 {
 	qDebug() << "ManagerPlugin::ManagerPlugin() 构造函数";
+	south::Share::instance().RegisterHandler("manager", this);
+	pluginsInvalid = south::Share::GetConfigSettings()->value("Manager/InvalidPlugins").toStringList();
 }
 
 ManagerPlugin::~ManagerPlugin()
@@ -11,11 +13,11 @@ ManagerPlugin::~ManagerPlugin()
 	qDebug() << "ManagerPlugin::~ManagerPlugin() 析构函数";
 	// 卸载所有插件
 	for (const auto& pluginName : m_plugins.keys()) {
-		unloadPlugin(pluginName);
+		PluginUnload(pluginName);
 	}
 }
 
-Result ManagerPlugin::scanPlugins(const QString& pluginDir)
+Result ManagerPlugin::PluginsScan(const QString& pluginDir)
 {
 	m_pluginDir = pluginDir;
 	if (!m_pluginDir.exists()) {
@@ -28,12 +30,12 @@ Result ManagerPlugin::scanPlugins(const QString& pluginDir)
 #else
 	filters << "*.so";
 #endif
-	plugins_available = m_pluginDir.entryList(filters, QDir::Files);
-	qInfo() << "Found" << plugins_available.size() << "plugins in" << pluginDir;
+	pluginsAvailable = m_pluginDir.entryList(filters, QDir::Files);
+	qInfo() << "Found" << pluginsAvailable.size() << "plugins in" << pluginDir;
 
 	// 移除文件扩展名
-	for (int i = 0; i < plugins_available.size(); ++i) {
-		QString& pluginName = plugins_available[i];
+	for (int i = 0; i < pluginsAvailable.size(); ++i) {
+		QString& pluginName = pluginsAvailable[i];
 		int lastDot = pluginName.lastIndexOf('.');
 		if (lastDot > 0) {
 			pluginName = pluginName.left(lastDot);
@@ -42,7 +44,7 @@ Result ManagerPlugin::scanPlugins(const QString& pluginDir)
 	return Result::Success();
 }
 
-Result ManagerPlugin::loadPlugin(const QString& pluginName)
+Result ManagerPlugin::PluginLoad(const QString& pluginName)
 {
 	// 检查插件是否已加载
 	if (m_plugins.contains(pluginName)) {
@@ -65,7 +67,7 @@ Result ManagerPlugin::loadPlugin(const QString& pluginName)
 	}
 	
 	// 获取插件实例
-	PluginDeviceInterface* plugin = qobject_cast<PluginDeviceInterface*>(loader->instance());
+	IPluginDevice* plugin = qobject_cast<IPluginDevice*>(loader->instance());
 	if (!plugin) {
 		qCritical() << "Failed to get plugin instance:" << pluginName;
 		delete loader;
@@ -100,7 +102,7 @@ Result ManagerPlugin::loadPlugin(const QString& pluginName)
 	return Result::Success();
 }
 
-Result ManagerPlugin::unloadPlugin(const QString& pluginName)
+Result ManagerPlugin::PluginUnload(const QString& pluginName)
 {
 	// 检查插件是否已加载
 	if (!m_plugins.contains(pluginName)) {
@@ -122,11 +124,23 @@ Result ManagerPlugin::unloadPlugin(const QString& pluginName)
 	return Result::Success();
 }
 
-PluginDeviceInterface* ManagerPlugin::getPlugin(const QString& pluginName)
+IPluginDevice* ManagerPlugin::PluginGetPtr(const QString& pluginName)
 {
 	if (!m_plugins.contains(pluginName)) {
 		return nullptr;
 	}
 	return m_plugins[pluginName].interface;
+}
+
+void ManagerPlugin::switch_plugin(const QString& pluginName, const bool& enable)
+{
+	if (enable) {
+		if (pluginsInvalid.contains(pluginName)) pluginsInvalid.removeAll(pluginName);
+	}
+	else
+	{
+		if (!pluginsInvalid.contains(pluginName)) pluginsInvalid.append(pluginName);
+	}
+	south::Share::GetConfigSettings()->setValue("Manager/InvalidPlugins", pluginsInvalid);
 }
 

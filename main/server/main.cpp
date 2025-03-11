@@ -1,11 +1,21 @@
+#include "stdafx.h"
 #include <QCoreApplication>
-#include <QDebug>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
-#include "WebSocketServer.h"
+#include "network/WebSocketServer.h"
+
 int main(int argc, char* argv[])
 {
 	QCoreApplication app(argc, argv);
+	QCoreApplication::setApplicationName("WebSocketServer");
+	QCoreApplication::setApplicationVersion("1.0");
+	// 安装消息处理钩子，重定向QDebug输出
+#ifdef QT_NO_DEBUG
+	gLog.init("../logs/", "log", LogLevel::Info, false);
+	gLog.InstallMessageHandler();
+#else
+	gLog.init("../logs/", "log", LogLevel::Debug, true);
+#endif // QT_DEBUG
 	QCommandLineParser parser;
 	parser.setApplicationDescription("QtWebSockets server");
 	parser.addHelpOption();
@@ -17,7 +27,10 @@ int main(int argc, char* argv[])
 
 	int port = parser.value(portOption).toInt();
 	// 打印Qt的C++版本
-	qDebug() << "Qt version: " << QT_VERSION_STR << "C++ version:" << __cplusplus;
+	QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
+	qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
+	qDebug() << "Sortware version:" << __DATE__ << " " << __TIME__ << "Qt version : " << QT_VERSION_STR << "C++ version : " << __cplusplus;
+	gSouth.init(appDir.absolutePath(), "server");
 	WebSocketServer server(port);
 	qDebug() << "server start port:" << port << " source by:" << typeid(server).name();
 	server.initialize();

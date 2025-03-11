@@ -1,5 +1,5 @@
 /*!
- * @file PluginDeviceInterface.h
+ * @file IPluginDevice.h
  * @brief Qt的插件接口,用于动态加载和卸载设备类 ->cn
  * @date 2025-02-24
  */
@@ -21,41 +21,43 @@ enum DeviceState {
 
 using StateHandler = std::function<Result(const QJsonValue&)>;
 
-class PluginDeviceInterface : public QObject
+class IPluginDevice : public QObject
 {
 	Q_OBJECT
 public:
-	explicit PluginDeviceInterface(QObject* parent = nullptr) :QObject(parent),
+	explicit IPluginDevice(QObject* parent = nullptr) :QObject(parent),
 		currentState(DeviceState::Disconnected) {
-		qDebug() << "PluginDeviceInterface()构造函数被调用";
+		qDebug() << "IPluginDevice()构造函数被调用";
 		initialize();
 	}
-	virtual ~PluginDeviceInterface() {
-		qDebug() << "PluginDeviceInterface()析构函数被调用";
+	virtual ~IPluginDevice() {
+		qDebug() << "IPluginDevice()析构函数被调用";
 	}
 
 	// 基本操作接口
 	virtual Result initialize() {return Result(true);}
 	virtual Result connect() = 0; // 连接到特定设备
-	virtual Result disconnect() = 0;
-	virtual Result startCapture() = 0;
-	virtual Result stopCapture() = 0;
+    virtual Result disconnect() = 0; // 断开连接
+
+    // 事件
+    virtual Result AcquisitionStart() = 0; // 开始捕获
+	virtual Result AcquisitionStop() = 0;
 
 	// 参数设置接口 根据接收到的json数据,自动化设置参数
-	virtual Result setParameters(const QJsonObject& parameters) = 0;
+	virtual Result SetParameters(const QJsonObject& parameters) = 0;
 
 	virtual QString name() const = 0;    // 设备名称
 	virtual QString version() const = 0; // 版本
 	// 执行约定的方法
 	virtual Result execute(const QString& method) = 0; // 执行特定功能
 
-	virtual DeviceState getCurrentState() { return currentState; }
+	virtual DeviceState GetCurrentState() { return currentState; }
 	// 获取错误信息
-	virtual QString getLastError() {return lastError;};
+	virtual QString GetLastError() {return lastError;};
 
 
 	// 处理事件的方法
-	Result handleEvent(DeviceEvent event, const QJsonValue& data = QJsonValue()) {
+	Result HandleEvent(DeviceEvent event, const QJsonValue& data = QJsonValue()) {
 		if (stateHandlers.contains(currentState) &&
 			stateHandlers[currentState].contains(event)) {
 			return stateHandlers[currentState][event](data);
@@ -64,9 +66,9 @@ public:
 	}
 
 signals:
-	void stateChanged(DeviceState oldState, DeviceState newState);
-	void eventOccurred(DeviceEvent event, const QVariant& data);
-	void error(const QString& errorMessage);
+	void state_changed(DeviceState oldState, DeviceState newState);
+	void event_occurred(DeviceEvent event, const QVariant& data);
+	void error_occurred(const QString& errorMessage);
 
 protected:
 	QString lastError;
@@ -74,21 +76,21 @@ protected:
 	// 状态转换处理器
 	QMap<DeviceState, QMap<DeviceEvent, StateHandler>> stateHandlers;
 	// 注册自定义事件处理器
-	void registerEventHandler(DeviceState state, DeviceEvent event, StateHandler handler) {
+	void RegisterEventHandler(DeviceState state, DeviceEvent event, StateHandler handler) {
 		stateHandlers[state][event] = handler;
 	}
-	virtual void setState(DeviceState newState) {
+	virtual void SetState(DeviceState newState) {
 		if (currentState != newState) {
 			DeviceState oldState = currentState;
 			currentState = newState;
-			emit stateChanged(oldState, newState);
+			emit state_changed(oldState, newState);
 		}
 	}
 };
 
 // 定义插件接口的唯一标识符
-#define PluginDeviceInterface_iid "interface.Qt.PluginDeviceInterface/0.1"
-Q_DECLARE_INTERFACE(PluginDeviceInterface, PluginDeviceInterface_iid)//使用 Q_DECLARE_INTERFACE 声明接口，以便 Qt 的插件系统识别。
+#define PluginDeviceInterface_iid "interface.Qt.IPluginDevice/0.1"
+Q_DECLARE_INTERFACE(IPluginDevice, PluginDeviceInterface_iid)//使用 Q_DECLARE_INTERFACE 声明接口，以便 Qt 的插件系统识别。
 
 QT_END_NAMESPACE
 

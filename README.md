@@ -336,6 +336,11 @@ void MainWindow::onDataLoaded(const QList<QString>& data) {
 ```
 
 ## 总结
+### 文件命名
+    Qt:头文件,源文件和ui文件：使用 PascalCase。
+    Qt:资源文件：使用 snake_case。
+    一般文件:文件名使用小写字母，单词间用下划线连接 snake_case
+
 ### 成员变量
     私有成员变量：推荐使用 m_ 前缀。
     公有和保护成员变量：通常不加前缀，除非是 Qt 对象指针。

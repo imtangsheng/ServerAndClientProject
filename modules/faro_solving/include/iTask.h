@@ -9,19 +9,19 @@
 
 #include "iFaro.h"
 
-// ¶¨Òå½á¹ûÊı¾İ½á¹¹
+// å®šä¹‰ç»“æœæ•°æ®ç»“æ„
 struct Mileage {
 	long long id;
 	double mileage;
 	long long time;
-	double mileage_revision;        // ĞŞÕıºóµÄÀï³Ì
+	double mileage_revision;        // ä¿®æ­£åçš„é‡Œç¨‹
 	double mileage_align;
 	double mileage_auxiliary;
 	double time_raw;
 };
 
 
-// ¶¨ÒåÀï³ÌÊı¾İ½á¹¹
+// å®šä¹‰é‡Œç¨‹æ•°æ®ç»“æ„
 struct MileageData {
 	long long ID;
 	double LeftMileage;
@@ -32,18 +32,18 @@ struct MileageData {
 	long long RightTimeRaw;
 };
 
-//Çã½Ç¼Æ lsw 24/10/29 add
+//å€¾è§’è®¡ lsw 24/10/29 add
 struct Clinometer {
 	int x;
 	int y;
 	long long time;
 };
 
-// ´´½¨JSONÊı¾İ
+// åˆ›å»ºJSONæ•°æ®
 QJsonObject createTaskJson();
-// ±£´æJSONµ½ÎÄ¼ş
+// ä¿å­˜JSONåˆ°æ–‡ä»¶
 bool saveJsonToFile(const QJsonObject& jsonObj, const QString& filePath);
-// ´ÓÎÄ¼ş¶ÁÈ¡JSON
+// ä»æ–‡ä»¶è¯»å–JSON
 QJsonObject loadJsonFromFile(const QString& filePath);
 //
 struct TaskFaroPart

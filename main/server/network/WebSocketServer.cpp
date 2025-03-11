@@ -34,21 +34,23 @@ WebSocketServer::~WebSocketServer()
 	qDeleteAll(others);
 }
 
-void WebSocketServer::initialize() const
+void WebSocketServer::initialize()
 {
 	//qDebug() << "#测试:" << &gController << QThread::currentThreadId();
 	// 通过信号槽在不同线程之间传递消息 使用const不可以使用this的对象,因为父子对象的不是const的
-	//connect(&gController, &Controller::sigSend, this, &WebSocketServer::sendMessage);
-	connect(&gSouth, &south::South::sigSend, this, &WebSocketServer::sendMessage);
-	if (gManagerPlugin->scanPlugins()) {
-		for (QString& pluginName:gManagerPlugin->plugins_available)
-		{
-			gManagerPlugin->loadPlugin(pluginName);
+	//connect(&gController, &Controller::sigSend, this, &WebSocketServer::sent_message);
+    connect(&gSouth, &south::Share::sent, this, &WebSocketServer::sent_message);
+	if (gManagerPlugin->PluginsScan()) {
+		for (QString& pluginName:gManagerPlugin->pluginsAvailable)
+		{	
+			//是否是无效插件
+			if (gManagerPlugin->pluginsInvalid.contains(pluginName)) continue;
+			gManagerPlugin->PluginLoad(pluginName);
 		}
 	}
 }
 
-void WebSocketServer::sendMessage(const QString& message, QObject* wsclient)
+void WebSocketServer::sent_message(const QString& message, QObject* wsclient)
 {
 	QPointer<QWebSocket> socket = qobject_cast<QWebSocket*>(wsclient);
 	//多线程下 加锁
@@ -91,7 +93,7 @@ void WebSocketServer::validateDeviceType(const QString& message)
 	if (!clientSocket) return;
 	QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
 	if (doc.isNull()) {
-		clientSocket->sendTextMessage(jsonToString({ {"Invalid JSON",400} }));
+		clientSocket->sendTextMessage(JsonToString({ {"Invalid JSON",400} }));
 		return;
 	}
 	//Request resp(doc.object());
@@ -135,11 +137,11 @@ void WebSocketServer::processTextMessage(const QString& message)
 	qDebug() << "#Received:" << pClient->peerAddress().toString() << "[Message]" << message << QThread::currentThread();;
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
 	if (jsonDoc.isNull() || !jsonDoc.isObject()) {
-		pClient->sendTextMessage(jsonToString({ {"id", -1}, {"code", -1}, {"message",  tr("处理失败,传入的数据不是json格式:%1").arg(message)} }));
+		pClient->sendTextMessage(JsonToString({ {"id", -1}, {"code", -1}, {"message",  tr("处理失败,传入的数据不是json格式:%1").arg(message)} }));
 	}
 	//Result result = gController.invoke(jsonDoc.object(), pClient);
-	Result result = south::South::instance().invoke(jsonDoc.object(), sender());
-	if (!result.success) {
+	Result result = south::Share::instance().invoke(jsonDoc.object(), sender());
+    if (!result) {
 		qWarning() << "消息处理失败:" << QThread::currentThread() << "[mess	age]" << message;
 		pClient->sendTextMessage(result.message);
 	}

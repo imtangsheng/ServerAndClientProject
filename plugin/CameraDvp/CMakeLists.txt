@@ -3,8 +3,8 @@
 set(PLUGIN_NAME CameraDvp)
 set(CMAKE_AUTOMOC ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui)
 
 # 设置插件输出目录 ${CMAKE_BINARY_DIR} 表示构建目录（通常是 build/）。
 set(PLUGIN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/plugins)
@@ -16,7 +16,7 @@ set(CONFIG_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/config)
 
 # 将源文件组织在变量中
 set(CONTROLLER_SOURCES
-    ${INCLUDE_DIR}interface/PluginDeviceInterface.h
+    ${INCLUDE_DIR}interface/iPluginDevice.h
     ${INCLUDE_DIR}controller/CameraController.h
 )
 
@@ -39,11 +39,29 @@ add_dependencies(${PLUGIN_NAME} South)
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE
 	Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Gui
     South
 )
 
 #然后在CMake中启用预编译头
 target_precompile_headers(${PLUGIN_NAME} PRIVATE pch.h)
+#库文件的链接路径设置为源代码目录的路径
+target_link_directories(${PLUGIN_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/x64")
+target_link_libraries(${PLUGIN_NAME} PRIVATE DVPCamera64)
+
+#if(WIN32)
+#    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#        message("Windows x86_64 build")
+#        ## Windows x64 (64bit) specific build here
+#        target_link_directories(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib_x86_64)
+#        target_link_libraries(${PLUGIN_NAME} PRIVATE DVPCamera64)
+#    else()
+#        message("Windows x86_32 build")
+#        ## Windows x86 (32bit) specific build here
+#        target_link_directories(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib_x86_32)
+#        target_link_libraries(${PLUGIN_NAME} PRIVATE DVPCamera)
+#    endif()
+#endif()
 
 #设置编译编译定义是在编译过程中传递给预处理器的符号，可以用来控制代码中的条件编译。
 target_compile_definitions(${PLUGIN_NAME} PRIVATE

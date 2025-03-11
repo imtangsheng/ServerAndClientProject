@@ -128,10 +128,10 @@ struct Session {
 		return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
 	}
 	QString ErrorString(int errorCode, const QString& message) const {
-		return JsonToString({ {"id", id}, {"code", errorCode}, {"method", method}, {"message", message} });
+		return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"message", message} });
 	}
 	QString ResponseString(const QJsonValue& ExecutionResult = QJsonValue(), const QString& ExecutionMessage = QString()) const {
-		return JsonToString({ {"id", id}, {"code",0}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
+		return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
 	}
 };
 ///用std::function定义处理器类型 QFunctionPointer 为Qt的函数指针类型无参数无类型返回值;不支持通过字符串动态查找函数。
@@ -147,6 +147,7 @@ using SessionHandler = std::function<void(Session&)>;
 
  * @see SessionHandler
  */
+#include <QMap>
 inline QMap<QString, SessionHandler> gSession;
 #define REGISTER_HANDLER(name) \
     gSession[#name] = &Class::name
@@ -156,7 +157,8 @@ inline void RegisterHandler(const QString& module, const QString& method, Sessio
 }
 template<typename F>
 void register_handler(const std::string& name, F&& handler) {//“万能引用”（Universal Reference）的语法。它可以绑定到左值或右值引用，具体取决于传入的参数类型。这使得函数可以接受各种类型的参数，包括临时对象和可移动对象。
-	gSession[name] = std::forward<F>(handler);// 模板函数，使用 std::forward 完美转发参数
+    // gSession[name] = std::forward<F>(handler);// 模板函数，使用 std::forward 完美转发参数
+    gSession.insert(QString::fromStdString(name), std::forward<F>(handler));
 }
 
 #endif // GLOBAL_H

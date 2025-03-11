@@ -56,8 +56,7 @@ Result Share::WriteJsonFile(const QString& filePath, const QJsonObject& json) {
 	QJsonDocument doc(json);
 	QByteArray jsonData = doc.toJson(QJsonDocument::Indented);
 	// 写入文件,使用绝对路径,如果目录不存在会无法写入
-	//QFile file(appDirPath + "/" + filePath);
-	QFile file(filePath);
+	QFile file(appDirPath + "/" + filePath);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
 		return Result::Failure("无法打开文件进行写入: " + file.errorString());
 	}

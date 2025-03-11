@@ -1,26 +1,33 @@
 #pragma once
 /**
- * @brief ·¨ÈçÃüÃû¿Õ¼ä,·ÀÖ¹Ëã·¨Ê¹ÓÃÖĞ±ÜÃâÖØÃû
+ * @brief æ³•å¦‚å‘½åç©ºé—´,é˜²æ­¢ç®—æ³•ä½¿ç”¨ä¸­é¿å…é‡å
  */
-#pragma execution_character_set("utf-8") 
 #include <string>
 #include <vector>
 
+
 #define FARO_LICENSE_KEY "J3CW4PNRTCTXFJ7T6KZUARUPL"
 
-constexpr double M_PI = 3.14159265358979323846;
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
+
+//constexpr double M_PI = 3.14159265358979323846;
+//#include <numbers>
+//using std::numbers::pi; // piæ˜¯ä¸€ä¸ªinline constexprå˜é‡
 
  /**
-  * @brief FLSÎÄ¼ş½âÎö´íÎóÃ¶¾Ù
+  * @brief FLSæ–‡ä»¶è§£æé”™è¯¯æšä¸¾
  */
 enum class FlsParseError {
 	kInitError,
-	kLicenseError,    ///< Ğí¿ÉÖ¤ÑéÖ¤Ê§°Ü
-	kFlsFormatError   ///< FLSÎÄ¼ş¸ñÊ½´íÎó
+	kLicenseError,    ///< è®¸å¯è¯éªŒè¯å¤±è´¥
+	kFlsFormatError   ///< FLSæ–‡ä»¶æ ¼å¼é”™è¯¯
 };
 
-// µãÔÆÕ¹¿ªµÄËÙ¶È£¬Ã¶¾ÙÖµ´ú±íÕ¹¿ª¿ç¶È¶àÉÙÈ¦
-// Ò»È¦Îª5000¸öµã
+// ç‚¹äº‘å±•å¼€çš„é€Ÿåº¦ï¼Œæšä¸¾å€¼ä»£è¡¨å±•å¼€è·¨åº¦å¤šå°‘åœˆ
+// ä¸€åœˆä¸º5000ä¸ªç‚¹
 enum Speed {
 	kFastest = 50,
 	kFaster = 35,
@@ -29,7 +36,7 @@ enum Speed {
 	kSlower = 5
 };
 
-//ËíµÀµã½á¹¹
+//éš§é“ç‚¹ç»“æ„
 //PointTunnel
 
 
@@ -60,14 +67,14 @@ struct PointCloudXYZCTRGB : public PointFaro
 	unsigned int B;
 };
 
-// µãÔÆ½ØÃæĞÅÏ¢½á¹¹
+// ç‚¹äº‘æˆªé¢ä¿¡æ¯ç»“æ„
 struct PointCloud : public PointFaro
 {
-	double xe{ 0.0 };          //Õ¹¿ªºóºá×ø±ê
-	double error{ 0.0 };		//Îó²î 0
-	double mileage{ 0.0 };     //Àï³Ì
-	double angle{ 0.0 };		//½Ç¶È 0
-	double area{ 0.0 };        //É¨¹ıµÄÃæ»ı 0
-	double depth{ 0.0 };       //Ã¿µãµÄÉî¶È 0
+	double xe{ 0.0 };          //å±•å¼€åæ¨ªåæ ‡
+	double error{ 0.0 };		//è¯¯å·® 0
+	double mileage{ 0.0 };     //é‡Œç¨‹
+	double angle{ 0.0 };		//è§’åº¦ 0
+	double area{ 0.0 };        //æ‰«è¿‡çš„é¢ç§¯ 0
+	double depth{ 0.0 };       //æ¯ç‚¹çš„æ·±åº¦ 0
 };
 
