@@ -3,31 +3,33 @@
  * @brief 共享库的声明文件->cn
  * @date 2025-02
  */
-#ifndef SHARE_H
-#define SHARE_H
+#ifndef SHARE_LIB_H
+#define SHARE_LIB_H
 #include <QPromise>
 #include <QFuture>
 #include <QSettings>
 #include "global.h"
 //定义快捷方式
-#define gSouth south::Share::instance()
-#define gSigSent south::Share::instance().sent
+#define gSouth south::ShareLib::instance()
+#define gSigSent south::ShareLib::instance().sent
 
 namespace south {
 
-class SHAREDLIB_EXPORT Share : public QObject
+class SHAREDLIB_EXPORT ShareLib : public QObject
 {
     Q_OBJECT
 public:
-    static Share& instance() {//使用引用,返回其静态变量,不进行拷贝数据
-        static Share instance;
+    static ShareLib& instance() {//使用引用,返回其静态变量,不进行拷贝数据
+        static ShareLib instance;
         return instance;
     }
+    int type{ 0 };
+    QString language;
     //目前支持的图像格式包括：bmp, jpeg, jpg, png, tiff, tif, gif, dat(纯图像数据)）
     const QStringList kImageFormat{ "jpeg", "jpg", "png","bmp","tiff", "tif", "gif", "dat" };
     QString appDirPath{ "../" };
     QSharedPointer<QSettings> RegisterSettings;//注册表设置
-    void init(const QString& appPath, const QString& appName) {
+    void InitConfigSettings(const QString& appPath, const QString& appName) {
         appDirPath = appPath;
         RegisterSettings.reset(new QSettings("South_Software", appName));
         GetConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath).arg(appName), QSettings::IniFormat));
@@ -187,20 +189,21 @@ public slots:
     void on_send(const Result& result, const Session& session);
 protected:
     // 保护构造函数,只能继承使用
-    explicit Share(QObject* parent = nullptr) : QObject(parent) {
+    explicit ShareLib(QObject* parent = nullptr) : QObject(parent) {
         qDebug() << "Share::Share() 构造函数 - Current thread:" << QThread::currentThread();
         // 取消线程:确保对象移动到目标线程,构造函数本身的代码仍在原始线程（如主线程）中执行，只有对象的信号槽和事件处理会迁移到目标线程。线程亲和性(thread affinity)有严格限制
     }
 private:
     QMap<QString, QObject*> handlers;//需要手动管理
-    ~Share() {
+    ~ShareLib() {
         qDebug() << "Share::~Share() 析构函数 - Current thread:" << QThread::currentThread();
         handlers.clear();
     }
-    Share(const Share&) = delete;
-    Share& operator=(const Share&) = delete;
+    ShareLib(const ShareLib&) = delete;
+    ShareLib& operator=(const ShareLib&) = delete;
 signals:
     void sent(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
+    void set_window_title(const QString& title);
 };
 
 }//end namespace south

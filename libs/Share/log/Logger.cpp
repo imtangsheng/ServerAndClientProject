@@ -1,4 +1,3 @@
-#include "logger.h"
 QtMessageHandler Logger::previousMessageHandler = nullptr;
 
 Logger::Logger(QObject* parent)

@@ -6,8 +6,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core WebSockets)
 
 # 将源文件组织在变量中
 set(NETWORK_SOURCES
-    network/WebSocketServer.h
-    network/WebSocketServer.cpp
+    network/WebSocketServer.h network/WebSocketServer.cpp
 )
 
 set(CONTROLLER_SOURCES
@@ -19,7 +18,7 @@ add_executable(${APP_NAME}
     stdafx.h main.cpp
     ${NETWORK_SOURCES}
     ${CONTROLLER_SOURCES}
- )
+)
 # 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。
 target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
 # 设置目标属性

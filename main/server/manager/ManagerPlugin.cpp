@@ -1,11 +1,10 @@
 #include "ManagerPlugin.h"
-
 ManagerPlugin::ManagerPlugin(QObject* parent)
 	: QObject(parent)
 {
 	qDebug() << "ManagerPlugin::ManagerPlugin() 构造函数";
-	south::Share::instance().RegisterHandler("manager", this);
-	pluginsInvalid = south::Share::GetConfigSettings()->value("Manager/InvalidPlugins").toStringList();
+	south::ShareLib::instance().RegisterHandler("manager", this);
+	pluginsInvalid = south::ShareLib::GetConfigSettings()->value("Manager/InvalidPlugins").toStringList();
 }
 
 ManagerPlugin::~ManagerPlugin()
@@ -61,7 +60,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	// 创建插件加载器
 	QPluginLoader* loader = new QPluginLoader(pluginFilePath);
 	if (!loader->load()) {
-		qCritical() << "Failed to load plugin" << pluginName << ":" << loader->errorString();
+		LOG_ERROR(tr("插件加载失败:%1,错误%2").arg(pluginName).arg(loader->errorString()));
 		delete loader;
 		return Result::Failure("Failed to load plugin");
 	}
@@ -69,7 +68,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	// 获取插件实例
 	IPluginDevice* plugin = qobject_cast<IPluginDevice*>(loader->instance());
 	if (!plugin) {
-		qCritical() << "Failed to get plugin instance:" << pluginName;
+		LOG_ERROR(tr("插件实例获取失败:%1").arg(pluginName));
 		delete loader;
 		return Result::Failure("Failed to get plugin instance");
 	}
@@ -114,7 +113,7 @@ Result ManagerPlugin::PluginUnload(const QString& pluginName)
 
 	// 卸载插件
 	if (!pluginData.loader->unload()) {
-		qWarning() << "Failed to unload plugin" << pluginName << ":" << pluginData.loader->errorString();
+		LOG_ERROR(tr("插件卸载失败:%1, 错误%2").arg(pluginName).arg(pluginData.loader->errorString()));
 		return Result::Failure("Failed to unload plugin");
 	}
 	//清理资源
@@ -141,6 +140,6 @@ void ManagerPlugin::switch_plugin(const QString& pluginName, const bool& enable)
 	{
 		if (!pluginsInvalid.contains(pluginName)) pluginsInvalid.append(pluginName);
 	}
-	south::Share::GetConfigSettings()->setValue("Manager/InvalidPlugins", pluginsInvalid);
+	south::ShareLib::GetConfigSettings()->setValue("Manager/InvalidPlugins", pluginsInvalid);
 }
 

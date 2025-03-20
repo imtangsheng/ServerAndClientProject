@@ -1,7 +1,4 @@
-#include "pch.h"
 #include <QFile>
-
-
 QString struCameraInfo::format = gSouth.kImageFormat[0];
 const QString CameraConfigFileName = "config/camera_params.json";
 const QString CAMERA_PATH[8] = {
@@ -42,7 +39,7 @@ void CameraSDK::test() {
     dvpUint32 timeout = 1000;
     dvpStr filePath = "E:/Test/CAM1/1.jpeg";
     dvpInt32 quality = 100;
-    dvpStatus state = dvpCaptureFile(handle, resoulutionModeSelect, &roi, timeout, filePath, quality);
+    dvpStatus state = dvpCaptureFile(handle, resoulutionModeSelect, &roi, timeout, filePath, quality); //已经弃用
     if(state != DVP_STATUS_OK)
     {
         qDebug() << "dvpCaptureFile error:"<<state;//-53 使用不当
@@ -155,7 +152,7 @@ Result CameraSDK::scan() {
             LOG_ERROR(tr("#CameraSDK:About Enumerate fail! resultDvp:%1").arg(resultDvp));
         } else {
             QString name = cameraInfoArray[i].info.FriendlyName;
-            qDebug() << "#CameraSDK: scan " << name;
+            qDebug() << "#CameraSDK: scan " << name<< cameraInfoArray[i].info.UserID;
             //devicesNamesList.append(QString::fromLocal8Bit(cameraInfoArray[i].info.FriendlyName));
             devicesNamesList.append(name);
             if (cameraInfoJson.contains(name)) { //更新相机的设置的json信息
@@ -248,8 +245,8 @@ Result CameraSDK::start() {
             bool bTrigStatus;
             resultDvp = dvpGetTriggerState(device.handle, &bTrigStatus);
             if (resultDvp != DVP_STATUS_FUNCTION_INVALID) {
-            //	// 在启动视频流之前先设置为触发模式 在触发出图和连续出图模式之间切换,看不懂
-                resultDvp = dvpSetTriggerState(device.handle, isSoftTrigger ? true : false);
+                // 在启动视频流之前先设置为触发模式 在触发出图和连续出图模式之间切换.触发出图是有触发,软触发或者硬触发才会调用回调函数,连续出图是视频流一样调用回调函数
+                resultDvp = dvpSetTriggerState(device.handle, isTriggerState ? true : false);
             	if (resultDvp != DVP_STATUS_OK) {
             		LOG_WARNING(tr("#CameraSDK:Set status of trigger fail!"));
             	}
@@ -300,13 +297,16 @@ Result CameraSDK::Property() {
 }
 
 Result CameraSDK::triggerFire() {
-    bool triggerState;
-    resultDvp = dvpGetTriggerState(cameraInfoArray[activeIndex].handle, &triggerState);
-    if (resultDvp != DVP_STATUS_FUNCTION_INVALID) {
-        resultDvp = dvpTriggerFire(cameraInfoArray[activeIndex].handle);
-        if (resultDvp != DVP_STATUS_OK) {
-            LOG_WARNING("#CameraSDK:Trigger fire fail!");
-            return Result(11, tr("相机软触发失败"));
+    for (dvpUint32 i = 0; i < devicesCount; ++i) {
+        auto& device = cameraInfoArray[i];
+        bool triggerState;
+        resultDvp = dvpGetTriggerState(device.handle, &triggerState);
+        if (resultDvp != DVP_STATUS_FUNCTION_INVALID) {
+            resultDvp = dvpTriggerFire(device.handle);
+            if (resultDvp != DVP_STATUS_OK) {
+                LOG_WARNING("#CameraSDK:Trigger fire fail!");
+                return Result(11, tr("相机软触发失败"));
+            }
         }
     }
     return Result(0, tr("相机软触发成功"));

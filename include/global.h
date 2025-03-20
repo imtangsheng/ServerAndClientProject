@@ -75,6 +75,12 @@ struct Atomic
     }
     // 重载类型转换运算符，允许隐式转换为 T 类型
     operator T() const { return Get(); }
+
+	// 支持隐式转换
+	operator Result() const {
+		return Result(Get(), message);
+	}
+
 };
 #include <QAtomicPointer>
 template<typename T>
@@ -130,9 +136,12 @@ struct Session {
 	QString ErrorString(int errorCode, const QString& message) const {
 		return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"message", message} });
 	}
-	QString ResponseString(const QJsonValue& ExecutionResult = QJsonValue(), const QString& ExecutionMessage = QString()) const {
-		return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
+	QString ResponseString(const QString& ExecutionMessage = QString()) const {
+		return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", result}, {"message", ExecutionMessage} });
 	}
+    QString getRequest() const {
+        return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params}, {"message", message} });
+    }
 };
 ///用std::function定义处理器类型 QFunctionPointer 为Qt的函数指针类型无参数无类型返回值;不支持通过字符串动态查找函数。
 ///不支持跨线程调用（需要手动实现线程安全）。不支持信号槽机制。
@@ -161,4 +170,12 @@ void register_handler(const std::string& name, F&& handler) {//“万能引用�
     gSession.insert(QString::fromStdString(name), std::forward<F>(handler));
 }
 
+// 在头文件中定义会话通信类型枚举
+enum class SessionType {
+	Unknown,
+	Client,
+	Server,
+	Monitor,//监控
+	Other
+};
 #endif // GLOBAL_H

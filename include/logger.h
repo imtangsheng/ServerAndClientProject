@@ -14,6 +14,7 @@
 #include <QDir>
 
 #define gLog Logger::instance()
+#define g_new_message gLog.new_message
 // 便捷的宏，用于包含文件、函数、行号信息
 #define LOG_DEBUG(msg) gLog.log(msg, LogLevel::Debug,__FUNCTION__, __LINE__, Q_FUNC_INFO)
 #define LOG_INFO(msg) gLog.log(msg,LogLevel::Info,__FUNCTION__, __LINE__, Q_FUNC_INFO)
@@ -122,7 +123,7 @@ signals:
 	 * @param message 格式化后的日志消息
 	 * @param level 日志级别
 	 */
-    void new_message(const QString& message, LogLevel level);
+    void new_message(const QString& message, LogLevel level = LogLevel::Debug);
 
 private slots:
 	/**

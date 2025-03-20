@@ -1,7 +1,6 @@
-#include "share.h"
 using namespace south;
 
-Result Share::FindFilePath(const QString& fileName, QString& validConfigPath) {
+Result ShareLib::FindFilePath(const QString& fileName, QString& validConfigPath) {
 	// 创建搜索路径列表
 	QStringList searchPaths;
 	// 应用程序所在目录
@@ -28,7 +27,7 @@ Result Share::FindFilePath(const QString& fileName, QString& validConfigPath) {
 	return true;
 }
 
-Result Share::ReadJsonFile(const QString& filePath, QJsonObject& json) {
+Result ShareLib::ReadJsonFile(const QString& filePath, QJsonObject& json) {
 	QFile configFile(filePath);
 	// 尝试打开文件
 	if (!configFile.open(QIODevice::ReadOnly)) {
@@ -51,7 +50,7 @@ Result Share::ReadJsonFile(const QString& filePath, QJsonObject& json) {
 	return true;
 }
 
-Result Share::WriteJsonFile(const QString& filePath, const QJsonObject& json) {
+Result ShareLib::WriteJsonFile(const QString& filePath, const QJsonObject& json) {
 	// 创建JSON文档
 	QJsonDocument doc(json);
 	QByteArray jsonData = doc.toJson(QJsonDocument::Indented);
@@ -69,7 +68,7 @@ Result Share::WriteJsonFile(const QString& filePath, const QJsonObject& json) {
 }
 
 
-void Share::on_send(const Result& result, const Session& session)
+void ShareLib::on_send(const Result& result, const Session& session)
 {
 	if (result)
 	{

@@ -1,8 +1,6 @@
-#include "stdafx.h"
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
-#include "network/WebSocketServer.h"
 
 int main(int argc, char* argv[])
 {
@@ -30,7 +28,8 @@ int main(int argc, char* argv[])
 	QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
 	qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
 	qDebug() << "Sortware version:" << __DATE__ << " " << __TIME__ << "Qt version : " << QT_VERSION_STR << "C++ version : " << __cplusplus;
-	gSouth.init(appDir.absolutePath(), "server");
+    gSouth.InitConfigSettings(appDir.absolutePath(), "server");//初始化配置文件路径,名称
+    gSouth.type = int(SessionType::Server);
 	WebSocketServer server(port);
 	qDebug() << "server start port:" << port << " source by:" << typeid(server).name();
 	server.initialize();

@@ -1,7 +1,7 @@
-#include "pch.h"
-
-CameraController::CameraController(QObject* parent, const QString& module) :
-	ControllerBase(module, parent) {
+CameraController::CameraController(QObject* parent, const QString& module)
+    :QObject(parent)
+{
+    name = module;
 }
 
 CameraController::~CameraController()
@@ -15,10 +15,25 @@ void CameraController::initialize()
 
 }
 
+void CameraController::prepare()
+{
+
+}
+
+void CameraController::start()
+{
+
+}
+
+void CameraController::stop()
+{
+
+}
+
 void CameraController::test(const Session& session)
 {
     gCameraSDK->test();
-    emit gSigSent(session.ResponseString("CameraController::test", tr("测试成功")));
+    emit gSigSent(session.ResponseString(tr("测试成功")));
 }
 
 Result CameraController::save(const QString& jsonFilePath)
@@ -31,7 +46,9 @@ Result CameraController::scan(const Session& session)
 	Result result = gCameraSDK->scan();
 	if (result) {
 		QString deviceNames = gCameraSDK->devicesNamesList.join(", ");
-		emit gSigSent(session.ResponseString(deviceNames, tr("扫描相机成功")));
+		Session session1 = session;
+        session1.result = deviceNames;
+		emit gSigSent(session1.ResponseString(tr("扫描相机成功")));
 	}
 	else {
 		emit gSigSent(session.ErrorString(result.code, result.message));
@@ -39,12 +56,6 @@ Result CameraController::scan(const Session& session)
 	return result;
 }
 
-Result CameraController::prepare(const Session& session)
-{
-	Result result = gCameraSDK->prepare(session);
-	gSouth.on_send(result, session);
-	return result;
-}
 
 Result CameraController::getUpdateFrameInfo(const Session& session)
 {
@@ -83,23 +94,11 @@ Result CameraController::open(const Session& session)
 	return result;
 }
 
-Result CameraController::start(const Session& session)
-{
-	Result result = gCameraSDK->start();
-	gSouth.on_send(result, session);
-	return result;
-}
-
-Result CameraController::stop(const Session& session)
-{
-	Result result = gCameraSDK->stop();
-	gSouth.on_send(result, session);
-	return result;
-}
-
 Result CameraController::show(const Session& session)
 {
 	Result result = gCameraSDK->Property();
 	gSouth.on_send(result, session);
 	return result;
 }
+
+

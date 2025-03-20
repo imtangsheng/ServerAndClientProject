@@ -11,7 +11,7 @@ file(GLOB_RECURSE PROJECT_SOURCES
 )
 
 add_library(${SHARE_NAME} SHARED
-  ${INCLUDE_DIR}share.h ${INCLUDE_DIR}Logger.h
+  ${INCLUDE_DIR}share_lib.h ${INCLUDE_DIR}Logger.h
   ${PROJECT_SOURCES}
 )
 

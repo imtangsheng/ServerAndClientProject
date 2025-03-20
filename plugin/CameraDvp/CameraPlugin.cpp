@@ -3,7 +3,6 @@
  * @brief 度申相机DVP2(Digital Videl Platform 2) SDK 的API开发的实现文件->cn
  * @date 2025-02
  */
-#include "pch.h"
 #include "CameraPlugin.h"
 CameraPlugin::CameraPlugin()
 {
@@ -20,10 +19,10 @@ Result CameraPlugin::initialize()
 {
 	//qDebug() <<"#测试:"<<&gController<<QThread::currentThreadId();
 	gCameraController = new CameraController(this);
-	//south::Share::instance().registerHandler("camera", gCameraController.data());
-	bool enable =	south::Share::GetConfigSettings()->value("camera/enable",false).toBool();
+	//south::ShareLib::instance().registerHandler("camera", gCameraController.data());
+	bool enable =	south::ShareLib::GetConfigSettings()->value("camera/enable",false).toBool();
 	if (!enable) {
-		south::Share::GetConfigSettings()->setValue("camera/enable", true);
+		south::ShareLib::GetConfigSettings()->setValue("camera/enable", true);
 	}
 	gCameraSDK = new CameraSDK(this);
 	qDebug() << "#PluginCamera初始化函数"<< enable;

@@ -1,7 +1,7 @@
 #pragma once
 #include "global.h"
 #include "DVPCamera.h"
-
+#include <QThread>
 //#pragma comment(lib, "x64/DVPCamera64.lib") //该文件放到生成目录下 或启动cmake的链接
 //#ifdef _WIN64 //加载64-bit lib库 
 //#pragma comment(lib, "lib_x86_64/DVPCamera64.lib") 
@@ -120,7 +120,7 @@ public:
 	Result stop();
 	Result Property();//仅在windows有效
 	Result triggerFire(); //软触发一次
-	bool isSoftTrigger{true}; //软件触发 ToDo 预留
+	bool isTriggerState{true}; //触发模式 在触发出图:true和连续出图模式之间切换.触发出图是有触发,软触发或者硬触发才会调用回调函数,连续出图是视频流一样调用回调函数
 
 	//与界面的交互
 	Result prepare(const Session& session);
