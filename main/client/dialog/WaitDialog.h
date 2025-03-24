@@ -10,7 +10,7 @@ namespace Ui {
 class WaitDialog;
 }
 
-class WaitDialog : public QDialog
+class WaitDialog : public QDialog,public SessionFilterable
 {
     Q_OBJECT
 
@@ -24,11 +24,11 @@ public:
     Result init();
     Atomic<bool> hasRuselt{false};
     // void show();
+    Result filter(Session& recv) final;
 public slots:
-    void update_timeout();
-    void message_received(const QString& message);
 
-    virtual void showEvent(QShowEvent *) override;;//打开窗口时执行
+    void update_timeout();
+    // virtual void showEvent(QShowEvent *) override;;//打开窗口时执行
 private:
     Ui::WaitDialog *ui;
     QEventLoop loop;

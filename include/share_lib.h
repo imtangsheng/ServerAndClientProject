@@ -11,7 +11,7 @@
 #include "global.h"
 //定义快捷方式
 #define gSouth south::ShareLib::instance()
-#define gSigSent south::ShareLib::instance().sent
+#define gSigSent south::ShareLib::instance().sigSent
 
 namespace south {
 
@@ -159,13 +159,13 @@ public:
                     promise->addResult(Result(true, "成功"));// 成功时返回结果
                 }
                 else {
-                    emit sent(session.ErrorString(-2, tr("调用失败")), session.socket);
+                    emit sigSent(session.ErrorString(-2, tr("调用失败")), session.socket);
                     qWarning() << "Failed to invoke handler" << session.module;
                     promise->addResult(Result(false, "调用失败"));// 成功时返回结果
                 }
             }
             catch (const std::exception& e) {
-                emit sent(session.ErrorString(-2, e.what()), session.socket);
+                emit sigSent(session.ErrorString(-2, e.what()), session.socket);
                 qWarning() << "Failed to invoke handler" << e.what();
                 promise->addResult(Result(false, e.what()));// 成功时返回结果
             }
@@ -202,8 +202,8 @@ private:
     ShareLib(const ShareLib&) = delete;
     ShareLib& operator=(const ShareLib&) = delete;
 signals:
-    void sent(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
-    void set_window_title(const QString& title);
+    void sigSent(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
+    void signal_set_window_title(const QString& title);
 };
 
 }//end namespace south

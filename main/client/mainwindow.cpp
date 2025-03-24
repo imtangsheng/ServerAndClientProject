@@ -51,7 +51,6 @@ void IWidget::initialize()
 {
     qDebug() <<"IWidget::initialize()";
     if(buttonDeviceManager_){
-        qDebug() <<"IWidget::initialize()2";
         int index = mainWindow->ui->stackedWidget_DeviceManager_items_screen->addWidget(widgetDeviceManager_);
         mainWindow->ui->verticalLayout_DeviceManager_items_name->insertWidget(index,buttonDeviceManager_);
         connect(buttonDeviceManager_,&QPushButton::clicked,mainWindow,[&]{
@@ -92,7 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // ui->verticalLayout_AcquisitionGo_Monitor->addWidget(gScanner);
     gUserController = new UserController(this);
-    connect(&gSouth,&south::ShareLib::set_window_title,this,&MainWindow::setWindowTitle);
+    connect(&gSouth,&south::ShareLib::signal_set_window_title,this,&MainWindow::setWindowTitle);
     connect(&gLog,&Logger::new_message,this,&MainWindow::show_message);
 
 

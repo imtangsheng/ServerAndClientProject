@@ -72,10 +72,10 @@ void ShareLib::on_send(const Result& result, const Session& session)
 {
 	if (result)
 	{
-        emit sent(session.ResponseString(result.message), session.socket);
+        emit sigSent(session.ResponseString(result.message), session.socket);
 	}
 	else
 	{
-        emit sent(session.ErrorString(result.code, result.message), session.socket);
+        emit sigSent(session.ErrorString(result.code, result.message), session.socket);
 	}
 }

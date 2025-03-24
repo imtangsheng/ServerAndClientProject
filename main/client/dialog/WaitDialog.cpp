@@ -15,6 +15,7 @@ WaitDialog::~WaitDialog()
     if(timer.isActive()){
         timer.stop();
     }
+    // gFilter.remove(this->objectName());
     delete ui;
 }
 
@@ -25,7 +26,8 @@ Result WaitDialog::init()
         qWarning()<<"网络未连接";
         pCilent = &gClient;
     }
-    connect(pCilent,&QWebSocket::textMessageReceived,this,&WaitDialog::message_received);
+    // connect(pCilent,&QWebSocket::textMessageReceived,this,&WaitDialog::message_received);
+    // gFilter.append(std::bind(&WaitDialog::HandleFilte, this, std::placeholders::_1));
     pCilent->sendTextMessage(session->getRequest());
     qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<<" Dialog Send:"<<session->getRequest();
     QTimer::singleShot(100, &loop, &QEventLoop::quit);
@@ -42,6 +44,28 @@ Result WaitDialog::init()
     connect(&timer,&QTimer::timeout,this,&WaitDialog::update_timeout);
     timer.start();
     return false;
+}
+
+Result WaitDialog::filter(Session &recv)
+{
+    qDebug() <<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<< "WaitDialog::HandleFilter:"<<recv.message;
+    if(recv.id == session->id && recv.module == session->module && recv.method == session->method){
+        session->code = recv.code;
+        session->result = recv.result;
+        session->message = recv.message;
+
+        loop.quit();
+
+        hasRuselt = true;
+        hasRuselt.message = recv.message;
+        ui->label_show->setText(hasRuselt.message);
+        accept();
+        qDebug()<<"会设置dialog的result为QDialog::Accepted（值为1）";
+        return Result(true,recv.message);
+    }else{
+        qWarning() << session->id << session->module <<session->method;
+        return false;
+    }
 }
 
 void WaitDialog::update_timeout()
@@ -69,35 +93,8 @@ void WaitDialog::update_timeout()
     ui->progressBar_wait->setValue(sMaxTimeout);
 }
 
-void WaitDialog::message_received(const QString &message)
-{
-    qDebug() <<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<< "WaitDialog::message_received(const QString:"<<message;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
-    if (jsonDoc.isNull() || !jsonDoc.isObject()) {//向客户端发送错误信息
-        // reject();//关闭对话框并返回 QDialog::Rejected
-        qDebug()<<"jsonDoc.isNull:WaitDialog::message_received(const QString &"<<message;
-        return;
-    }
 
-    Session recv(jsonDoc.object());
-    if(recv.id == session->id && recv.module == session->module && recv.method == session->method){
-        session->code = recv.code;
-        session->result = recv.result;
-        session->message = recv.message;
+// void WaitDialog::showEvent(QShowEvent *)
+// {
 
-        loop.quit();
-
-        hasRuselt = true;
-        hasRuselt.message = recv.message;
-        ui->label_show->setText(hasRuselt.message);
-        accept();
-    }else{
-        qWarning() << ":message_received(const QString)"<<message;
-        qWarning() << session->id << session->module <<session->method;
-    }
-}
-
-void WaitDialog::showEvent(QShowEvent *)
-{
-
-}
+// }

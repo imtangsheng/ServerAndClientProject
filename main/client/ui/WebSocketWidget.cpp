@@ -122,8 +122,15 @@ void WebSocketWidget::onTextMessageReceived(QString message)
         ui->textBrowser_MessageReceived->append(QString("[%1] Received:\n %2").arg(timestamp,"无效的json数据"));
     }
     ui->textBrowser_MessageReceived->append(QString("[%1] 客户端接收到消息:\n %2").arg(timestamp,message));
-    //Session session(jsonDoc.object());
-    Result result = south::ShareLib::instance().invoke(jsonDoc.object(), sender());
+    Session session(jsonDoc.object());session.socket = sender();
+    for(auto &filter:gSessionFilter){
+        if(filter && filter->filter(session)){
+            qDebug() <<" 消息被过滤器处理,不再继续默认处理";
+            return;
+        };
+    }
+    // 默认处理逻辑
+    Result result = south::ShareLib::instance().invoke(session);
     if (!result) {
         qWarning() << "消息处理失败:" << QThread::currentThread() << "[mess	age]" << message;
         ui->textBrowser_MessageReceived->append(QString("[%1]客户端消息处理失败:\n %2").arg(timestamp,result.message));

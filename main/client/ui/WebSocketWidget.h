@@ -23,7 +23,7 @@ Q_SIGNALS:
     void closed();
 
 public slots:
-    void tryReconnect(); // ���������Ĳۺ���
+    void tryReconnect();
     void onConnected();
     void disConnected();
     void onTextMessageReceived(QString message);
@@ -39,9 +39,9 @@ private slots:
 
 private:
 
-    QTimer m_reconnectTimer;      // ������ʱ��
-    bool m_autoReconnect{true};          // �Ƿ��Զ�����
-    int m_reconnectInterval{5000};       // ��������(����)
+    QTimer m_reconnectTimer;
+    bool m_autoReconnect{true};
+    int m_reconnectInterval{5000};
 };
 
 extern QPointer<WebSocketWidget> gWebSocket;

@@ -2,6 +2,8 @@ CameraController::CameraController(QObject* parent, const QString& module)
     :QObject(parent)
 {
     name = module;
+	gSouth.RegisterHandler(name, this);
+	//gSouth.on_register(name, this);
 }
 
 CameraController::~CameraController()
@@ -22,12 +24,12 @@ void CameraController::prepare()
 
 void CameraController::start()
 {
-
+	gCameraSDK->start();
 }
 
 void CameraController::stop()
 {
-
+	gCameraSDK->stop();
 }
 
 void CameraController::test(const Session& session)
@@ -36,12 +38,8 @@ void CameraController::test(const Session& session)
     emit gSigSent(session.ResponseString(tr("测试成功")));
 }
 
-Result CameraController::save(const QString& jsonFilePath)
-{
-	return gCameraSDK->SaveConfigToFile(jsonFilePath);
-}
 
-Result CameraController::scan(const Session& session)
+void CameraController::scan(const Session& session)
 {
 	Result result = gCameraSDK->scan();
 	if (result) {
@@ -53,15 +51,18 @@ Result CameraController::scan(const Session& session)
 	else {
 		emit gSigSent(session.ErrorString(result.code, result.message));
 	}
-	return result;
+
 }
 
+void CameraController::open(const Session& session) {
+	Result result = gCameraSDK->open();
+	gSouth.on_send(result, session);
+}
 
-Result CameraController::getUpdateFrameInfo(const Session& session)
+void CameraController::GetUpdateFrameInfo(const Session& session)
 {
 	Result result = gCameraSDK->slotDispRate();
 	gSouth.on_send(result, session);
-	return result;
 }
 
 void CameraController::SetCamerasParams(const Session& session)
@@ -87,18 +88,13 @@ Q_INVOKABLE void CameraController::trigger(const Session& session) {
     gSouth.on_send(result, session);
 }
 
-Result CameraController::open(const Session& session)
-{
-	Result result = gCameraSDK->open();
-	gSouth.on_send(result, session);
-	return result;
-}
 
-Result CameraController::show(const Session& session)
+
+
+void CameraController::show(const Session& session)
 {
 	Result result = gCameraSDK->Property();
 	gSouth.on_send(result, session);
-	return result;
 }
 
 

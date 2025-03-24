@@ -170,6 +170,25 @@ void register_handler(const std::string& name, F&& handler) {//“万能引用�
     gSession.insert(QString::fromStdString(name), std::forward<F>(handler));
 }
 
+/*!
+ * @brief 定义过滤器接口基类
+ * @details 详细说明
+ */
+// 全局过滤器映射
+class SessionFilterable;
+inline QList<SessionFilterable*> gSessionFilter;//使用函数映射不能直接应用到成员函数
+class SessionFilterable {
+public:
+    virtual Result filter(Session& recv) = 0;// 纯虚函数，子类实现过滤逻辑
+    SessionFilterable(){
+        gSessionFilter.append(this);
+    }
+    virtual ~SessionFilterable(){
+        gSessionFilter.removeOne(this);
+    }
+    // QMutexLocker locker(&gFilterMutex); // 线程安全
+};
+
 // 在头文件中定义会话通信类型枚举
 enum class SessionType {
 	Unknown,

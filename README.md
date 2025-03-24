@@ -344,9 +344,14 @@ void MainWindow::onDataLoaded(const QList<QString>& data) {
 ### 成员变量
     私有成员变量：推荐使用 m_ 前缀。
     公有和保护成员变量：通常不加前缀，除非是 Qt 对象指针。
-    后缀加下划线:
-        1.当成员变量与构造函数参数同名时，使用后缀下划线
-        2.当成员变量与关键字同名时，使用后缀下划线
+
+后缀:
+- **下划线**:当成员变量与构造函数参数和关键字同名时，使用后缀下划线
+- **ptr**:当成员变量是指针时，使用 ptr 后缀
+- **ref**:当成员变量是引用时，使用 ref 后缀
+
 ### 特别约定
-    常用的方法使用小写替换,如init,get,set等常规方法
-    自定义的信号和槽使用 snake_case
+
+- **常用方法**:常用的方法使用小写替换,如init,get,set等常规方法
+- **信号**:使用signal_前缀的snake_case或者sig前缀的camelCase
+- **槽**:使用on_ slot_前缀的snake_case或者on handle slot 前缀的camelCase
