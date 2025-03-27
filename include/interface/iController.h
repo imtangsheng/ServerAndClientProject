@@ -27,7 +27,6 @@ class iController
 {
 public:
     //virtual ~iController() {}
-    QString name;//模块调用的名称
     // QSet<QPointer<QObject>> subscribe;
 	// 派生类可以重写此方法进行线程特定的初始化
     virtual void initialize()=0;

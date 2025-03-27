@@ -5,6 +5,7 @@
  */
 #ifndef SHARE_LIB_H
 #define SHARE_LIB_H
+#include <QMetaEnum>
 #include <QPromise>
 #include <QFuture>
 #include <QSettings>
@@ -12,6 +13,14 @@
 //定义快捷方式
 #define gSouth south::ShareLib::instance()
 #define gSigSent south::ShareLib::instance().sigSent
+
+//定义模块名称
+constexpr auto sModuleScanner = "scanner";
+constexpr auto sModuleCamera = "camera";
+constexpr auto sModuleManager = "manager";
+constexpr auto sModuleTrolley = "trolley";
+constexpr auto sModuleOther = "other";
+constexpr auto sModuleUser = "user";
 
 namespace south {
 
@@ -23,7 +32,24 @@ public:
         static ShareLib instance;
         return instance;
     }
+    enum ModuleType {
+        Trolley,
+        Camera,
+        Manager,
+        Other
+    };
+    static QString GetModuleName(ModuleType type) {
+        static constexpr const char* MODULE_NAMES[] = {
+            "Trolley",
+            "Camera",
+            "Manager",
+            "Other"
+        };
+        return MODULE_NAMES[static_cast<int>(type)];
+    }
+
     int type{ 0 };
+    QString version{ "v1.0.0" };
     QString language;
     //目前支持的图像格式包括：bmp, jpeg, jpg, png, tiff, tif, gif, dat(纯图像数据)）
     const QStringList kImageFormat{ "jpeg", "jpg", "png","bmp","tiff", "tif", "gif", "dat" };
