@@ -5,7 +5,7 @@
 #include <QMainWindow>
 #include "ui_mainwindow.h"
 
-inline QObject*g_parent = new QObject();
+// inline QObject*g_parent = new QObject();
 
 #include <QMouseEvent>
 #include <QEvent>
@@ -47,16 +47,18 @@ public:
     Ui::MainWindow *ui;
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    QTranslator translator;
-public slots:
+    // QTranslator translator;
+
+    // 修改函数签名，直接传值而不是引用
+    Q_INVOKABLE void login_verify(double type,const QString& version);//设备登录验证程序
+public slots:    
     void show_message(const QString& message, LogLevel level);
 protected:
-
     // 重写 nativeEvent 以处理 Windows 原生消息
     bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override;
     bool eventFilter(QObject *obj, QEvent *event) override ;
 protected slots:
-    void handle_acquisition_start();
+    void onAacquisitionStartClicked();
 private slots:
     void on_pushButton_Camera_clicked();
 
@@ -66,9 +68,15 @@ private slots:
 
     void on_actionChinese_triggered();
 
+    void on_pushButton_devices_powered_off_clicked();
+
     void on_pushButton_test_clicked();
 
     void on_pushButton_AcquisitionBegins_clicked();
+
+    void on_pushButton_AcquisitionEnd_clicked();
+
+    void on_pushButton_AcquisitionCreate_clicked();
 
 private:
 

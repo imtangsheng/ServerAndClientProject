@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/icons"/>
+    <qresource prefix="/i18n">
+        <file alias="zh_CN">../../translations/client_zh_CN.qm</file>
+    </qresource>
+    <qresource prefix="/">
+        <file alias="logo">../../assets/icons/logo.ico</file>
+        <file>../../assets/images/Background_back.png</file>
+        <file>../../assets/images/Background_front.png</file>
+        <file>../../assets/icons/AcquisitonGo.png</file>
+        <file>../../assets/icons/ConfirmButton.png</file>
+        <file>../../assets/icons/ConfirmButton_unset.png</file>
+        <file>../../assets/icons/DeviceManager.png</file>
+    </qresource>
+</RCC>

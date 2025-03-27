@@ -10,8 +10,6 @@
 #include "ui/ScannerWidget.h"
 #include "dialog/AcquisitionWizard.h"
 
-#include "controller/user_controller.h"
-QPointer<UserController> gUserController;
 QPointer<WebSocketWidget> gWebSocket;
 QPointer<CameraWidget>gCamera;
 
@@ -90,7 +88,6 @@ MainWindow::MainWindow(QWidget *parent) :
     gScanner = new ScannerWidget(this);
 
     // ui->verticalLayout_AcquisitionGo_Monitor->addWidget(gScanner);
-    gUserController = new UserController(this);
     connect(&gSouth,&south::ShareLib::signal_set_window_title,this,&MainWindow::setWindowTitle);
     connect(&gLog,&Logger::new_message,this,&MainWindow::show_message);
 
@@ -99,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->menuSettings->setAttribute(Qt::WA_TranslucentBackground);
     // ui->menuSettings->setWindowFlags(ui->menuSettings->windowFlags() | Qt::NoDropShadowWindowHint);
     ui->menuSettings->setWindowOpacity(0.2);
-ui->menuBar->setWindowOpacity(0.2);
+    ui->menuBar->setWindowOpacity(0.2);
     // 创建互斥的复选框组
     QActionGroup* modeGroup = new QActionGroup(this);
     modeGroup->addAction(ui->action_LanguageChinese);
@@ -138,9 +135,24 @@ MainWindow::~MainWindow()
     delete gWebSocket;
     gWebSocket = nullptr;
     delete gCamera;
-    delete gUserController;
     delete ui;
     qDebug() << "MainWindow 析构函数";
+}
+
+void MainWindow::login_verify(double type,const QString& version)
+{
+    // 修改函数签名，直接传值而不是引用  -1.45682e+144
+    // QString 在 Qt 中是隐式共享（implicit sharing）的，使用了引用计数机制
+    // 而 double 是基本类型，直接传递引用可能指向临时对象或已失效的内存：
+    // Qt 5.15+ 才完全支持右值引用参数传递，但 Qt 的信号槽机制默认不支持直接传递右值引用。
+    if(int(type) == gSouth.type){
+        show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gSouth.type),LogLevel::Warning);
+    }
+
+    if(version == gSouth.version){
+        show_message(tr("the device version does not match and the server is %1 a client is %2").arg(version,gSouth.version),LogLevel::Warning);
+    }
+    show_message(tr("the server connection is successful"),LogLevel::Info);
 }
 
 
@@ -200,7 +212,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             ui->stackedWidget_MainWidget->setCurrentIndex(0);
         }else if(obj == ui->widget_AcquisitionGo){
             // qDebug() << "MainWindow::eventFilter ui->widget_AcquisitionGo";
-            handle_acquisition_start();
+            onAacquisitionStartClicked();
         }else if(obj == ui->widget_DeviceManager){
             ui->stackedWidget_MainWidget->setCurrentWidget(ui->page_manger);
         }
@@ -208,7 +220,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     return QMainWindow::eventFilter(obj, event);
 }
 
-void MainWindow::handle_acquisition_start()
+void MainWindow::onAacquisitionStartClicked()
 {
     AcquisitionWizard* acquisition = new  AcquisitionWizard(this);
     // 连接信号
@@ -284,6 +296,13 @@ void MainWindow::on_actionChinese_triggered()
 }
 
 
+void MainWindow::on_pushButton_devices_powered_off_clicked()
+{
+
+    gClient.sendTextMessage(Session::RequestString(1,sModuleUser,"shutdown",QJsonArray()));
+}
+
+
 void MainWindow::on_pushButton_test_clicked()
 {
     ui->dockWidget_Settings->show();
@@ -298,6 +317,36 @@ void MainWindow::on_pushButton_test_clicked()
 
 void MainWindow::on_pushButton_AcquisitionBegins_clicked()
 {
-    gUserController->acquisition_begins();
+    Session session({ {"id", 11}, {"module", sModuleUser}, {"method", "acquisition_begins"}, {"params", true} });
+    session.socket = &gClient;
+    WaitDialog wait(this,&session,30);// = new WaitDialog(this);
+    //100ms 以内防止弹窗显示
+    if(wait.init() || wait.exec() == QDialog::Accepted){
+        qDebug() << session.result;
+        ui->pushButton_AcquisitionBegins->hide();//隐藏点击开始采集方法,防止二次点击
+    }else{
+        return;
+    }
+}
+
+
+void MainWindow::on_pushButton_AcquisitionEnd_clicked()
+{
+    Session session({ {"id", 11}, {"module", sModuleUser}, {"method", "acquisition_end"}, {"params", true} });
+    session.socket = &gClient;
+    WaitDialog wait(this,&session,30);// = new WaitDialog(this);
+    //100ms 以内防止弹窗显示
+    if(wait.init() || wait.exec() == QDialog::Accepted){
+        qDebug() << session.result;
+        ui->pushButton_AcquisitionCreate->show();//隐藏点击开始采集方法,防止二次点击
+    }else{
+        return;
+    }
+}
+
+
+void MainWindow::on_pushButton_AcquisitionCreate_clicked()
+{
+    ui->pushButton_AcquisitionBegins->show();
 }
 

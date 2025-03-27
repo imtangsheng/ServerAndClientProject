@@ -97,12 +97,13 @@ void WebSocketWidget::onConnected()
 {
     ui->textBrowser_MessageReceived->append("连接成功");
     ui->pushButton_onConnected->setText("断开");
-    gClient.sendTextMessage(Session::RequestString(1,"user","login",gSouth.type));
+    gClient.sendTextMessage(Session::RequestString(1,sModuleUser,"login",gSouth.type));
 	m_reconnectTimer.stop();
 }
 
 void WebSocketWidget::disConnected()
 {
+    emit g_new_message(tr("与服务器断开连接:%1").arg(ui->lineEdit_url->text().trimmed()),LogLevel::Error);
     ui->textBrowser_MessageReceived->append("断开连接");
     ui->pushButton_onConnected->setText("连接");
 	if (m_autoReconnect) {
@@ -130,7 +131,7 @@ void WebSocketWidget::onTextMessageReceived(QString message)
         };
     }
     // 默认处理逻辑
-    Result result = south::ShareLib::instance().invoke(session);
+    Result result = gSouth.invoke(session);
     if (!result) {
         qWarning() << "消息处理失败:" << QThread::currentThread() << "[mess	age]" << message;
         ui->textBrowser_MessageReceived->append(QString("[%1]客户端消息处理失败:\n %2").arg(timestamp,result.message));

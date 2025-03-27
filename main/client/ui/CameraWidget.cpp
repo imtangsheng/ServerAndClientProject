@@ -1,8 +1,8 @@
 // #include "stdafx.h"
 #include "CameraWidget.h"
 // #include "ui_CameraWidget.h"
-CameraWidget::CameraWidget(MainWindow *parent, const QString& module)
-    :IWidget(parent),module(module)
+CameraWidget::CameraWidget(MainWindow *parent)
+    :IWidget(parent)
     , ui(new Ui::CameraWidget)
 {
     qDebug()<< "CameraWidget构造函数初始化";
@@ -11,7 +11,7 @@ CameraWidget::CameraWidget(MainWindow *parent, const QString& module)
     widgetDeviceManager_ = ui->widget_DeviceManager;
     widgetAcquisitionMonitor_ = ui->AcquisitionMonitor;
     IWidget::initialize();
-    gSouth.RegisterHandler(module,this);
+    gSouth.RegisterHandler(sModuleCamera,this);
 }
 
 CameraWidget::~CameraWidget()
@@ -50,7 +50,7 @@ void CameraWidget::ShowMessage(const QString &msg)
 
 void CameraWidget::on_pushButton_test_clicked()
 {
-    gClient.sendTextMessage(Session::RequestString(11,module,"test","测试参数"));
+    gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"test","测试参数"));
 }
 
 
@@ -62,8 +62,8 @@ void CameraWidget::retranslate_ui()
 
 void CameraWidget::on_pushButton_scan_clicked()
 {
-    // gClient.sendTextMessage(Session::RequestString(11,module,"scan",true));
-    Session session({ {"id", 11}, {"module", module}, {"method", "scan"}, {"params", true} });
+    // gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"scan",true));
+    Session session({ {"id", 11}, {"module", sModuleCamera}, {"method", "scan"}, {"params", true} });
     session.socket = &gClient;
     WaitDialog wait(this,&session,20);// = new WaitDialog(this);
     //100ms 以内防止弹窗显示
@@ -85,34 +85,34 @@ void CameraWidget::on_pushButton_scan_clicked()
 
 void CameraWidget::on_pushButton_open_clicked()
 {
-    Session session({ {"id", 11}, {"module", module}, {"method", "open"}, {"params", true} });
+    Session session({ {"id", 11}, {"module", sModuleCamera}, {"method", "open"}, {"params", true} });
     gController.handleSession(session);
 }
 
 
 void CameraWidget::on_pushButton_start_clicked()
 {
-    Session session({ {"id", 11}, {"module", module}, {"method", "start"}, {"params", QJsonArray()} });
+    Session session({ {"id", 11}, {"module", sModuleCamera}, {"method", "start"}, {"params", QJsonArray()} });
     gController.handleSession(session);
 }
 
 
 void CameraWidget::on_pushButton_stop_clicked()
 {
-    Session session({ {"id", 11}, {"module", module}, {"method", "stop"}, {"params", QJsonArray()} });
+    Session session({ {"id", 11}, {"module", sModuleCamera}, {"method", "stop"}, {"params", QJsonArray()} });
     gController.handleSession(session);
 }
 
 
 void CameraWidget::on_pushButton_showProperty_clicked()
 {
-    gClient.sendTextMessage(Session::RequestString(11,module,"show",true));
+    gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"show",true));
 }
 
 
 void CameraWidget::on_pushButton_param_setting_clicked()
 {
-    Session session({ {"id", 11}, {"module", module}, {"method", "SetCamerasParams"}, {"params", cameraParamsJson} });
+    Session session({ {"id", 11}, {"module", sModuleCamera}, {"method", "SetCamerasParams"}, {"params", cameraParamsJson} });
     gController.handleSession(session);
 }
 
@@ -157,7 +157,7 @@ void CameraWidget::on_pushButton_param_delete_key_clicked()
 
 void CameraWidget::on_pushButton_param_server_save_clicked()
 {
-    Session session({ {"id", 11}, {"module", module}, {"method", "SaveCamerasParams"}, {"params", cameraParamsJson} });
+    Session session({ {"id", 11}, {"module", sModuleCamera}, {"method", "SaveCamerasParams"}, {"params", cameraParamsJson} });
     gController.handleSession(session);
 
 }
@@ -193,13 +193,13 @@ void CameraWidget::on_comboBox_param_keys_currentTextChanged(const QString &arg1
 
 void CameraWidget::on_pushButton_trigger_clicked()
 {
-    Session session({ {"id", 11}, {"module", module}, {"method", "trigger"}, {"params", true} });
+    Session session({ {"id", 11}, {"module", sModuleCamera}, {"method", "trigger"}, {"params", true} });
     gController.handleSession(session);
 }
 
 
 void CameraWidget::on_pushButton_frame_update_clicked()
 {
-    gClient.sendTextMessage(Session::RequestString(11,module,"GetUpdateFrameInfo",""));
+    gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"GetUpdateFrameInfo",""));
 }
 

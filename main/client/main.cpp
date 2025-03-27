@@ -1,4 +1,3 @@
-#include <QApplication>
 #include "mainwindow.h"
 #include <QStyleFactory>
 #include <QPalette>
@@ -41,6 +40,7 @@ int main(int argc, char *argv[])
     }
     // SetDarkTheme(false);
     MainWindow window;
+    gSouth.RegisterHandler(sModuleUser,&window);
     window.show();
 
     return app.exec();

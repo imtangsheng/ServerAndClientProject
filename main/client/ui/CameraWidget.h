@@ -14,9 +14,8 @@ class CameraWidget :public IWidget,public iController
 {
     Q_OBJECT
 public:
-    QString module{"camera"};
     Ui::CameraWidget *ui;
-    explicit CameraWidget(MainWindow *parent = nullptr, const QString& module = "camera");
+    explicit CameraWidget(MainWindow *parent = nullptr);
     ~CameraWidget();
     /*iController API 设备控制的接口方法*/
     void initialize() final;

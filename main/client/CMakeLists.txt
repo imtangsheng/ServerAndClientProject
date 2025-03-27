@@ -10,7 +10,6 @@ set(CMAKE_AUTORCC ON)
 # 按类别组织源文件
 set(CORE_FILES
     MainController.h MainController.cpp
-    MainView.h MainView.cpp
 )
 
 set(UI_FILES
@@ -29,7 +28,7 @@ set(TS_FILES_
 
 set(CONTROLLER_FILES
     #${INCLUDE_DIR}controller/CameraController.h controller/CameraController.cpp
-    controller/user_controller.h controller/user_controller.cpp
+    #controller/user_controller.h controller/user_controller.cpp
 )
 
 # 创建文件夹结构以便在IDE中组织文件
@@ -63,12 +62,12 @@ qt_add_lupdate(${APP_NAME}
     OPTIONS
     -no-obsolete        # 删除过时的翻译
 )
-qt_add_lrelease(${APP_NAME}
-    TS_FILES ${TS_FILES}
-    QM_FILES_OUTPUT_VARIABLE qm_files
-)
+#qt_add_lrelease(${APP_NAME}
+#    TS_FILES ${TS_FILES}
+#    QM_FILES_OUTPUT_VARIABLE qm_files
+#)
 # 自动更新ts文件
-qt_create_translation(QM_FILES "mainwindow.ui" ${TS_FILES})
+#qt_create_translation(QM_FILES "mainwindow.ui" ${TS_FILES})
 
 # 链接 Qt 库
 target_link_libraries(${APP_NAME} PRIVATE
