@@ -3,7 +3,7 @@ ManagerPlugin::ManagerPlugin(QObject* parent)
 	: QObject(parent)
 {
 	qDebug() << "ManagerPlugin::ManagerPlugin() 构造函数";
-	south::ShareLib::instance().RegisterHandler("manager", this);
+	south::ShareLib::instance().RegisterHandler(sModuleManager, this);
 	pluginsInvalid = south::ShareLib::GetConfigSettings()->value("Manager/InvalidPlugins").toStringList();
 }
 
@@ -14,6 +14,23 @@ ManagerPlugin::~ManagerPlugin()
 	for (const auto& pluginName : m_plugins.keys()) {
 		PluginUnload(pluginName);
 	}
+}
+Result ManagerPlugin::start(QStringList& pluginsName) {
+    Result result(true);
+	for (const auto& name: pluginsName) {
+		result = m_plugins[name].interface->AcquisitionStart();
+        if (!result) break;
+	}
+    return result;
+}
+
+Result ManagerPlugin::stop(QStringList& pluginsName) {
+	Result ret(true);
+	for (const auto& name : pluginsName) {
+		ret = m_plugins[name].interface->AcquisitionStop();
+        if (!ret) break;
+	}
+    return ret;
 }
 
 Result ManagerPlugin::PluginsScan(const QString& pluginDir)

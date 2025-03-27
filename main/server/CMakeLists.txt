@@ -11,7 +11,12 @@ set(NETWORK_SOURCES
 
 set(CONTROLLER_SOURCES
     manager/ManagerPlugin.h manager/ManagerPlugin.cpp
+    UserServer.h UserServer.cpp
 )
+
+# 创建文件夹结构以便在IDE中组织文件
+source_group("network" FILES ${NETWORK_SOURCES})
+source_group("control" FILES ${CONTROLLER_SOURCES})
 
 # 创建可执行文件
 add_executable(${APP_NAME}

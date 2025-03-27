@@ -18,6 +18,9 @@ public:
     QStringList pluginsAvailable;          // 可用的插件列表
     QStringList pluginsInvalid;//无效的插件列表
 
+    Result start(QStringList& pluginsName);
+    Result stop(QStringList& pluginsName);
+
     /**
      * @brief 初始化插件系统，扫描插件目录
      * @param pluginDir 插件目录路径
@@ -57,7 +60,7 @@ private:
 
     QDir m_pluginDir;                        // 插件目录
     QMap<QString, PluginData> m_plugins;     // 已加载的插件映射
-    
+    friend class UserServer;
    
 };
 

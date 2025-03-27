@@ -1,6 +1,5 @@
 #include <QtWebSockets>
-#include "manager/ManagerPlugin.h"
-const QString g_version = "v1.0.0";
+#include "WebSocketServer.h"
 
 WebSocketServer::WebSocketServer(quint16 port, QObject* parent)
 	:QObject(parent),
@@ -14,11 +13,11 @@ WebSocketServer::WebSocketServer(quint16 port, QObject* parent)
 	else {
 		qFatal() << tr("服务启动失败,端口号:%1,请检查端口是否被占用!").arg(port);//会直接终止程序
 	}
-
+	qDebug() << "server start port:" << port << " source by:" << typeid(this).name();
 	// 创建处理器实例 确保 parent 参数是非 const 的 QObject 指针是
 	//gTrolleyController = (new TrolleyController((this)));
 	//gFaroController = (new FaroController(this));
-	gManagerPlugin = (new ManagerPlugin(this));
+	
 }
 
 /**
@@ -28,6 +27,7 @@ WebSocketServer::WebSocketServer(quint16 port, QObject* parent)
  */
 WebSocketServer::~WebSocketServer()
 {
+	qDebug() << "WebSocketServer::~WebSocketServer()";
 	m_pWebSocketServer->close();
 	qDeleteAll(clients);
 	qDeleteAll(others);
@@ -37,19 +37,12 @@ void WebSocketServer::initialize()
 {
 	//qDebug() << "#测试:" << &gController << QThread::currentThreadId();
 	// 通过信号槽在不同线程之间传递消息 使用const不可以使用this的对象,因为父子对象的不是const的
-	//connect(&gController, &Controller::sigSend, this, &WebSocketServer::sent_message);
-    connect(&gSouth, &south::ShareLib::sent, this, &WebSocketServer::sent_message);
-	if (gManagerPlugin->PluginsScan()) {
-		for (QString& pluginName:gManagerPlugin->pluginsAvailable)
-		{	
-			//是否是无效插件
-			if (gManagerPlugin->pluginsInvalid.contains(pluginName)) continue;
-			gManagerPlugin->PluginLoad(pluginName);
-		}
-	}
+	//connect(&gController, &Controller::sigSend, this, &WebSocketServer::handleMessageSent);
+    connect(&gSouth, &south::ShareLib::sigSent, this, &WebSocketServer::handleMessageSent);
+
 }
 
-void WebSocketServer::sent_message(const QString& message, QObject* wsclient)
+void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclient)
 {
 	QPointer<QWebSocket> socket = qobject_cast<QWebSocket*>(wsclient);
 	//多线程下 加锁
@@ -79,7 +72,8 @@ void WebSocketServer::accept_new_connected()
 
 void WebSocketServer::verify_device_type(const QString& message)
 {
-	//TODO 预留先进行设备验证,再进行信号连接
+	//预留先进行设备验证,再进行信号连接
+	qDebug() << "verify_device_type:" << message;
 	QWebSocket* newSocket = qobject_cast<QWebSocket*>(sender());
 	if (!newSocket) return;
 	QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
@@ -115,8 +109,12 @@ void WebSocketServer::verify_device_type(const QString& message)
 	disconnect(newSocket, &QWebSocket::textMessageReceived, this, &WebSocketServer::verify_device_type);
     // 连接消息处理槽函数,目前统一处理
 	connect(newSocket, &QWebSocket::textMessageReceived, this, &WebSocketServer::handle_text_message);
-	resp.result = int(deviceType);
-	newSocket->sendTextMessage(resp.ResponseString(tr("设备类型验证成功, 服务端版本是:%1").arg(g_version)));
+	//返回消息,验证设备版本号是否一致
+	//handleMessageSent()
+	QJsonArray array;
+	array.append(double(deviceType)); array.append(gSouth.version);
+	//newSocket->sendTextMessage(resp.ResponseString(tr("设备类型验证成功, 服务端版本是:%1").arg(gSouth.version)));
+	newSocket->sendTextMessage(Session::RequestString(1, sModuleUser, "login_verify", array));
 }
 
 
@@ -157,6 +155,6 @@ void WebSocketServer::handle_binary_message(const QByteArray& message)
 void WebSocketServer::on_socket_disconnected()
 {
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
-	qInfo() << "on_socket_disconnected:" << pClient;
+	qInfo() << "连接断开:" << pClient->peerAddress().toString();
 	//others.remove(pClient);
 }

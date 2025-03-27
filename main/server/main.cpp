@@ -30,9 +30,9 @@ int main(int argc, char* argv[])
 	qDebug() << "Sortware version:" << __DATE__ << " " << __TIME__ << "Qt version : " << QT_VERSION_STR << "C++ version : " << __cplusplus;
     gSouth.InitConfigSettings(appDir.absolutePath(), "server");//初始化配置文件路径,名称
     gSouth.type = int(SessionType::Server);
-	WebSocketServer server(port);
-	qDebug() << "server start port:" << port << " source by:" << typeid(server).name();
-	server.initialize();
-	QObject::connect(&server, &WebSocketServer::closed, &app, &QCoreApplication::quit);
+
+	UserServer user(&app);
+    user.initialize(port);
+	QObject::connect(&user, &UserServer::closed, &app, &QCoreApplication::quit);
 	return app.exec();
 }

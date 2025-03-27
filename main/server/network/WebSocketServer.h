@@ -19,27 +19,27 @@ public:
     QSet<QWebSocket*> others;
 
 public slots:
-    void sent_message(const QString& message, QObject* wsclient);
+    void handleMessageSent(const QString& message, QObject* wsclient);
 Q_SIGNALS:
     void closed();
 
 private Q_SLOTS:
     /**
-     * @brief ´¦ÀíĞÂÁ¬½Ó
+     * @brief å¤„ç†æ–°è¿æ¥
      *
-     * µ±ÓĞĞÂµÄWebSocketÁ¬½ÓÊ±µ÷ÓÃ´Ëº¯Êı¡£
+     * å½“æœ‰æ–°çš„WebSocketè¿æ¥æ—¶è°ƒç”¨æ­¤å‡½æ•°ã€‚
      */
     void accept_new_connected();
     /**
-     * @brief ÑéÖ¤Éè±¸ÀàĞÍ
+     * @brief éªŒè¯è®¾å¤‡ç±»å‹
      *
-     * @param message ½ÓÊÕµ½µÄÏûÏ¢
+     * @param message æ¥æ”¶åˆ°çš„æ¶ˆæ¯
      */
     void verify_device_type(const QString& message);
     /**
-     * @brief ´¦ÀíÎÄ±¾ÏûÏ¢
+     * @brief å¤„ç†æ–‡æœ¬æ¶ˆæ¯
      *
-     * @param message ½ÓÊÕµ½µÄÎÄ±¾ÏûÏ¢
+     * @param message æ¥æ”¶åˆ°çš„æ–‡æœ¬æ¶ˆæ¯
      */
     void handle_text_message(const QString& message);
     void handle_binary_message(const QByteArray& message);
