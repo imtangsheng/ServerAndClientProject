@@ -6,11 +6,13 @@
 #include "mainwindow.h"
 
 #include "ui/WebSocketWidget.h"
+#include "ui/TrolleyWidget.h"
 #include "ui/CameraWidget.h"
 #include "ui/ScannerWidget.h"
 #include "dialog/AcquisitionWizard.h"
 
 QPointer<WebSocketWidget> gWebSocket;
+QPointer<TrolleyWidget>gTrolley;
 QPointer<CameraWidget>gCamera;
 
 // 在源文件中定义全局变量
@@ -55,7 +57,6 @@ void IWidget::initialize()
             mainWindow->ui->stackedWidget_DeviceManager_items_screen->setCurrentWidget(widgetDeviceManager_);
         });
         mainWindow->ui->verticalLayout_AcquisitionGo_Monitor->addWidget(widgetAcquisitionMonitor_);
-
     }
 }
 
@@ -72,10 +73,14 @@ MainWindow::MainWindow(QWidget *parent) :
     SetDarkMode(hwnd,lastDarkMode);
 
     ui->dockWidget_Settings->hide();
-    //初始化加载相机模块
+    //初始化加载模块
+    gTrolley = new TrolleyWidget(this);
     gCamera = new CameraWidget(this);
 
     gWebSocket = new WebSocketWidget();
+
+    connect(&gClient, &QWebSocket::stateChanged, this, &MainWindow::onStateChanged);
+
     int index = ui->stackedWidget_DeviceManager_items_screen->addWidget(gWebSocket->ui->widget_DeviceManager);
     ui->verticalLayout_DeviceManager_items_name->insertWidget(index,gWebSocket->ui->pushButton_tab_websokcet);
     connect(gWebSocket->ui->pushButton_tab_websokcet,&QPushButton::clicked, this, [&]{
@@ -88,8 +93,11 @@ MainWindow::MainWindow(QWidget *parent) :
     gScanner = new ScannerWidget(this);
 
     // ui->verticalLayout_AcquisitionGo_Monitor->addWidget(gScanner);
+    //显示消息,和显示日志信息
     connect(&gSouth,&south::ShareLib::signal_set_window_title,this,&MainWindow::setWindowTitle);
-    connect(&gLog,&Logger::new_message,this,&MainWindow::show_message);
+    // 显式指定 要连接的版本 兼容重载槽函数
+    connect(&gLog,static_cast<void (Logger::*)(const QString&, LogLevel)>(&Logger::new_message)
+            ,this,static_cast<void (MainWindow::*)(const QString&, LogLevel)>(&MainWindow::show_message));
 
 
     ui->menuBar->setAttribute(Qt::WA_TranslucentBackground);
@@ -122,6 +130,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(this,&MainWindow::languageChanged,this,[&]{
         ui->retranslateUi(this);
+        retranslate();
     });
 
 
@@ -155,11 +164,17 @@ void MainWindow::login_verify(double type,const QString& version)
     show_message(tr("the server connection is successful"),LogLevel::Info);
 }
 
+void MainWindow::show_log_message(const QString &message, double level)
+{
+    show_message(message, LogLevel(level));
+}
+
 
 void MainWindow::show_message(const QString &message, LogLevel level)
 {
-
-    QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    // QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    // Get the current date and time
+    QString timestamp = QDateTime::currentDateTime().toString("hh:mm:ss");
     QString levelStr;
     QColor color;
     switch (level) {
@@ -232,23 +247,53 @@ void MainWindow::onAacquisitionStartClicked()
     connect(acquisition, &QDialog::rejected, this, [&]{
         qDebug()<<"AcquisitionWizard QWizard::rejected:";
     });
-
     acquisition->show();
-    // int index2 = ui->stackedWidget_AcquisitionGo_SettingsScreens->addWidget(acquisition);
-    // qDebug()<<"AcquisitionWizard:"<<index2;
-    // ui->stackedWidget_AcquisitionGo_SettingsScreens->setCurrentIndex(index2);
+    //ToDo
 }
 
-void MainWindow::on_pushButton_Camera_clicked()
+void MainWindow::onStateChanged(QAbstractSocket::SocketState state)
 {
-    gCamera->show();
+    qDebug() << "WebSocket state changed:" << state;
+    switch (state) {
+    case QAbstractSocket::UnconnectedState://未连接状态（Unconnected State）：表示套接字未连接到任何远程主机,可能是应用程序启动时的初始状态,或者连接被显式关闭
+        ui->pushButton_Network_State->setText(tr("The socket is not connected"));
+        ui->pushButton_Network_State->setEnabled(true);
+        break;
+    case QAbstractSocket::HostLookupState://主机查找状态（Host Lookup State）：在这个阶段,套接字正在执行 DNS 查找,以解析连接请求中提供的主机名
+        ui->pushButton_Network_State->setText(tr("The socket is performing a host name lookup"));
+        ui->pushButton_Network_State->setEnabled(false);
+        break;
+    case QAbstractSocket::ConnectingState://连接状态（Connecting State）：套接字已经启动连接过程,正在与远程主机建立连接
+        qDebug() << "The socket has started establishing a connection.";
+        ui->pushButton_Network_State->setText(tr("The socket has started establishing a connection"));
+        ui->pushButton_Network_State->setEnabled(false);
+        break;
+    case QAbstractSocket::ConnectedState://已连接状态（Connected State）：这是理想状态,成功建立连接,套接字准备进行双向通信
+        qDebug() << "A connection is established.";
+        ui->pushButton_Network_State->setText(tr("The scocket has already established a connection"));
+        ui->pushButton_Network_State->setEnabled(false);
+        break;
+    case QAbstractSocket::BoundState://绑定状态（Bound State）：套接字已绑定到特定的地址和端口,通常用于服务器端 WebSocket 实现
+        qDebug() << "The socket is bound to an address and port.";
+        ui->pushButton_Network_State->setText(tr("The socket is bound to an address and port"));
+        ui->pushButton_Network_State->setEnabled(false);
+        break;
+    case QAbstractSocket::ClosingState://关闭状态（Closing State）：套接字正在关闭连接,可能是由用户主动断开,或者由于错误条件引起
+        qDebug() << "The socket is about to close.";
+        ui->pushButton_Network_State->setText(tr("The socket is about to close"));
+        ui->pushButton_Network_State->setEnabled(true);
+        break;
+    default:
+        qDebug() << "Unknown state.";
+        ui->pushButton_Network_State->setText(tr("Unknown state"));
+        ui->pushButton_Network_State->setEnabled(true);
+        break;
+    }
 }
+
 
 void MainWindow::on_pushButton_language_switch_clicked()
 {
-    // const QString zh_CN = "zh_CN";
-    // const QString en_US = "en_US";
-
     if(gSouth.language == zh_CN)
     {
         //切换英文
@@ -291,32 +336,33 @@ void MainWindow::on_actionChinese_triggered()
     }else{
         show_message(tr("fail language switch:%1").arg(zh_CN), LogLevel::Warning);
     }
-
     emit languageChanged();
 }
 
 
 void MainWindow::on_pushButton_devices_powered_off_clicked()
 {
-
+    //ToDo
     gClient.sendTextMessage(Session::RequestString(1,sModuleUser,"shutdown",QJsonArray()));
 }
 
 
 void MainWindow::on_pushButton_test_clicked()
 {
-    ui->dockWidget_Settings->show();
-    // ui->dockWidget_Settings->setFloating(true);//Qt::CustomizeWindowHint
-    // ui->dockWidget_Settings->setWindowFlags(Qt::FramelessWindowHint);//Qt::FramelessWindowHint
-    ui->dockWidget_Settings->setAttribute(Qt::WA_TranslucentBackground);
-    ui->dockWidget_Settings->setWindowOpacity(0.5);
-    ui->dockWidget_Settings->move(ui->stackedWidget_MainWidget->mapToGlobal(QPoint(0,0)));
-    ui->dockWidget_Settings->adjustSize();
+    on_pushButton_language_switch_clicked();
+    // ui->dockWidget_Settings->show();
+    // // ui->dockWidget_Settings->setFloating(true);//Qt::CustomizeWindowHint
+    // // ui->dockWidget_Settings->setWindowFlags(Qt::FramelessWindowHint);//Qt::FramelessWindowHint
+    // ui->dockWidget_Settings->setAttribute(Qt::WA_TranslucentBackground);
+    // ui->dockWidget_Settings->setWindowOpacity(0.5);
+    // ui->dockWidget_Settings->move(ui->stackedWidget_MainWidget->mapToGlobal(QPoint(0,0)));
+    // ui->dockWidget_Settings->adjustSize();
 }
 
 
 void MainWindow::on_pushButton_AcquisitionBegins_clicked()
 {
+    gTrolley->start();
     Session session({ {"id", 11}, {"module", sModuleUser}, {"method", "acquisition_begins"}, {"params", true} });
     session.socket = &gClient;
     WaitDialog wait(this,&session,30);// = new WaitDialog(this);
@@ -347,6 +393,17 @@ void MainWindow::on_pushButton_AcquisitionEnd_clicked()
 
 void MainWindow::on_pushButton_AcquisitionCreate_clicked()
 {
+    //ToDo
     ui->pushButton_AcquisitionBegins->show();
+}
+
+void MainWindow::retranslate()
+{
+    onStateChanged(gClient.state());
+}
+
+void MainWindow::on_pushButton_Network_State_clicked()
+{
+
 }
 

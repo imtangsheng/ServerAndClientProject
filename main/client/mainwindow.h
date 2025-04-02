@@ -51,7 +51,8 @@ public:
 
     // 修改函数签名，直接传值而不是引用
     Q_INVOKABLE void login_verify(double type,const QString& version);//设备登录验证程序
-public slots:    
+public slots:
+    void show_log_message(const QString& message, double level);
     void show_message(const QString& message, LogLevel level);
 protected:
     // 重写 nativeEvent 以处理 Windows 原生消息
@@ -59,8 +60,8 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override ;
 protected slots:
     void onAacquisitionStartClicked();
+    void onStateChanged(QAbstractSocket::SocketState state);
 private slots:
-    void on_pushButton_Camera_clicked();
 
     void on_pushButton_language_switch_clicked();
 
@@ -78,8 +79,10 @@ private slots:
 
     void on_pushButton_AcquisitionCreate_clicked();
 
-private:
+    void on_pushButton_Network_State_clicked();
 
+private:
+    void retranslate();
 signals:
     void languageChanged();
 
