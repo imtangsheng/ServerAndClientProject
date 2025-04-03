@@ -3,42 +3,16 @@
 
 #include <QApplication>
 #include <QMainWindow>
-#include "ui_mainwindow.h"
-
-// inline QObject*g_parent = new QObject();
-
 #include <QMouseEvent>
 #include <QEvent>
-#include <windows.h>
-#include <dwmapi.h>
-#pragma comment(lib, "Dwmapi.lib")
-
-// 读取系统主题设置
-inline bool IsSystemDarkMode() {
-    HKEY hKey;
-    DWORD value = 1; // 默认浅色模式
-    DWORD size = sizeof(DWORD);
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
-        RegQueryValueEx(hKey, L"AppsUseLightTheme", nullptr, nullptr, (LPBYTE)&value, &size);
-        RegCloseKey(hKey);
-    }
-    return value == 0; // 0 表示深色模式，1 表示浅色模式
-}
-
-inline void SetDarkMode(HWND hwnd,BOOL darkMode = TRUE) {
-    // BOOL darkMode = TRUE;
-    HRESULT hr = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &darkMode, sizeof(darkMode));
-    if (FAILED(hr)) {
-        qWarning("设置主题深色模式失败，错误代码: %ld", hr);
-    }
-}
-
 #include <QTranslator>
 inline QTranslator g_translator;//qt的国际化
+
+#include <QSequentialAnimationGroup>
+#include "ui_mainwindow.h"
 // namespace Ui {
 // class MainWindow;
 // }
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -60,7 +34,13 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override ;
 protected slots:
     void onAacquisitionStartClicked();
+    void onUserDocumentClicked();
+    void onDeviceManagerClicked();
+    void onDataManagerClicked();
+
     void onStateChanged(QAbstractSocket::SocketState state);
+    // 网络连接状态:显示信息 是否在Connecting中 已连接Connected
+    void onNetworkStateShow(const QString& msg,const bool& isConnecting = false,const bool& isConnected = false);
 private slots:
 
     void on_pushButton_language_switch_clicked();
@@ -81,8 +61,12 @@ private slots:
 
     void on_pushButton_Network_State_clicked();
 
+    void on_toolButton_Robot_clicked();
+
 private:
-    void retranslate();
+    void retranslate();//更新文本翻译
+
+    QSequentialAnimationGroup* animationGroup;//动画效果
 signals:
     void languageChanged();
 

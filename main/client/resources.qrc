@@ -7,9 +7,18 @@
         <file alias="logo">../../assets/icons/logo.ico</file>
         <file>../../assets/images/Background_back.png</file>
         <file>../../assets/images/Background_front.png</file>
-        <file>../../assets/icons/AcquisitonGo.png</file>
-        <file>../../assets/icons/ConfirmButton.png</file>
-        <file>../../assets/icons/ConfirmButton_unset.png</file>
-        <file>../../assets/icons/DeviceManager.png</file>
+        <file>../../assets/images/Home_DataManager.png</file>
+        <file>../../assets/images/Home_DeviceManager.png</file>
+        <file>../../assets/images/Home_Robot.png</file>
+        <file>../../assets/images/Home_shutdown.png</file>
+        <file>../../assets/images/Home_shutdown_disabled.png</file>
+        <file>../../assets/images/Home_State.png</file>
+        <file>../../assets/images/Home_TitleBar.png</file>
+        <file>../../assets/images/Home_UerDocument.png</file>
+        <file>../../assets/images/Home_Acquisition.png</file>
+        <file>../../assets/images/Home_shutdown_background.png</file>
+        <file>../../assets/images/Home_Alarm.png</file>
+        <file>../../assets/images/Home_AlarmError.png</file>
+        <file>../../assets/images/Home_AlarmWarning.png</file>
     </qresource>
 </RCC>
