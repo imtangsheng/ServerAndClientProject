@@ -32,11 +32,12 @@ public:
         static ShareLib instance;
         return instance;
     }
+    #define MODULE_ENUM(name) MODULE_##name
     enum ModuleType {
         Trolley,
         Camera,
         Manager,
-        Other
+        MODULE_ENUM(Other)
     };
     static QString GetModuleName(ModuleType type) {
         static constexpr const char* MODULE_NAMES[] = {

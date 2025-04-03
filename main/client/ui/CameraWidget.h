@@ -26,8 +26,9 @@ public:
 
     void ShowMessage(const QString& msg);
     QJsonObject cameraParamsJson;
-public slots:
 
+public slots:
+    void updata_params(QJsonObject params);
 protected slots:
     void retranslate_ui() final; //更新显示语言
 private slots:
@@ -56,6 +57,8 @@ private slots:
     void on_pushButton_trigger_clicked();
 
     void on_pushButton_frame_update_clicked();
+
+    void on_pushButton_param_server_get_clicked();
 
 private:
 

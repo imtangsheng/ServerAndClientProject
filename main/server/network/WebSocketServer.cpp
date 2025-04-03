@@ -39,6 +39,7 @@ void WebSocketServer::initialize()
 	// 通过信号槽在不同线程之间传递消息 使用const不可以使用this的对象,因为父子对象的不是const的
 	//connect(&gController, &Controller::sigSend, this, &WebSocketServer::handleMessageSent);
     connect(&gSouth, &south::ShareLib::sigSent, this, &WebSocketServer::handleMessageSent);
+	connect(&gLog, &Logger::new_message, this, &WebSocketServer::handleLogMessageSent);
 
 }
 
@@ -53,6 +54,26 @@ void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclien
 	else {
 		for (QPointer<QWebSocket> client : clients) {
 			client->sendTextMessage(message);
+		}
+	}
+}
+
+void WebSocketServer::handleLogMessageSent(const QString& message, LogLevel level) {
+	// 创建JSON数组并添加消息内容和日志级别
+	//QJsonArray array;array.append(message);array.append(double(level));
+	QJsonArray array = { message, double(level) };
+	QString msg = Session::RequestString(0, sModuleUser, "show_log_message", array);
+	static QQueue<QString> cachedMessages; //QQueue是一个先进先出(FIFO - First In First Out)的队列数据结构
+	cachedMessages.enqueue(msg); // 将新消息添加到队列尾部
+	static const int maxCachedMessages = 100;// 设置队列最大容量，防止内存溢出
+	while (cachedMessages.size() > maxCachedMessages) {
+		cachedMessages.dequeue();// 当队列超过最大容量时，从队首移除旧消息
+	}
+	if (!clients.isEmpty()) {
+		for (auto& msg_client : cachedMessages) {
+			for (auto client : clients) {
+				client->sendTextMessage(msg_client);
+			}
 		}
 	}
 }
@@ -111,8 +132,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 	connect(newSocket, &QWebSocket::textMessageReceived, this, &WebSocketServer::handle_text_message);
 	//返回消息,验证设备版本号是否一致
 	//handleMessageSent()
-	QJsonArray array;
-	array.append(double(deviceType)); array.append(gSouth.version);
+	QJsonArray array{ double(deviceType),gSouth.version };
 	//newSocket->sendTextMessage(resp.ResponseString(tr("设备类型验证成功, 服务端版本是:%1").arg(gSouth.version)));
 	newSocket->sendTextMessage(Session::RequestString(1, sModuleUser, "login_verify", array));
 }

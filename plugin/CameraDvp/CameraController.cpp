@@ -1,9 +1,8 @@
-CameraController::CameraController(QObject* parent, const QString& module)
+#include "CameraController.h"
+CameraController::CameraController(QObject* parent)
     :QObject(parent)
 {
-    name = module;
-	gSouth.RegisterHandler(name, this);
-	//gSouth.on_register(name, this);
+	gSouth.RegisterHandler(sModuleCamera, this);
 }
 
 CameraController::~CameraController()
@@ -20,6 +19,10 @@ void CameraController::initialize()
 void CameraController::prepare()
 {
 
+}
+
+void CameraController::onParamsChanged() {
+	emit gSigSent(Session::RequestString(2, sModuleCamera, "", QJsonArray{ gCameraSDK->cameraConfigJson }));
 }
 
 void CameraController::start()
@@ -87,8 +90,6 @@ Q_INVOKABLE void CameraController::trigger(const Session& session) {
     Result result = gCameraSDK->triggerFire();
     gSouth.on_send(result, session);
 }
-
-
 
 
 void CameraController::show(const Session& session)

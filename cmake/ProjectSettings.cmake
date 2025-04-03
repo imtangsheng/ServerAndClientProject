@@ -42,8 +42,8 @@ set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
-
 # 通用包含目录
 set(COMMON_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include)
 # 获取/include目录及其子目录下的所有文件夹

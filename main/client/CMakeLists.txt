@@ -2,8 +2,8 @@
 set(APP_NAME client)
 
 # 查找所需的 Qt 组件
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets LinguistTools WebSockets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTools WebSockets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Charts LinguistTools WebSockets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Charts LinguistTools WebSockets)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
@@ -17,6 +17,8 @@ set(UI_FILES
     ui/ImageViewer.h ui/ImageViewer.cpp ui/ImageViewer.ui
     ui/ScannerWidget.h ui/ScannerWidget.cpp ui/ScannerWidget.ui
     ui/CameraWidget.h ui/CameraWidget.cpp ui/CameraWidget.ui
+    ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.h ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.cpp
+    ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.h ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.cpp
 
 )
 
@@ -56,12 +58,15 @@ target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
 
 # CMakeLists.txt 中添加
 qt_add_resources(${APP_NAME} "resources.qrc")
-
+#自动生成翻译文本
+if(10)
 qt_add_lupdate(${APP_NAME}
     TS_FILES ${TS_FILES_}
     OPTIONS
     -no-obsolete        # 删除过时的翻译
 )
+endif()
+
 #qt_add_lrelease(${APP_NAME}
 #    TS_FILES ${TS_FILES}
 #    QM_FILES_OUTPUT_VARIABLE qm_files
@@ -75,6 +80,7 @@ target_link_libraries(${APP_NAME} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::WebSockets
+    Qt${QT_VERSION_MAJOR}::Charts
 )
 
 # 安装翻译文件

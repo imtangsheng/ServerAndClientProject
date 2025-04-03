@@ -48,6 +48,12 @@ void CameraWidget::ShowMessage(const QString &msg)
     // ui->label_TitleAdditionalInformation
 }
 
+void CameraWidget::updata_params(QJsonObject params)
+{
+    cameraParamsJson = params;
+    initialize();
+}
+
 void CameraWidget::on_pushButton_test_clicked()
 {
     gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"test","测试参数"));
@@ -106,6 +112,7 @@ void CameraWidget::on_pushButton_stop_clicked()
 
 void CameraWidget::on_pushButton_showProperty_clicked()
 {
+    //ToDo 显示相机的属性控制界面
     gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"show",true));
 }
 
@@ -154,6 +161,10 @@ void CameraWidget::on_pushButton_param_delete_key_clicked()
     ui->comboBox_param_keys->addItems(cameraParamsJson.keys());
 }
 
+void CameraWidget::on_pushButton_param_server_get_clicked()
+{
+    gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"onParamsChanged",QJsonArray()));
+}
 
 void CameraWidget::on_pushButton_param_server_save_clicked()
 {
@@ -202,4 +213,7 @@ void CameraWidget::on_pushButton_frame_update_clicked()
 {
     gClient.sendTextMessage(Session::RequestString(11,sModuleCamera,"GetUpdateFrameInfo",""));
 }
+
+
+
 

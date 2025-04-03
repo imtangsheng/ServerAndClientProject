@@ -12,7 +12,6 @@ class UserServer : public QObject
 {
     Q_OBJECT
 public:
-    QString name{ "user" };
     explicit UserServer(QObject* parent = nullptr);
     ~UserServer();
     /**
@@ -24,10 +23,10 @@ public:
      * @brief 获取用户服务实例
      * @return 用户服务实例指针
      */
-    static UserServer* instance() {
-        static UserServer self(&gUserObject);
-        return &self;
-    }
+    //static UserServer* instance() {
+    //    static UserServer self(&gUserObject);
+    //    return &self;
+    //}
 public slots:
 
     void acquisition_begins(const Session& session);

@@ -20,6 +20,7 @@ public:
 
 public slots:
     void handleMessageSent(const QString& message, QObject* wsclient);
+    void handleLogMessageSent(const QString& message,LogLevel level);
 Q_SIGNALS:
     void closed();
 

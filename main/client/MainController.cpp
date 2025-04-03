@@ -2,7 +2,9 @@
 
 void MainController::initialize()
 {
+    qDebug()<<"MainController::initialize()";
 }
+
 
 Result MainController::handleSession(Session &session,quint8 sTimeout)
 {
@@ -18,4 +20,11 @@ Result MainController::handleSession(Session &session,quint8 sTimeout)
     }
 }
 
-MainController::MainController() {}
+MainController::MainController() {
+    qDebug()<<"MainController::MainController()";
+}
+
+MainController::~MainController()
+{
+    qDebug()<<"MainController::~MainController()";
+}

@@ -103,7 +103,7 @@ void WebSocketWidget::onConnected()
 
 void WebSocketWidget::disConnected()
 {
-    emit g_new_message(tr("与服务器断开连接:%1").arg(ui->lineEdit_url->text().trimmed()),LogLevel::Error);
+    emit g_new_message(tr("Disconnect from the server:%1").arg(ui->lineEdit_url->text().trimmed()),LogLevel::Error);
     ui->textBrowser_MessageReceived->append("断开连接");
     ui->pushButton_onConnected->setText("连接");
 	if (m_autoReconnect) {

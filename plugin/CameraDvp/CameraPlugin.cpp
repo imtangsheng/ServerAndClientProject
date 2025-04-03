@@ -44,13 +44,13 @@ Result CameraPlugin::disconnect()
 Result CameraPlugin::AcquisitionStart()
 {
 	qDebug() << "#PluginCamera开始采集函数";
-	return Result();
+	return Result(true);
 }
 
 Result CameraPlugin::AcquisitionStop()
 {
 	qDebug() << "#PluginCamera停止采集函数";
-	return Result();
+	return Result(true);
 }
 
 Result CameraPlugin::SetParameters(const QJsonObject& parameters)

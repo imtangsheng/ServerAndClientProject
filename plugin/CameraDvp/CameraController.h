@@ -10,7 +10,7 @@ class CameraController:public QObject,public iController
 {
 	Q_OBJECT
 public:
-	explicit CameraController(QObject* parent = nullptr, const QString& module = "camera");
+	explicit CameraController(QObject* parent = nullptr);
 	~CameraController();
 	/*iController API 设备控制的接口方法*/
 	void initialize() final;
@@ -24,12 +24,16 @@ public:
 	//3.slot通过信号触发	约25-40x	最慢的调用方式
 	Q_INVOKABLE void scan(const Session& session);
 	Q_INVOKABLE void open(const Session& session);
+	Q_INVOKABLE void trigger(const Session& session);
 
-	Q_INVOKABLE void getUpdateFrameInfo(const Session& session);
+
+	Q_INVOKABLE void GetUpdateFrameInfo(const Session& session);
+
 	Q_INVOKABLE void SetCamerasParams(const Session& session);
 	Q_INVOKABLE void SaveCamerasParams(const Session& session);
-	Q_INVOKABLE void trigger(const Session& session);
+	
 public slots:
+	void onParamsChanged();
 	void start() final;
 	void stop() final;
 	void show(const Session& session);
