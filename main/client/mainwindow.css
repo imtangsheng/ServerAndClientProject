@@ -1,0 +1,14 @@
+QPushButton {
+border:none;
+background:transparent;
+}
+
+QToolButton {
+border:none;
+background:transparent;
+}
+
+QLabel {
+border:none;
+background:transparent;
+}

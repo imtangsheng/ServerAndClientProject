@@ -11,12 +11,9 @@ set(CMAKE_AUTORCC ON)
 set(CORE_FILES
     MainController.h MainController.cpp
 )
-
-set(UI_FILES
-    ui/WebSocketWidget.h ui/WebSocketWidget.cpp ui/WebSocketWidget.ui
+#Custom drawing自定义的绘制控件
+set(CustomUI_FILES
     ui/ImageViewer.h ui/ImageViewer.cpp ui/ImageViewer.ui
-    ui/ScannerWidget.h ui/ScannerWidget.cpp ui/ScannerWidget.ui
-    ui/CameraWidget.h ui/CameraWidget.cpp ui/CameraWidget.ui
     ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.h ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.cpp
     ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.h ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.cpp
 
@@ -27,15 +24,17 @@ set(TS_FILES_
     ${PROJECT_SOURCE_DIR}/translations/${APP_NAME}_zh_CN.ts
 )
 
-
 set(CONTROLLER_FILES
-    #${INCLUDE_DIR}controller/CameraController.h controller/CameraController.cpp
-    #controller/user_controller.h controller/user_controller.cpp
+    ui/IWidget.h
+    ui/WebSocketWidget.h ui/WebSocketWidget.cpp ui/WebSocketWidget.ui
+    ui/TrolleyWidget.h ui/TrolleyWidget.cpp ui/TrolleyWidget.ui
+    ui/ScannerWidget.h ui/ScannerWidget.cpp ui/ScannerWidget.ui
+    ui/CameraWidget.h ui/CameraWidget.cpp ui/CameraWidget.ui
 )
 
 # 创建文件夹结构以便在IDE中组织文件
 source_group("Core" FILES ${CORE_FILES})
-source_group("UI" FILES ${UI_FILES})
+source_group("CustomUI" FILES ${CustomUI_FILES})
 source_group("Controllers" FILES ${CONTROLLER_FILES})
 # 使用file命令自动查找所有源文件
 file(GLOB_RECURSE PROJECT_SOURCES 
@@ -50,7 +49,7 @@ add_executable(${APP_NAME}
     stdafx.h main.cpp "resources.qrc"
     ${PROJECT_SOURCES}
     ${CORE_FILES}
-    ${UI_FILES} ${TS_FILES_}
+    ${CustomUI_FILES} ${TS_FILES_}
     ${CONTROLLER_FILES}
 )
 # 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。

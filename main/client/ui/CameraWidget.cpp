@@ -7,9 +7,10 @@ CameraWidget::CameraWidget(MainWindow *parent)
 {
     qDebug()<< "CameraWidget构造函数初始化";
     ui->setupUi(this);
-    buttonDeviceManager_ = ui->pushButton_tab_DeviceManager;
+    buttonDeviceManager_ = ui->ButtonMenu_DeviceManager;
     widgetDeviceManager_ = ui->widget_DeviceManager;
     widgetAcquisitionMonitor_ = ui->AcquisitionMonitor;
+    type = Camera;
     IWidget::initialize();
     gSouth.RegisterHandler(sModuleCamera,this);
 }

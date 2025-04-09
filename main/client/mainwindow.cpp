@@ -2,8 +2,6 @@
 #include <QEvent>
 
 #include <QActionGroup>
-
-
 #include "mainwindow.h"
 
 #include "ui/WebSocketWidget.h"
@@ -29,12 +27,17 @@ static QString ReadStyleSheet(const QString& FileName)
 {
     QString Result;
     QFile StyleSheetFile(FileName);
-    StyleSheetFile.open(QIODevice::ReadOnly);
-    QTextStream StyleSheetStream(&StyleSheetFile);
-    Result = StyleSheetStream.readAll();
-    StyleSheetFile.close();
+    if (StyleSheetFile.open(QIODevice::ReadOnly)) {
+        QTextStream StyleSheetStream(&StyleSheetFile);
+        Result = StyleSheetStream.readAll();
+        StyleSheetFile.close();
+    } else {
+        // Handle the error, e.g., log the error message or provide a default stylesheet
+        qWarning() << "Failed to open file:" << FileName << "Error:" << StyleSheetFile.errorString();
+    }
     return Result;
 }
+
 
 /**
  * 定义IWidget的嵌入界面的实现
@@ -50,13 +53,52 @@ IWidget::IWidget(MainWindow *parent)
 void IWidget::initialize()
 {
     qDebug() <<"IWidget::initialize()";
-    if(buttonDeviceManager_){
+    if(mainWindow){
+        //设备管理界面
         int index = mainWindow->ui->stackedWidget_DeviceManager_items_screen->addWidget(widgetDeviceManager_);
         mainWindow->ui->verticalLayout_DeviceManager_items_name->insertWidget(index,buttonDeviceManager_);
-        connect(buttonDeviceManager_,&QPushButton::clicked,mainWindow,[&]{
+        connect(buttonDeviceManager_,&QRadioButton::clicked,mainWindow,[&]{
             mainWindow->ui->stackedWidget_DeviceManager_items_screen->setCurrentWidget(widgetDeviceManager_);
         });
+        setDeviceState(type,true);//离线状态显示
+        //采集界面
         mainWindow->ui->verticalLayout_AcquisitionGo_Monitor->addWidget(widgetAcquisitionMonitor_);
+    }
+}
+
+void IWidget::setDeviceState(DeviceType type, bool offline)
+{
+    switch (type) {
+    case Trolley:
+        if(offline){
+            mainWindow->ui->widget_device_trolley_is_connected->hide();
+            mainWindow->ui->widget_device_trolley_not_connection->show();
+        }else{
+            mainWindow->ui->widget_device_trolley_is_connected->show();
+            mainWindow->ui->widget_device_trolley_not_connection->hide();
+        }
+        break;
+    case Scanner:
+        if(offline){
+            mainWindow->ui->widget_device_scanner_is_connected->hide();
+            mainWindow->ui->widget_device_scanner_not_connection->show();
+        }else{
+            mainWindow->ui->widget_device_scanner_is_connected->show();
+            mainWindow->ui->widget_device_scanner_not_connection->hide();
+        }
+        break;
+    case Camera:
+        if(offline){
+            mainWindow->ui->widget_device_camera_is_connected->hide();
+            mainWindow->ui->widget_device_camera_not_connection->show();
+        }else{
+            mainWindow->ui->widget_device_camera_is_connected->show();
+            mainWindow->ui->widget_device_camera_not_connection->hide();
+        }
+        break;
+    default:
+        qWarning()<<"setDeviceState is error:"<<type;
+        break;
     }
 }
 
@@ -76,15 +118,15 @@ MainWindow::MainWindow(QWidget *parent) :
     /*界面控件显示 加载模块*/
     gTrolley = new TrolleyWidget(this);
     gCamera = new CameraWidget(this);
-    gWebSocket = new WebSocketWidget(this);
     gScanner = new ScannerWidget(this);
 
+    gWebSocket = new WebSocketWidget();
     /*模块 信号连接*/
     connect(&gClient, &QWebSocket::stateChanged, this, &MainWindow::onStateChanged);
 
     int index = ui->stackedWidget_DeviceManager_items_screen->addWidget(gWebSocket->ui->widget_DeviceManager);
-    ui->verticalLayout_DeviceManager_items_name->insertWidget(index,gWebSocket->ui->pushButton_tab_websokcet);
-    connect(gWebSocket->ui->pushButton_tab_websokcet,&QPushButton::clicked, this, [&]{
+    ui->verticalLayout_DeviceManager_items_name->insertWidget(index,gWebSocket->ui->ButtonMenu_DeviceManager);
+    connect(gWebSocket->ui->ButtonMenu_DeviceManager,&QRadioButton::clicked, this, [&]{
         ui->stackedWidget_DeviceManager_items_screen->setCurrentWidget(gWebSocket->ui->widget_DeviceManager);
     });
 
@@ -130,16 +172,27 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this,&MainWindow::languageChanged,this,&MainWindow::retranslate);
 
 
-    auto StyleSheet = ReadStyleSheet("mainwindow.css");
+    auto StyleSheet = ReadStyleSheet(":/mainwindow.css");
     qDebug() << StyleSheet;
     // setStyleSheet(StyleSheet);
     /*界面控件显示 widget的点击事件监听*/
     // 安装事件过滤器以监听焦点变化
     ui->widget_title->installEventFilter(this);
+    ui->page_home->installEventFilter(this);
     ui->widget_AcquisitionGo->installEventFilter(this);
+    ui->widget_UserDocument->installEventFilter(this);
     ui->widget_DeviceManager->installEventFilter(this);
+    ui->widget_DataManager->installEventFilter(this);
+
+    // connect(ui->widget_AcquisitionGo, &QWidget::clicked, this, [this](){
+    //     qDebug() << "Child widget clicked";
+    // });
 
     /*界面控件显示*/
+    // QPainterPath path;
+    // path.addRoundedRect(ui->widget_DeviceManager_TabMenu->rect(), 20, 20);
+    // ui->widget_DeviceManager_TabMenu->setMask(QRegion(path.toFillPolygon().toPolygon()));
+
     ui->dockWidget_Settings->hide();
 
     ui->menuBar->setAttribute(Qt::WA_TranslucentBackground);
@@ -150,12 +203,13 @@ MainWindow::MainWindow(QWidget *parent) :
     // 创建互斥的复选框组
     QActionGroup* modeGroup = new QActionGroup(this);
     modeGroup->addAction(ui->action_LanguageChinese);
-    modeGroup->addAction(ui->action_languageEnglish);
+    modeGroup->addAction(ui->action_LanguageEnglish);
 
     //测试信息
     show_message("这是一条调试信息",LogLevel::Info);
     show_message("这是一条警告信息",LogLevel::Warning);
     show_message("这是一条错误信息",LogLevel::Error);
+
 }
 
 MainWindow::~MainWindow()
@@ -247,7 +301,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             // qDebug() << "MainWindow::eventFilter ui->widget_title";
             ui->stackedWidget_MainWidget->setCurrentIndex(0);
         }else if(obj == ui->widget_AcquisitionGo){
-            // qDebug() << "MainWindow::eventFilter ui->widget_AcquisitionGo";
+            qDebug() << "MainWindow::eventFilter ui->widget_AcquisitionGo";
             onAacquisitionStartClicked();
         }else if(obj == ui->widget_DeviceManager){
             ui->stackedWidget_MainWidget->setCurrentWidget(ui->page_manager);
@@ -377,7 +431,7 @@ void MainWindow::on_pushButton_language_switch_clicked()
 }
 
 
-void MainWindow::on_actionEnglish_triggered()
+void MainWindow::on_action_LanguageEnglish_triggered()
 {
     //切换英文
     qApp->removeTranslator(&g_translator);
@@ -388,7 +442,7 @@ void MainWindow::on_actionEnglish_triggered()
 }
 
 
-void MainWindow::on_actionChinese_triggered()
+void MainWindow::on_action_LanguageChinese_triggered()
 {
     if(g_translator.load(QString(":/i18n/%1").arg(zh_CN))){
         // ui->pushButton_language_switch->setText("English");
@@ -402,7 +456,7 @@ void MainWindow::on_actionChinese_triggered()
 }
 
 
-void MainWindow::on_pushButton_devices_powered_off_clicked()
+void MainWindow::on_toolButton_devices_powered_off_clicked()
 {
     //ToDo
     gClient.sendTextMessage(Session::RequestString(1,sModuleUser,"shutdown",QJsonArray()));

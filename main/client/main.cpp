@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
         app.installTranslator(&g_translator);
     }
     // SetDarkTheme(false);
+
     MainWindow window;
     gSouth.RegisterHandler(sModuleUser,&window);
     window.show();

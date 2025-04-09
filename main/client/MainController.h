@@ -20,4 +20,20 @@ private:
     ~MainController();
 };
 #define gClient MainController::instance().webSocketClient
+
+#include <QGlobalStatic>
+
+class MySingleton {
+public:
+    void doSomething() { /*...*/ }
+// private:
+    MySingleton() {
+        qDebug()<<"Q_GLOBAL_STATIC(MySingleton, mySingletonInstance)";
+    }
+};
+
+Q_GLOBAL_STATIC(MySingleton, mySingletonInstance)
+// 使用 Q_GLOBAL_STATIC_WITH_ARGS 提前初始化
+// Q_GLOBAL_STATIC_WITH_ARGS(MySingleton, myInstance,())
+
 #endif // MAINCONTROLLER_H

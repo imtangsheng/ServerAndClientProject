@@ -20,5 +20,15 @@
         <file>../../assets/images/Home_Alarm.png</file>
         <file>../../assets/images/Home_AlarmError.png</file>
         <file>../../assets/images/Home_AlarmWarning.png</file>
+        <file>mainwindow.css</file>
+        <file>../../assets/images/Button/Button115x107.png</file>
+        <file>../../assets/images/Button/Rectangle 115x430.png</file>
+        <file>../../assets/images/Button/Rectangle7x63.png</file>
+        <file>../../assets/images/DeviceManager/Background.png</file>
+        <file>../../assets/images/DeviceManager/Background.jpg</file>
+        <file>../../assets/images/DeviceManager/DeviceImages/1.png</file>
+        <file>../../assets/images/DeviceManager/CheckBox_indicator_checked.png</file>
+        <file>../../assets/images/DeviceManager/CheckBox_indicator_background.png</file>
+        <file>../../assets/images/DeviceManager/CheckBox_indicator_unchecked.png</file>
     </qresource>
 </RCC>

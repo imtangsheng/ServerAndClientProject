@@ -7,7 +7,6 @@
 #include <QEvent>
 #include <QTranslator>
 inline QTranslator g_translator;//qt的国际化
-
 #include <QSequentialAnimationGroup>
 #include "ui_mainwindow.h"
 // namespace Ui {
@@ -45,11 +44,11 @@ private slots:
 
     void on_pushButton_language_switch_clicked();
 
-    void on_actionEnglish_triggered();
+    void on_action_LanguageEnglish_triggered();
 
-    void on_actionChinese_triggered();
+    void on_action_LanguageChinese_triggered();
 
-    void on_pushButton_devices_powered_off_clicked();
+    void on_toolButton_devices_powered_off_clicked();
 
     void on_pushButton_test_clicked();
 

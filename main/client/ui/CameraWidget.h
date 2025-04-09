@@ -1,15 +1,16 @@
 #ifndef CAMERAWIDGET_H
 #define CAMERAWIDGET_H
 
-#include <QWidget>
+
 #include  <QPointer>
 #include "IWidget.h"
+#include "iController.h"
 #include "ui_CameraWidget.h"
 // namespace Ui {
 // class CameraWidget;
 // }
 
-#include "iController.h"
+
 class CameraWidget :public IWidget,public iController
 {
     Q_OBJECT

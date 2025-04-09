@@ -1,7 +1,6 @@
 #ifndef TROLLEYWIDGET_H
 #define TROLLEYWIDGET_H
 
-#include <QWidget>
 #include  <QPointer>
 #include "IWidget.h"
 #include "iController.h"
@@ -10,10 +9,6 @@
 // namespace Ui {
 // class TrolleyWidget;
 // }
-#include <QChart>
-#include <QValueAxis>
-#include <QLineSeries>
-#include <QAreaSeries>
 
 class TrolleyWidget : public IWidget,public iController
 {

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1417</width>
-    <height>888</height>
+    <height>906</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -58,7 +58,7 @@ background:transparent;
 }
 </string>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,2,1,0">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1">
     <property name="spacing">
      <number>0</number>
     </property>
@@ -84,15 +84,24 @@ background:transparent;
       </property>
       <property name="minimumSize">
        <size>
-        <width>1366</width>
+        <width>0</width>
         <height>120</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>16777215</height>
+        <height>120</height>
        </size>
+      </property>
+      <property name="cursor">
+       <cursorShape>PointingHandCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::FocusPolicy::ClickFocus</enum>
       </property>
       <property name="styleSheet">
        <string notr="true"/>
@@ -102,7 +111,7 @@ background:transparent;
         <number>24</number>
        </property>
        <property name="leftMargin">
-        <number>49</number>
+        <number>50</number>
        </property>
        <property name="topMargin">
         <number>15</number>
@@ -179,8 +188,8 @@ QMenuBar::item:pressed {
          <widget class="QMenu" name="menuSettings">
           <property name="geometry">
            <rect>
-            <x>2788</x>
-            <y>221</y>
+            <x>2331</x>
+            <y>135</y>
             <width>145</width>
             <height>400</height>
            </rect>
@@ -297,7 +306,7 @@ QMenu::indicator:unchecked {
             <iconset theme="QIcon::ThemeIcon::ToolsCheckSpelling"/>
            </property>
            <addaction name="action_LanguageChinese"/>
-           <addaction name="action_languageEnglish"/>
+           <addaction name="action_LanguageEnglish"/>
           </widget>
           <widget class="QMenu" name="menuTheme">
            <property name="title">
@@ -436,12 +445,10 @@ padding-left: 15px; /* 设置左侧边距为 10 像素 */</string>
 
 AlarmToolButton[alarmState=&quot;Warning&quot;] {
     qproperty-icon: url(:/assets/images/Home_AlarmWarning.png);
-	/*qproperty-text: Waring;*/
 }
 
 AlarmToolButton[alarmState=&quot;Error&quot;] {
 	qproperty-icon: url(:/assets/images/Home_AlarmError.png);
-	/*qproperty-text: Error;*/
 }</string>
          </property>
          <property name="text">
@@ -486,24 +493,11 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer_11">
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item>
      <widget class="QStackedWidget" name="stackedWidget_MainWidget">
       <property name="minimumSize">
        <size>
-        <width>1366</width>
-        <height>746</height>
+        <width>0</width>
+        <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
@@ -518,12 +512,20 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">QStackedWidget &gt; QWidget {
+       <string notr="true">/*
+QStackedWidget &gt; QWidget {
     border-image: url(:/assets/images/Background_back.png);
+}
+*/
+QWidget#page_home{
+	border-image: url(:/assets/images/Background_back.png);
+}
+QWidget#page_manager{
+	border-image: url(:/assets/images/DeviceManager/Background.jpg);
 }</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_home">
        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,0,1">
@@ -592,6 +594,9 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
             </property>
             <item>
              <widget class="QWidget" name="widget_AcquisitionGo" native="true">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
               <property name="minimumSize">
                <size>
                 <width>300</width>
@@ -604,9 +609,20 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
                 <height>16777215</height>
                </size>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="mouseTracking">
+               <bool>false</bool>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::FocusPolicy::ClickFocus</enum>
+              </property>
               <property name="styleSheet">
                <string notr="true">QWidget#widget_AcquisitionGo{
 	border-image: url(:/assets/images/Home_Acquisition.png); 
+	background-color: rgba(255, 0, 0, 50);
+	border-radius: 20px;
 }</string>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_3" stretch="9,3,1">
@@ -633,7 +649,7 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
                  <property name="sizeHint" stdset="0">
                   <size>
                    <width>20</width>
-                   <height>239</height>
+                   <height>40</height>
                   </size>
                  </property>
                 </spacer>
@@ -682,6 +698,12 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
                 <width>16777215</width>
                 <height>16777215</height>
                </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="mouseTracking">
+               <bool>false</bool>
               </property>
               <property name="styleSheet">
                <string notr="true">QWidget#widget_UserDocument{
@@ -767,6 +789,12 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
                   <width>16777215</width>
                   <height>16777215</height>
                  </size>
+                </property>
+                <property name="cursor">
+                 <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="mouseTracking">
+                 <bool>true</bool>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QWidget#widget_DeviceManager{
@@ -885,6 +913,12 @@ AlarmToolButton[alarmState=&quot;Error&quot;] {
                   <width>16777215</width>
                   <height>16777215</height>
                  </size>
+                </property>
+                <property name="cursor">
+                 <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="mouseTracking">
+                 <bool>false</bool>
                 </property>
                 <property name="styleSheet">
                  <string notr="true">QWidget#widget_DataManager{
@@ -1192,44 +1226,1084 @@ QPushButton:enabled {
        </layout>
       </widget>
       <widget class="QWidget" name="page_manager">
-       <widget class="QStackedWidget" name="stackedWidget_DeviceManager_items_screen">
-        <property name="geometry">
-         <rect>
-          <x>170</x>
-          <y>10</y>
-          <width>701</width>
-          <height>401</height>
-         </rect>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,4,3">
+        <property name="spacing">
+         <number>0</number>
         </property>
-        <property name="currentIndex">
-         <number>-1</number>
+        <property name="leftMargin">
+         <number>0</number>
         </property>
-       </widget>
-       <widget class="QWidget" name="verticalLayoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>10</y>
-          <width>160</width>
-          <height>401</height>
-         </rect>
+        <property name="topMargin">
+         <number>0</number>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout_DeviceManager_items_name">
-         <item>
-          <spacer name="verticalSpacer">
-           <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_9" stretch="1,4,2">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>30</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <spacer name="verticalSpacer_14">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget_DeviceManager_TabMenu" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>115</width>
+              <height>430</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>115</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>24</pointsize>
+             </font>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QWidget#widget_DeviceManager_TabMenu{
+	border-radius: 20px;/* 可重写 paintEvent 绘制圆角背景（替代遮罩*/
+	background: rgba(22, 30, 54, 0.8);
+
+}
+
+/* 基础按钮样式 */
+QRadioButton {
+    min-width: 115px;
+    min-height: 107px;
+	font-size: 24px;   
+	/*没有 text-align 属性,没有文字居中*/
+	spacing: 12px; /* 减少文本和指示器的间距 */
+}
+
+/* 完全移除所有状态下的指示器 */
+QRadioButton::indicator {
+    width: 7px;
+    height: 63px;
+    border: none;
+    background: none;
+    margin: 0px;
+    padding: 0px;
+}
+/* 确保伪状态也不会显示任何内容 */
+QRadioButton::indicator:unchecked{
+    image: none;
+    border: none;
+    background: none;
+}
+
+QRadioButton::indicator:checked{
+    width: 7px;
+    height: 63px;
+	image: url(:/assets/images/Button/Rectangle7x63.png);
+}
+
+/* 选中状态样式 */
+QRadioButton:checked {
+	/*方法二:使用背景图片
+	image: url(:/assets/images/Button/Rectangle7x63.png);
+	image-position: left center;*/
+    color: qlineargradient(
+        spread:pad, 
+        x1:0, y1:1, 
+        x2:1, y2:0,
+        stop:0 rgb(77, 132, 250),
+        stop:1 rgb(79, 221, 240)
+    );
+	background: qlineargradient(
+		spread:pad,
+		x1:0, y1:1, 
+		x2:1, y2:1,
+		stop:0 rgba(242, 240, 254, 0),
+		stop:1 rgba(107, 190, 207, 100)
+	);
+}
+
+
+
+
+
+
+
+</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_DeviceManager_items_name">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QRadioButton" name="radioButton_3">
+               <property name="minimumSize">
+                <size>
+                 <width>115</width>
+                 <height>107</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">border-bottom-left-radius: 20px;  /* 左下角直角 */
+border-bottom-right-radius: 20px; /* 右下角直角 */
+</string>
+               </property>
+               <property name="text">
+                <string>Others</string>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>7</width>
+                 <height>63</height>
+                </size>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_15">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QWidget" name="widget_DeviceManager_ImageBackground" native="true">
+          <layout class="QGridLayout" name="gridLayout" rowstretch="2,10,1" columnstretch="5,10,3">
+           <property name="leftMargin">
+            <number>0</number>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
+           <property name="topMargin">
+            <number>0</number>
            </property>
-          </spacer>
-         </item>
-        </layout>
-       </widget>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <item row="0" column="1">
+            <spacer name="verticalSpacer">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>10</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="1">
+            <widget class="QWidget" name="widget_DeviceManager_Status" native="true">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QWidget#widget_DeviceManager_Status{
+	image: url(:/assets/images/DeviceManager/DeviceImages/1.png);
+}
+
+
+/* 文字标签样式 */
+QLabel[type=&quot;text&quot;] {
+height: 30px;
+border-radius: 15px;
+background: rgba(56, 56, 56, 1);
+}
+
+/* 图标标签样式 */
+QLabel[type=&quot;icon&quot;]{
+    min-width: 15px;
+    max-width: 15px;
+    min-height: 15px;
+    max-height: 15px;
+    background-image: url(:/assets/images/DeviceManager/CheckBox_indicator_background.png);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+/* 图标标签选中状态 */
+QLabel[type=&quot;icon&quot;][checked=&quot;false&quot;] {
+	image: url(:/assets/images/DeviceManager/CheckBox_indicator_unchecked.png);
+    image-repeat: no-repeat;
+    image-position: center;
+}
+QLabel[type=&quot;icon&quot;][checked=&quot;true&quot;] {
+	image: url(:/assets/images/DeviceManager/CheckBox_indicator_checked.png);
+}</string>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_DeviceManager_Status" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0" columnstretch="1,1,1">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <item row="8" column="2">
+               <spacer name="verticalSpacer_25">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="14" column="2">
+               <spacer name="verticalSpacer_23">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="15" column="2">
+               <spacer name="verticalSpacer_24">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="15" column="0">
+               <spacer name="verticalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="0" column="0">
+               <spacer name="verticalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="1">
+               <spacer name="horizontalSpacer_13">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Policy::Preferred</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="14" column="0">
+               <spacer name="verticalSpacer_18">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="6" column="0">
+               <spacer name="verticalSpacer_28">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="11" column="0">
+               <layout class="QVBoxLayout" name="Layout_DeviceState_2">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="widget_device_trolley_is_connected" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0,0,0">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_icon_connected_2">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>15</width>
+                       <height>15</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>icon</string>
+                     </property>
+                     <property name="checked" stdset="0">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_text_connected_2">
+                     <property name="styleSheet">
+                      <string notr="true">border-radius: 15px;
+</string>
+                     </property>
+                     <property name="text">
+                      <string>trolley is connected</string>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>text</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_14">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QWidget" name="widget_device_trolley_not_connection" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_16">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_text_not_connection_2">
+                     <property name="styleSheet">
+                      <string notr="true">border-radius: 15px;
+</string>
+                     </property>
+                     <property name="text">
+                      <string>trolley not connection</string>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>text</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_icon_not_connected_2">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>icon</string>
+                     </property>
+                     <property name="checked" stdset="0">
+                      <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_15">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="13" column="0">
+               <spacer name="verticalSpacer_10">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="2" column="2">
+               <layout class="QVBoxLayout" name="Layout_DeviceState">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="widget_device_camera_is_connected" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_14" stretch="0,0,0">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_icon_connected">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>15</width>
+                       <height>15</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>icon</string>
+                     </property>
+                     <property name="checked" stdset="0">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_text_connected">
+                     <property name="styleSheet">
+                      <string notr="true">border-radius: 15px;
+</string>
+                     </property>
+                     <property name="text">
+                      <string>camera is connected</string>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>text</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_20">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QWidget" name="widget_device_camera_not_connection" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_15">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_text_not_connection">
+                     <property name="styleSheet">
+                      <string notr="true">border-radius: 15px;
+</string>
+                     </property>
+                     <property name="text">
+                      <string>camera not connection</string>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>text</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_icon_not_connected">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>icon</string>
+                     </property>
+                     <property name="checked" stdset="0">
+                      <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_21">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="4" column="0">
+               <widget class="QCheckBox" name="checkBox">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">QCheckBox {
+width: 112px;
+height: 30px;
+border-radius: 15px;
+background: rgba(56, 56, 56, 1);
+}
+
+QCheckBox::indicator {
+    width: 15px;
+    height: 15px;
+	background-image: url(:/assets/images/DeviceManager/CheckBox_indicator_background.png);
+
+}
+
+QCheckBox::indicator:unchecked{
+    margin-right: 0px; 
+	image: url(:/assets/images/DeviceManager/CheckBox_indicator_unchecked.png);
+}
+
+QCheckBox::indicator:checked{
+	image: url(:/assets/images/DeviceManager/CheckBox_indicator_checked.png);
+}
+
+QCheckBox:unchecked{
+	qproperty-layoutDirection: RightToLeft;
+}
+ </string>
+                </property>
+                <property name="text">
+                 <string>  connection  failed</string>
+                </property>
+                <property name="checked">
+                 <bool>false</bool>
+                </property>
+               </widget>
+              </item>
+              <item row="9" column="2">
+               <layout class="QVBoxLayout" name="Layout_DeviceState_3">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QWidget" name="widget_device_scanner_is_connected" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_10" stretch="0,0,0">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_icon_connected_3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>15</width>
+                       <height>15</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>icon</string>
+                     </property>
+                     <property name="checked" stdset="0">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_text_connected_3">
+                     <property name="styleSheet">
+                      <string notr="true">border-radius: 15px;
+</string>
+                     </property>
+                     <property name="text">
+                      <string>scanner is connected</string>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>text</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_12">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QWidget" name="widget_device_scanner_not_connection" native="true">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>30</height>
+                   </size>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_17" stretch="0,0,0">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QLabel" name="label_text_not_connection_3">
+                     <property name="styleSheet">
+                      <string notr="true">border-radius: 15px;
+</string>
+                     </property>
+                     <property name="text">
+                      <string>scanner not connection</string>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>text</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_icon_not_connected_3">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                     <property name="type" stdset="0">
+                      <string>icon</string>
+                     </property>
+                     <property name="checked" stdset="0">
+                      <bool>false</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer_16">
+                     <property name="orientation">
+                      <enum>Qt::Orientation::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item row="1" column="2">
+               <spacer name="verticalSpacer_31">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="16" column="0">
+               <spacer name="verticalSpacer_29">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="7" column="2">
+               <spacer name="verticalSpacer_16">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="0">
+               <spacer name="verticalSpacer_19">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="12" column="0">
+               <spacer name="verticalSpacer_32">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="9" column="1">
+               <spacer name="horizontalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Policy::Preferred</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <spacer name="verticalSpacer_11">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>10</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="0">
+            <spacer name="horizontalSpacer_10">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="1" column="2">
+            <spacer name="horizontalSpacer_11">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QStackedWidget" name="stackedWidget_DeviceManager_items_screen">
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QWidget" name="page_AcquisitionGo">
        <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,1">
@@ -1398,22 +2472,8 @@ QPushButton:enabled {
       </widget>
      </widget>
     </item>
-    <item>
-     <spacer name="verticalSpacer_10">
-      <property name="orientation">
-       <enum>Qt::Orientation::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget_Settings">
    <property name="styleSheet">
     <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
@@ -1456,7 +2516,7 @@ QPushButton:enabled {
     <string>Chinese</string>
    </property>
   </action>
-  <action name="action_languageEnglish">
+  <action name="action_LanguageEnglish">
    <property name="checkable">
     <bool>true</bool>
    </property>

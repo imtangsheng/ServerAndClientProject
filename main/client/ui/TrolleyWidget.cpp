@@ -1,15 +1,14 @@
 #include "TrolleyWidget.h"
 
-#include <QGraphicsBlurEffect>
-
 TrolleyWidget::TrolleyWidget(MainWindow *parent)
     : IWidget(parent)
     , ui(new Ui::TrolleyWidget)
 {
     ui->setupUi(this);
-    buttonDeviceManager_ = ui->pushButton_tab_DeviceManager;
+    buttonDeviceManager_ = ui->ButtonMenu_DeviceManager;
     widgetDeviceManager_ = ui->widget_DeviceManager;
     widgetAcquisitionMonitor_ = ui->AcquisitionMonitor;
+    type = Trolley;
     IWidget::initialize();
     gSouth.RegisterHandler(sModuleTrolley,this);
 
