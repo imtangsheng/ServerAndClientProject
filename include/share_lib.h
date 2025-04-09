@@ -13,6 +13,7 @@
 //定义快捷方式
 #define gSouth south::ShareLib::instance()
 #define gSigSent south::ShareLib::instance().sigSent
+#define gSettings south::ShareLib::GetConfigSettings()
 
 //定义模块名称
 constexpr auto sModuleScanner = "scanner";
@@ -23,6 +24,16 @@ constexpr auto sModuleOther = "other";
 constexpr auto sModuleUser = "user";
 
 namespace south {
+    Q_NAMESPACE
+        enum ModuleName {
+        trolley,
+        scanner,
+        camera,
+        manager,
+        other,
+        user
+    };
+    Q_ENUM_NS(ModuleName)
 
 class SHAREDLIB_EXPORT ShareLib : public QObject
 {
@@ -32,6 +43,25 @@ public:
         static ShareLib instance;
         return instance;
     }
+
+    static QString GetModuleName(ModuleName name) {
+        // 获取枚举值对应的字符串
+        // 方法1：使用 QMetaEnum
+        static QMetaEnum metaEnum = QMetaEnum::fromType<ModuleName>();
+        return metaEnum.valueToKey(name);
+        // 方法2：直接使用 QVariant
+        //return QVariant::fromValue(name).toString();
+    }
+
+    static ModuleName GetModuleName(const QString& name) {
+        // 从字符串转换为枚举值
+        // 方法1：使用 QMetaEnum
+        static QMetaEnum metaEnum = QMetaEnum::fromType<ModuleName>();
+        return static_cast<ModuleName>(metaEnum.keyToValue(name.toStdString().c_str()));
+        // 方法2：直接使用 QVariant
+        //return QVariant(name).value<ModuleName>();
+    }
+
     #define MODULE_ENUM(name) MODULE_##name
     enum ModuleType {
         Trolley,
@@ -39,19 +69,9 @@ public:
         Manager,
         MODULE_ENUM(Other)
     };
-    static QString GetModuleName(ModuleType type) {
-        static constexpr const char* MODULE_NAMES[] = {
-            "Trolley",
-            "Camera",
-            "Manager",
-            "Other"
-        };
-        return MODULE_NAMES[static_cast<int>(type)];
-    }
 
-    int type{ 0 };
+    int sessiontype_{ 0 };
     QString version{ "v1.0.0" };
-    QString language;
     //目前支持的图像格式包括：bmp, jpeg, jpg, png, tiff, tif, gif, dat(纯图像数据)）
     const QStringList kImageFormat{ "jpeg", "jpg", "png","bmp","tiff", "tif", "gif", "dat" };
     QString appDirPath{ "../" };

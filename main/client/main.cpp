@@ -30,16 +30,23 @@ void SetDarkTheme(bool dark) {
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    gSouth.type = int(SessionType::Client);
-    if(gSouth.language.isEmpty()){
+
+    QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
+    qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
+    gSouth.InitConfigSettings(appDir.absolutePath(), "client");//初始化配置文件路径,名称
+
+    g_language = gSettings->value("language").toString();
+    qDebug() << "当前应用程序的语言：" << g_language;
+    if(g_language.isEmpty()){
         QString locale = QLocale::system().name();
-        gSouth.language = QLocale(locale).name();
+        g_language = QLocale(locale).name();
     }
-    if(g_translator.load(":/i18n/"+gSouth.language)){
+    if(g_translator.load(":/i18n/"+g_language)){
         app.installTranslator(&g_translator);
     }
     // SetDarkTheme(false);
 
+    gSouth.sessiontype_ = int(SessionType::Client);
     MainWindow window;
     gSouth.RegisterHandler(sModuleUser,&window);
     window.show();

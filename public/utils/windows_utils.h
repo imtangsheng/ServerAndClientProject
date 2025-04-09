@@ -27,4 +27,21 @@ inline void SetDarkMode(HWND hwnd, BOOL darkMode = TRUE) {
     }
 }
 
+// 设置开机自启
+inline void SetAutoStart(bool enable) {
+    QString appName = QApplication::applicationName();
+    QString appPath = QApplication::applicationFilePath().replace("/", "\\");
+    QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",QSettings::NativeFormat);
+    if (enable) {
+        reg.setValue(appName, appPath);
+    } else {
+        reg.remove(appName);
+    }
+}
+
+inline bool IsAutoStartEnabled() {
+    QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",QSettings::NativeFormat);
+    return reg.contains(QApplication::applicationName());
+}
+
 #endif // WINDOWS_UTILS_H

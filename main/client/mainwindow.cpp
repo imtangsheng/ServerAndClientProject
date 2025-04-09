@@ -60,15 +60,15 @@ void IWidget::initialize()
         connect(buttonDeviceManager_,&QRadioButton::clicked,mainWindow,[&]{
             mainWindow->ui->stackedWidget_DeviceManager_items_screen->setCurrentWidget(widgetDeviceManager_);
         });
-        setDeviceState(type,true);//离线状态显示
+        setDeviceState(true);//离线状态显示
         //采集界面
         mainWindow->ui->verticalLayout_AcquisitionGo_Monitor->addWidget(widgetAcquisitionMonitor_);
     }
 }
 
-void IWidget::setDeviceState(DeviceType type, bool offline)
+void IWidget::setDeviceState(bool offline)
 {
-    switch (type) {
+    switch (deviceType) {
     case Trolley:
         if(offline){
             mainWindow->ui->widget_device_trolley_is_connected->hide();
@@ -97,10 +97,11 @@ void IWidget::setDeviceState(DeviceType type, bool offline)
         }
         break;
     default:
-        qWarning()<<"setDeviceState is error:"<<type;
+        qWarning()<<"setDeviceState is error:"<<deviceType;
         break;
     }
 }
+
 
 #include <QPropertyAnimation>
 #include "public/utils/windows_utils.h"
@@ -189,11 +190,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // });
 
     /*界面控件显示*/
-    // QPainterPath path;
-    // path.addRoundedRect(ui->widget_DeviceManager_TabMenu->rect(), 20, 20);
-    // ui->widget_DeviceManager_TabMenu->setMask(QRegion(path.toFillPolygon().toPolygon()));
-
-    ui->dockWidget_Settings->hide();
+    qDebug()<<"开机启动是否启用"<<IsAutoStartEnabled();
+    ui->checkBox_AutoStart->setChecked(IsAutoStartEnabled());
+    // ui->dockWidget_Settings->hide();
 
     ui->menuBar->setAttribute(Qt::WA_TranslucentBackground);
     ui->menuSettings->setAttribute(Qt::WA_TranslucentBackground);
@@ -209,6 +208,11 @@ MainWindow::MainWindow(QWidget *parent) :
     show_message("这是一条调试信息",LogLevel::Info);
     show_message("这是一条警告信息",LogLevel::Warning);
     show_message("这是一条错误信息",LogLevel::Error);
+
+    //显示界面
+    const auto geometry = gSettings->value("MainWindow/geometry", QByteArray()).toByteArray(); // QByteArray 类型
+    if (!geometry.isEmpty())
+        restoreGeometry(geometry);
 
 }
 
@@ -227,8 +231,8 @@ void MainWindow::login_verify(double type,const QString& version)
     // QString 在 Qt 中是隐式共享（implicit sharing）的，使用了引用计数机制
     // 而 double 是基本类型，直接传递引用可能指向临时对象或已失效的内存：
     // Qt 5.15+ 才完全支持右值引用参数传递，但 Qt 的信号槽机制默认不支持直接传递右值引用。
-    if(int(type) == gSouth.type){
-        show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gSouth.type),LogLevel::Warning);
+    if(int(type) == gSouth.sessiontype_){
+        show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gSouth.sessiontype_),LogLevel::Warning);
     }
 
     if(version == gSouth.version){
@@ -312,6 +316,13 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         }
     }
     return QMainWindow::eventFilter(obj, event);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    gSettings->setValue("MainWindow/geometry", saveGeometry());
+    qDebug() << "MainWindow::closeEvent(QCloseEvent *event) END";
+    return QMainWindow::closeEvent(event);
 }
 
 void MainWindow::onAacquisitionStartClicked()
@@ -410,23 +421,24 @@ void MainWindow::onNetworkStateShow(const QString& msg,const bool& isConnecting,
 
 void MainWindow::on_pushButton_language_switch_clicked()
 {
-    if(gSouth.language == zh_CN)
+    if(g_language == zh_CN)
     {
         //切换英文
         qApp->removeTranslator(&g_translator);
         // ui->pushButton_language_switch->setText("中文");
-        gSouth.language = en_US;
-        qDebug()<<"当前显示语言Languages："<<gSouth.language;
+        g_language = en_US;
+        qDebug()<<"当前显示语言Languages："<<g_language;
     }else{
         if(g_translator.load(QString(":/i18n/%1").arg(zh_CN))){
             // ui->pushButton_language_switch->setText("English");
-            gSouth.language = zh_CN;
+            g_language = zh_CN;
             qApp->installTranslator(&g_translator);
-            qDebug()<<"当前显示语言Languages："<<gSouth.language;
+            qDebug()<<"当前显示语言Languages："<<g_language;
         }else{
             show_message(tr("fail language switch:%1").arg(zh_CN), LogLevel::Warning);
         }
     }
+    gSettings->setValue("language",g_language);
     emit languageChanged();
 }
 
@@ -436,8 +448,7 @@ void MainWindow::on_action_LanguageEnglish_triggered()
     //切换英文
     qApp->removeTranslator(&g_translator);
     // ui->pushButton_language_switch->setText("中文");
-    gSouth.language = en_US;
-    qDebug()<<"当前显示语言Languages："<<gSouth.language;
+    g_language = en_US;
     emit languageChanged();
 }
 
@@ -446,9 +457,8 @@ void MainWindow::on_action_LanguageChinese_triggered()
 {
     if(g_translator.load(QString(":/i18n/%1").arg(zh_CN))){
         // ui->pushButton_language_switch->setText("English");
-        gSouth.language = zh_CN;
+        g_language = zh_CN;
         qApp->installTranslator(&g_translator);
-        qDebug()<<"当前显示语言Languages："<<gSouth.language;
     }else{
         show_message(tr("fail language switch:%1").arg(zh_CN), LogLevel::Warning);
     }
@@ -530,4 +540,10 @@ void MainWindow::on_toolButton_Robot_clicked()
     animationGroup->start();
 }
 
+
+void MainWindow::on_checkBox_AutoStart_clicked(bool checked)
+{
+    qDebug() <<"on_checkBox_AutoStart_clicked"<< checked;
+    SetAutoStart(checked);
+}
 
