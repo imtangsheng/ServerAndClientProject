@@ -28,7 +28,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态�
 
 # 启用 Qt 的自动 moc、rcc 和 uic
 set(CMAKE_AUTOMOC ON)
-#set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTORCC ON)
 #set(CMAKE_AUTOUIC ON)
 # Specify MSVC UTF-8 (65001) encoding 编码不对会导致 MOC 无法正确解析文件，从而生成的元对象代码不完整或错误，最终引发链接错误。
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")

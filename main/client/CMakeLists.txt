@@ -21,7 +21,7 @@ set(CustomUI_FILES
 
 # 设置翻译文件
 set(TS_FILES_
-    ${PROJECT_SOURCE_DIR}/translations/${APP_NAME}_zh_CN.ts
+    ${PROJECT_SOURCE_DIR}/assets/translations/${APP_NAME}_zh_CN.ts
 )
 
 set(CONTROLLER_FILES

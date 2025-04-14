@@ -3,8 +3,8 @@
 set(PLUGIN_NAME CameraDvp)
 #set(CMAKE_EXPORT_COMPILE_COMMANDS ON) #生成编译数据库（compile_commands.json）通过生成这个文件，IDE 可以正确解析预编译头的包含。
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui LinguistTools)
 
 # 设置插件输出目录 ${CMAKE_BINARY_DIR} 表示构建目录（通常是 build/）。
 set(PLUGIN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/plugins)
@@ -19,6 +19,11 @@ set(CONTROLLER_SOURCES
     "${INCLUDE_DIR}interface/iPluginDevice.h"
 )
 
+# 设置翻译文件
+set(TS_FILES_
+    ${PROJECT_SOURCE_DIR}/assets/translations/${PLUGIN_NAME}_zh_CN.ts
+)
+
 # 使用file命令自动查找所有源文件
 file(GLOB_RECURSE PROJECT_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
@@ -27,16 +32,26 @@ file(GLOB_RECURSE PROJECT_SOURCES
 
 #INTERFACE
 add_library(${PLUGIN_NAME} SHARED 
-	${CONTROLLER_SOURCES}
-	${PROJECT_SOURCES}
-	CameraPlugin.json
+    ${CONTROLLER_SOURCES}
+    ${PROJECT_SOURCES}
+    CameraPlugin.json
+    "resource.qrc"
+)
+
+# 添加文本翻译文件
+qt_add_resources(${PLUGIN_NAME} "resource.qrc")
+#自动生成翻译文本
+qt_add_lupdate(${PLUGIN_NAME}
+    TS_FILES ${TS_FILES_}
+    OPTIONS
+    -no-obsolete        # 删除过时的翻译
 )
 
 # 确保插件和应用依赖共享库
 add_dependencies(${PLUGIN_NAME} South)
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE
-	Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Gui
     South
 )

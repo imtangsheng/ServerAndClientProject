@@ -53,8 +53,8 @@ public slots:
     void switch_plugin(const QString& pluginName,const bool& enable = false);
 private:
     struct PluginData {
-        QPluginLoader* loader;
-        IPluginDevice* interface;
+        QPluginLoader* loader{nullptr};
+        IPluginDevice* interface{ nullptr };
         QJsonObject json;
     };
 

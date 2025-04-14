@@ -10,7 +10,7 @@ class CameraController:public QObject,public iController
 {
 	Q_OBJECT
 public:
-	explicit CameraController(QObject* parent = nullptr);
+	explicit CameraController(QObject* parent = nullptr,const QString& module = "camera");
 	~CameraController();
 	/*iController API 设备控制的接口方法*/
 	void initialize() final;

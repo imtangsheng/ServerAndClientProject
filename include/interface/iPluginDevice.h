@@ -5,9 +5,8 @@
  */
 #ifndef QTPLUGINDEVICEINTERFACE_H
 #define QTPLUGINDEVICEINTERFACE_H
-#include"./global.h"
+#include"share_lib.h"
 //#include <QtPlugin>
-
 QT_BEGIN_NAMESPACE
 
 // 定义设备事件类型
@@ -27,16 +26,33 @@ class IPluginDevice : public QObject
 public:
 	explicit IPluginDevice(QObject* parent = nullptr) :QObject(parent),
 		currentState(DeviceState::Disconnected) {
-		qDebug() << "IPluginDevice()构造函数被调用";
-		initialize();
+		qDebug() << "IPluginDevice()构造函数被调用" << QThread::currentThread();
 	}
 	virtual ~IPluginDevice() {
 		qDebug() << "IPluginDevice()析构函数被调用";
 	}
 
+	virtual QString _module() const = 0;//记录当前设备模块名称 必要用于注册设备
+	double state_{0};//记录当前设备状态值
+	QString stateString;//监控显示信息
 	// 基本操作接口
-	virtual Result initialize() {return Result(true);}
-	virtual Result connect() = 0; // 连接到特定设备
+	virtual void initialize() {
+		if (!translator.load(":/" + _module() + "/" + zh_CN)) {
+			LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(zh_CN));
+		}
+		if (gSouth.language == zh_CN) {
+			emit gSouth.signal_translator_load(translator, true);
+		}
+		connect(&gSouth, &south::ShareLib::signal_language_changed, this, [this](const QString& language) {
+            if (language == zh_CN) {
+                emit gSouth.signal_translator_load(translator, true);
+            } else {
+				emit gSouth.signal_translator_load(translator, false);
+            }
+		});
+
+	}
+
     virtual Result disconnect() = 0; // 断开连接
 
     // 事件
@@ -85,7 +101,11 @@ protected:
 			currentState = newState;
 			emit state_changed(oldState, newState);
 		}
-	}
+	} 
+
+    QTranslator translator;//成员变量,用于国际化 必须由qt主线程析构
+//protected slots:
+
 };
 
 // 定义插件接口的唯一标识符

@@ -3,7 +3,8 @@ ManagerPlugin::ManagerPlugin(QObject* parent)
 	: QObject(parent)
 {
 	qDebug() << "ManagerPlugin::ManagerPlugin() 构造函数";
-	south::ShareLib::instance().RegisterHandler(sModuleManager, this);
+	QString module_ = south::ShareLib::GetModuleName(south::ModuleName::manager);
+	gSouth.RegisterHandler(module_, this);
 	pluginsInvalid = south::ShareLib::GetConfigSettings()->value("Manager/InvalidPlugins").toStringList();
 }
 
@@ -71,13 +72,16 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	QString pluginFilePath = m_pluginDir.absoluteFilePath(pluginName);
 #ifdef Q_OS_WIN
 	pluginFilePath += ".dll";
+
 #else
 	pluginFilePath += ".so";
 #endif
 	// 创建插件加载器
 	QPluginLoader* loader = new QPluginLoader(pluginFilePath);
 	if (!loader->load()) {
-		LOG_ERROR(tr("插件加载失败:%1,错误%2").arg(pluginName).arg(loader->errorString()));
+		// 记录详细错误信息
+		LOG_ERROR(tr("Failed to load plugin:%1 Error:%2").arg(pluginName,loader->errorString()));
+		//LOG_ERROR(tr("插件加载失败:%1,错误%2").arg(pluginName).arg(loader->errorString()));
 		delete loader;
 		return Result::Failure("Failed to load plugin");
 	}
@@ -85,7 +89,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	// 获取插件实例
 	IPluginDevice* plugin = qobject_cast<IPluginDevice*>(loader->instance());
 	if (!plugin) {
-		LOG_ERROR(tr("插件实例获取失败:%1").arg(pluginName));
+		LOG_ERROR(tr("Failed to get plugin instance:%1").arg(pluginName));
 		delete loader;
 		return Result::Failure("Failed to get plugin instance");
 	}
@@ -130,7 +134,7 @@ Result ManagerPlugin::PluginUnload(const QString& pluginName)
 
 	// 卸载插件
 	if (!pluginData.loader->unload()) {
-		LOG_ERROR(tr("插件卸载失败:%1, 错误%2").arg(pluginName).arg(pluginData.loader->errorString()));
+		LOG_ERROR(tr("Failed to unload plugin:%1, Error:%2").arg(pluginName).arg(pluginData.loader->errorString()));
 		return Result::Failure("Failed to unload plugin");
 	}
 	//清理资源

@@ -16,8 +16,8 @@ public:
     void initialize();
     QMutex mutex;
     QSet<QWebSocket*> clients;
+    void SentMessageToClients(const QString& message = QString());
     QSet<QWebSocket*> others;
-
 public slots:
     void handleMessageSent(const QString& message, QObject* wsclient);
     void handleLogMessageSent(const QString& message,LogLevel level);

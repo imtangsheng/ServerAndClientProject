@@ -11,13 +11,11 @@ WebSocketServer::WebSocketServer(quint16 port, QObject* parent)
 		connect(m_pWebSocketServer, &QWebSocketServer::closed, this, &WebSocketServer::closed);
 	}
 	else {
-		qFatal() << tr("服务启动失败,端口号:%1,请检查端口是否被占用!").arg(port);//会直接终止程序
+		//qCritical() << tr("Fails to WebSocketServer listen port:%1,please check whether the port is occupied!").arg(port);
+		//Q_ASSERT(false, "WebSocketServer::listen", "please check whether the port is occupied!"); // Release 模式下不崩溃 使用Q_ASSERT_X
+		qFatal() << tr("Fails to WebSocketServer listen port:%1,please check whether the port is occupied!").arg(port);//会直接终止程序
 	}
-	qDebug() << "server start port:" << port << " source by:" << typeid(this).name();
-	// 创建处理器实例 确保 parent 参数是非 const 的 QObject 指针是
-	//gTrolleyController = (new TrolleyController((this)));
-	//gFaroController = (new FaroController(this));
-	
+	qDebug() << tr("server start port:") << port << " source by:" << typeid(this).name();
 }
 
 /**
@@ -35,12 +33,29 @@ WebSocketServer::~WebSocketServer()
 
 void WebSocketServer::initialize()
 {
-	//qDebug() << "#测试:" << &gController << QThread::currentThreadId();
 	// 通过信号槽在不同线程之间传递消息 使用const不可以使用this的对象,因为父子对象的不是const的
-	//connect(&gController, &Controller::sigSend, this, &WebSocketServer::handleMessageSent);
     connect(&gSouth, &south::ShareLib::sigSent, this, &WebSocketServer::handleMessageSent);
 	connect(&gLog, &Logger::new_message, this, &WebSocketServer::handleLogMessageSent);
+}
 
+void WebSocketServer::SentMessageToClients(const QString& message) {
+	static QQueue<QString> cachedMessages; //QQueue是一个先进先出(FIFO - First In First Out)的队列数据结构
+	if(!message.isEmpty()){
+		cachedMessages.enqueue(message); // 将新消息添加到队列尾部
+	}
+	static const int maxCachedMessages = 100;// 设置队列最大容量，防止内存溢出
+	while (cachedMessages.size() > maxCachedMessages) {
+		cachedMessages.dequeue();// 当队列超过最大容量时，从队首移除旧消息
+	}
+	if (!clients.isEmpty()) {
+		// 取出并发送所有消息
+		while (!cachedMessages.isEmpty()) {
+			QString msg = cachedMessages.dequeue(); // 取出并移除队首消息
+			for (auto client : clients) {
+				client->sendTextMessage(msg); // 发送给每个客户端
+			}
+		}
+	}
 }
 
 void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclient)
@@ -59,23 +74,12 @@ void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclien
 }
 
 void WebSocketServer::handleLogMessageSent(const QString& message, LogLevel level) {
+    //qDebug() << "处理发送到日志消息handleLogMessageSent:" << message << double(level);
 	// 创建JSON数组并添加消息内容和日志级别
 	//QJsonArray array;array.append(message);array.append(double(level));
 	QJsonArray array = { message, double(level) };
 	QString msg = Session::RequestString(0, sModuleUser, "show_log_message", array);
-	static QQueue<QString> cachedMessages; //QQueue是一个先进先出(FIFO - First In First Out)的队列数据结构
-	cachedMessages.enqueue(msg); // 将新消息添加到队列尾部
-	static const int maxCachedMessages = 100;// 设置队列最大容量，防止内存溢出
-	while (cachedMessages.size() > maxCachedMessages) {
-		cachedMessages.dequeue();// 当队列超过最大容量时，从队首移除旧消息
-	}
-	if (!clients.isEmpty()) {
-		for (auto& msg_client : cachedMessages) {
-			for (auto client : clients) {
-				client->sendTextMessage(msg_client);
-			}
-		}
-	}
+	SentMessageToClients(msg);
 }
 
 
@@ -99,12 +103,12 @@ void WebSocketServer::verify_device_type(const QString& message)
 	if (!newSocket) return;
 	QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
     if (doc.isNull()) {//向客户端发送错误信息
-		newSocket->sendTextMessage(Session::RequestString(1, "user","error",tr("发送了无效的josn数据:%1").arg(message)));
+		newSocket->sendTextMessage(Session::RequestString(1, "user","error",tr("Invalid JOSN Data:%1").arg(message)));
 		return;
 	}
 	Session resp(doc.object());
 	if (resp.method != "login") {
-		QString error_message = tr("请先进行设备初始化连接验证,请先登录,登录验证错误:%1").arg(resp.method);
+		QString error_message = tr("Please log in first, you need to verify the device connection by %1 Don't login").arg(resp.method);
 		newSocket->sendTextMessage(resp.ErrorString(1, error_message));
 		return;
 	}
@@ -117,6 +121,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 			clients.remove(newSocket);
 			});
         deviceType = SessionType::Client;
+		SentMessageToClients();//发送之前缓存信息
 		break;
 	default:
 		others.insert(newSocket);
@@ -124,6 +129,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 			others.remove(newSocket);
 		});
 		deviceType = SessionType::Other;
+		SentMessageToClients(Session::RequestString(1, sModuleUser, "login_new_session", QJsonArray{ double(deviceType)}));
 		break;
 	}
 	// 移除首次验证的槽函数，避免重复验证
@@ -147,7 +153,7 @@ void WebSocketServer::handle_text_message(const QString& message)
 	qDebug() << "#Received:" << pClient->peerAddress().toString() << "[Message]" << message << QThread::currentThread();;
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
 	if (jsonDoc.isNull() || !jsonDoc.isObject()) {//向客户端发送错误信息
-		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("发送了无效的josn数据:%1").arg(message)));
+		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("Invalid JOSN Data:%1").arg(message)));
 	}
 	//Result result = gController.invoke(jsonDoc.object(), pClient);
 	Result result = south::ShareLib::instance().invoke(jsonDoc.object(), sender());

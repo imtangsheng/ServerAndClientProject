@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/i18n">
+        <file alias="zh_CN">../../assets/translations/server_zh_CN.qm</file>
+    </qresource>
+</RCC>

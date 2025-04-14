@@ -1,17 +1,22 @@
 #pragma once
 #include <QObject>
-#include "global.h"
 // 用于Object执向的全局父类
-inline QObject gUserObject;
+//inline QObject gUserObject;
+
+#include <QTranslator>
+#include <QCoreApplication>
 
 /**
  * @brief 用户服务管理类
  * 负责管理所有的用户服务,包含网络的启动,插件管理器类,任务执行等,几乎所有的主要控制类
  */
+
+
 class UserServer : public QObject
 {
     Q_OBJECT
 public:
+    QString module_;
     explicit UserServer(QObject* parent = nullptr);
     ~UserServer();
     /**
@@ -27,8 +32,11 @@ public:
     //    static UserServer self(&gUserObject);
     //    return &self;
     //}
+    
+    Q_INVOKABLE void onDeviceStateChanged(Session session);
 public slots:
-
+    void onLanguageChanged(QString language);
+    void onAutoStartedClicked(bool checked);
     void acquisition_begins(const Session& session);
 
     void acquisition_end(const Session& session);
@@ -38,6 +46,8 @@ public slots:
      */
     void shutdown();
 
+private:
+    QTranslator translator;
 signals:
     void closed();
 };

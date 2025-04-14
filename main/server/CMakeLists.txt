@@ -1,8 +1,9 @@
 # 设置可执行文件名称
 set(APP_NAME server)
 # 查找所需的 Qt 组件
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core WebSockets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core WebSockets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core WebSockets LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core WebSockets LinguistTools)
+
 
 # 将源文件组织在变量中
 set(NETWORK_SOURCES
@@ -13,19 +14,34 @@ set(CONTROLLER_SOURCES
     manager/ManagerPlugin.h manager/ManagerPlugin.cpp
     UserServer.h UserServer.cpp
 )
-
+# 设置翻译文件
+set(TS_FILES_
+    ${PROJECT_SOURCE_DIR}/assets/translations/${APP_NAME}_zh_CN.ts
+)
 # 创建文件夹结构以便在IDE中组织文件
 source_group("network" FILES ${NETWORK_SOURCES})
 source_group("control" FILES ${CONTROLLER_SOURCES})
 
 # 创建可执行文件
 add_executable(${APP_NAME}
-    stdafx.h main.cpp
+    stdafx.h main.cpp "resource.qrc"
     ${NETWORK_SOURCES}
     ${CONTROLLER_SOURCES}
+    ${TS_FILES_}
 )
 # 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。
 target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
+# 添加文本翻译文件
+qt_add_resources(${APP_NAME} resources.qrc)
+#自动生成翻译文本
+if(10)
+qt_add_lupdate(${APP_NAME}
+    TS_FILES ${TS_FILES_}
+    OPTIONS
+    -no-obsolete        # 删除过时的翻译
+)
+
+endif()
 # 设置目标属性
 set_target_properties(${APP_NAME} PROPERTIES
     WIN32_EXECUTABLE FALSE

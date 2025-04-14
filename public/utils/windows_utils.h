@@ -28,9 +28,13 @@ inline void SetDarkMode(HWND hwnd, BOOL darkMode = TRUE) {
 }
 
 // 设置开机自启
+//#include <QCoreApplication>
 inline void SetAutoStart(bool enable) {
-    QString appName = QApplication::applicationName();
-    QString appPath = QApplication::applicationFilePath().replace("/", "\\");
+    QString appName = QCoreApplication::applicationName();
+    //QString appPath = QApplication::applicationFilePath().replace("/", "\\");
+        // 获取可执行文件路径（适用于QCoreApplication）
+    QString appPath = QCoreApplication::arguments().first();
+    appPath = QDir::toNativeSeparators(appPath);
     QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",QSettings::NativeFormat);
     if (enable) {
         reg.setValue(appName, appPath);
@@ -41,7 +45,26 @@ inline void SetAutoStart(bool enable) {
 
 inline bool IsAutoStartEnabled() {
     QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",QSettings::NativeFormat);
-    return reg.contains(QApplication::applicationName());
+    return reg.contains(QCoreApplication::applicationName());
 }
 
+// 获取最后的系统错误码
+inline QString GetSysError() {
+    DWORD errorCode = GetLastError();
+    LPVOID lpMsgBuf;
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        errorCode,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR)&lpMsgBuf,
+        0,
+        NULL
+    );
+    QString sysError = QString::fromWCharArray((LPTSTR)lpMsgBuf);
+    LocalFree(lpMsgBuf);
+    return sysError;
+}
 #endif // WINDOWS_UTILS_H

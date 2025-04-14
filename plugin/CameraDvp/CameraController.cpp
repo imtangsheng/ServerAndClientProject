@@ -1,8 +1,9 @@
 #include "CameraController.h"
-CameraController::CameraController(QObject* parent)
+CameraController::CameraController(QObject* parent, const QString& module)
     :QObject(parent)
 {
-	gSouth.RegisterHandler(sModuleCamera, this);
+    module_ = module;
+    gSouth.RegisterHandler(module_,this);
 }
 
 CameraController::~CameraController()
@@ -22,7 +23,7 @@ void CameraController::prepare()
 }
 
 void CameraController::onParamsChanged() {
-	emit gSigSent(Session::RequestString(2, sModuleCamera, "", QJsonArray{ gCameraSDK->cameraConfigJson }));
+    //emit gSigSent(Session::RequestString(2, module_, "", QJsonArray{ gCameraSDK->cameraConfigJson }));
 }
 
 void CameraController::start()

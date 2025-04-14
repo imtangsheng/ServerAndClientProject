@@ -1,9 +1,0 @@
-{
-    "Keys" : ["Example Plugin" ],
-    "Name" : "Example Plugin",
-    "Version" : "1.0.0",
-    "Vendor" : "Example Company",
-    "Description" : "An example plugin for demonstration",
-    "Url" : "https://example.com",
-    "Dependencies" : ["Tang"]
-}

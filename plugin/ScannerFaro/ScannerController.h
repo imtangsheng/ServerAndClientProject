@@ -7,13 +7,12 @@
 #pragma once
 
 #include "iController.h"
-#include "global.h"
 
 class ScannerController:public QObject,public iController
 {
 	Q_OBJECT
 public:
-	explicit ScannerController(QObject* parent = nullptr, const QString& module = "scanner");
+	explicit ScannerController(QObject* parent = nullptr);
 	~ScannerController();
 
 	/*iController API 设备控制的接口方法*/

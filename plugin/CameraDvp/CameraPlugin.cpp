@@ -6,34 +6,30 @@
 #include "CameraPlugin.h"
 CameraPlugin::CameraPlugin()
 {
-	qDebug() << "#PluginCamera构造函数";
-	//initialize();
+	IPluginDevice::initialize();
 }
 
 CameraPlugin::~CameraPlugin()
 {
-	qDebug() << "#PluginCamera析构函数";
+	qDebug() << "#PluginCamera~CameraPlugin()";
 }
 
-Result CameraPlugin::initialize()
+QString CameraPlugin::_module() const {
+	return south::ShareLib::GetModuleName(south::ModuleName::camera);
+}
+
+void CameraPlugin::initialize()
 {
 	//qDebug() <<"#测试:"<<&gController<<QThread::currentThreadId();
-	gCameraController = new CameraController(this);
+	gCameraController = new CameraController(this,_module());
 	//south::ShareLib::instance().registerHandler("camera", gCameraController.data());
-	bool enable =	south::ShareLib::GetConfigSettings()->value("camera/enable",false).toBool();
-	if (!enable) {
-		south::ShareLib::GetConfigSettings()->setValue("camera/enable", true);
-	}
+	//bool enable =	south::ShareLib::GetConfigSettings()->value("camera/enable",false).toBool();
+	//if (!enable) {
+		//south::ShareLib::GetConfigSettings()->setValue("camera/enable", true);
+	//}
 	gCameraSDK = new CameraSDK(this);
-	qDebug() << "#PluginCamera初始化函数"<< enable;
-	return Result();
 }
 
-Result CameraPlugin::connect()
-{
-	qDebug() << "#PluginCamera连接函数";
-	return Result();
-}
 
 Result CameraPlugin::disconnect()
 {
@@ -75,3 +71,5 @@ Result CameraPlugin::execute(const QString& method)
 	qDebug() << "#PluginCamera执行函数"<<method;
 	return Result();
 }
+
+

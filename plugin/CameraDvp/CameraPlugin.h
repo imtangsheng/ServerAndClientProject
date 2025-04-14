@@ -13,9 +13,12 @@ class CameraPlugin : public IPluginDevice
 public:
 	CameraPlugin();
 	~CameraPlugin() override;
+
+	// 基本数据定义
+	QString _module() const override;    // 设备名称
+
 	// 基本操作接口
-	Result initialize()override;
-	Result connect() override; // 连接到特定设备
+	void initialize()override;
 	Result disconnect() override;
 	Result AcquisitionStart()override;
 	Result AcquisitionStop()override;

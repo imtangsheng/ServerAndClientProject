@@ -9,19 +9,24 @@
 #include <QPromise>
 #include <QFuture>
 #include <QSettings>
+#include <QTranslator>
 #include "global.h"
 //定义快捷方式
 #define gSouth south::ShareLib::instance()
 #define gSigSent south::ShareLib::instance().sigSent
 #define gSettings south::ShareLib::GetConfigSettings()
 
-//定义模块名称
+//定义模块名称 对非的插件类适用
 constexpr auto sModuleScanner = "scanner";
 constexpr auto sModuleCamera = "camera";
 constexpr auto sModuleManager = "manager";
 constexpr auto sModuleTrolley = "trolley";
 constexpr auto sModuleOther = "other";
 constexpr auto sModuleUser = "user";
+
+// 语言常量定义为QString
+static const QString zh_CN = "zh_CN";
+static const QString en_US = "en_US";
 
 namespace south {
     Q_NAMESPACE
@@ -43,7 +48,7 @@ public:
         static ShareLib instance;
         return instance;
     }
-
+    //适用模块使用
     static QString GetModuleName(ModuleName name) {
         // 获取枚举值对应的字符串
         // 方法1：使用 QMetaEnum
@@ -72,6 +77,8 @@ public:
 
     int sessiontype_{ 0 };
     QString version{ "v1.0.0" };
+    QString language;//记录当前显示语言
+
     //目前支持的图像格式包括：bmp, jpeg, jpg, png, tiff, tif, gif, dat(纯图像数据)）
     const QStringList kImageFormat{ "jpeg", "jpg", "png","bmp","tiff", "tif", "gif", "dat" };
     QString appDirPath{ "../" };
@@ -237,7 +244,7 @@ public slots:
 protected:
     // 保护构造函数,只能继承使用
     explicit ShareLib(QObject* parent = nullptr) : QObject(parent) {
-        qDebug() << "Share::Share() 构造函数 - Current thread:" << QThread::currentThread();
+        qDebug() << tr("Share::Share() - Current thread:") << QThread::currentThread();
         // 取消线程:确保对象移动到目标线程,构造函数本身的代码仍在原始线程（如主线程）中执行，只有对象的信号槽和事件处理会迁移到目标线程。线程亲和性(thread affinity)有严格限制
     }
 private:
@@ -251,6 +258,8 @@ private:
 signals:
     void sigSent(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
     void signal_set_window_title(const QString& title);
+    void signal_language_changed(const QString& language); //模块接收语言改变的信号
+    void signal_translator_load(QTranslator& translator, bool isLoad);//模块发出翻译器加载的信号
 };
 
 }//end namespace south

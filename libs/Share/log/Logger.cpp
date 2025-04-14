@@ -35,9 +35,9 @@ void Logger::log(const QString& message, LogLevel level, const char* function, i
 	if (level < logLevel) {
 		return;
 	}
-	QString logMessage = FormatTheMessage(message, level, function, line, className);
 	//记录发送到信号
-	emit new_message(logMessage, level);
+	emit new_message(message, level);
+	QString logMessage = FormatTheMessage(message, level, function, line, className);
 
 	// 同时输出到控制台
 #ifdef QT_DEBUG

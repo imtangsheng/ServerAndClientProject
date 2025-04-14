@@ -10,7 +10,7 @@ class TrolleyController: public QObject,public iController
 {
 	Q_OBJECT
 public:
-	explicit TrolleyController(QObject* parent = nullptr, const QString& module = "trolley");
+	explicit TrolleyController(QObject* parent = nullptr);
 	~TrolleyController();
 	/*iController API 设备控制的接口方法*/
 	void initialize() final;

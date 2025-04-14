@@ -1,7 +1,8 @@
-TrolleyController::TrolleyController(QObject* parent, const QString& module)
+TrolleyController::TrolleyController(QObject* parent)
      :QObject(parent)
 {
-    name = module;
+    module_ = south::ShareLib::GetModuleName(south::ModuleName::trolley);
+    gSouth.RegisterHandler(module_, this);
 	initialize();
 }
 
