@@ -5,6 +5,5 @@
 
 // 项目特定的头文件
 
-#include "CameraController.h"
 #include "CameraSDK.h"
 

@@ -74,7 +74,9 @@ struct struCameraInfo {
 	INT AcquiringImage(dvpFrame* pFrame, void* pBuffer) const
 	{
 		QString image_path = QString(path + "/%1#%2.%3").arg(pFrame->uTriggerId).arg(pFrame->uTimestamp).arg(format);
-		qDebug() << QThread::currentThread() << "AcquiringImage" << pFrame->uFrameID << pFrame->userValue << pFrame->uTriggerId << pFrame->uTimestamp<< "图片路径"<<image_path;
+		qDebug() << QThread::currentThread() << "AcquiringImage"
+			<<"uFrameID"<< pFrame->uFrameID <<"userValue" << pFrame->userValue
+			<<"uTriggerId"  << pFrame->uTriggerId << "uTimestamp" << pFrame->uTimestamp<< "图片路径"<<image_path;
 		dvpSavePicture(pFrame, pBuffer, image_path.toLocal8Bit().data(), 100);
 		return 0;
 	}
@@ -96,22 +98,20 @@ public:
 	const static int CurrentCameraCount = 8;
 	//相机内部的变量的声明
 	dvpStatus resultDvp;//统一的相机返回状态处理
-	dvpUint32 devicesCount;//用于写入相机扫描个数的加载
+	dvpUint32 CameraActualTotal;//用于写入相机扫描个数的加载
 	qint8 activeIndex{ 0 };//当前选中默认
-	QStringList devicesNamesList;//保存的相机名称,用于打开相机
-
-	QJsonObject cameraConfigJson; //保存的相机配置json ,用于保存时更新相机信息,不用重复加载
-	QJsonObject cameraInfoJson; //保存的相机信息
-	QJsonObject cameraParamsJson;//保存的统一的相机参数信息
-	//QSet<struCameraInfo> set_cameras;
-	struCameraInfo cameraInfoArray[CurrentCameraCount]; //std::vector<int> cameraInfoArray(8);//也可以
-
-	Result LoadConfigFromFile(const QString& jsonFilePath);//加载json
-	Result SaveConfigToFile(const QString& jsonFilePath = QString());//保存json
+	QStringList devicesIdList;//保存的相机名称,用于打开相机
+	
+	struCameraInfo cameraInfoArray[CurrentCameraCount]; //std::vector<int> cameraInfoArray(8);//也可以QSet<struCameraInfo> set_cameras;
 
 	void initialize();
-	Result SetCamerasParams(const dvpHandle& handle);//设置相机参数
-	Result SetCamerasParams(const dvpHandle& handle, const QJsonObject& param);//设置相机参数
+
+	//设置所有相机要用的参数 commom task 的参数
+	Result SetCameraConfig(const QJsonObject& config);
+	//通过句柄设置单个相机单个参数
+	Result SetCameraParam(const dvpHandle& handle, const QJsonObject& param);
+	// 线扫模式使能配置,需要关闭触发使能,打开线扫模式使能 在句柄有效后使用
+    Result SetLineScanMode(const dvpHandle& handle);
 	//相机内部调用
 	Result scan(); // 预先浏览相机设备
 	Result open();
