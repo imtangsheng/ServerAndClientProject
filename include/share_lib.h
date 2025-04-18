@@ -3,9 +3,8 @@
  * @brief 共享库的声明文件->cn
  * @date 2025-02
  */
-#ifndef SHARE_LIB_H
-#define SHARE_LIB_H
-#include <QMetaEnum>
+#ifndef SHARE_LIB_H_
+#define SHARE_LIB_H_
 #include <QPromise>
 #include <QFuture>
 #include <QSettings>
@@ -82,7 +81,8 @@ public:
     //目前支持的图像格式包括：bmp, jpeg, jpg, png, tiff, tif, gif, dat(纯图像数据)）
     const QStringList kImageFormat{ "jpeg", "jpg", "png","bmp","tiff", "tif", "gif", "dat" };
     QString appDirPath{ "../" };
-    QSharedPointer<QSettings> RegisterSettings;//注册表设置
+    QSharedPointer<QSettings> RegisterSettings;//注册表设置,使用invokeMethod方法调用函数
+    QMap<ModuleName, BinarySessionHandler> handlerBinarySession;
     void InitConfigSettings(const QString& appPath, const QString& appName) {
         appDirPath = appPath;
         RegisterSettings.reset(new QSettings("South_Software", appName));
@@ -257,10 +257,11 @@ private:
     ShareLib& operator=(const ShareLib&) = delete;
 signals:
     void sigSent(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
+    void sigSentBinary(const QByteArray& message, QObject* client = nullptr);//发送二进制数据
     void signal_set_window_title(const QString& title);
     void signal_language_changed(const QString& language); //模块接收语言改变的信号
     void signal_translator_load(QTranslator& translator, bool isLoad);//模块发出翻译器加载的信号
 };
 
 }//end namespace south
-#endif // SOUTH_H
+#endif

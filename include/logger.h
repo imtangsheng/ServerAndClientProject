@@ -4,8 +4,8 @@
  * @author Tang
  * @date 2025-03-10
  */
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef LOGGER_H_
+#define LOGGER_H_
 #include <QObject>
 #include <QFile>
 #include <QTextStream>
@@ -135,4 +135,4 @@ private slots:
 };
 
 
-#endif // LOGGER_H
+#endif

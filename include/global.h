@@ -4,8 +4,8 @@
  * @author Tang
  * @date 2025-03-10
  */
-#ifndef GLOBAL_H
-#define GLOBAL_H
+#ifndef GLOBAL_H_
+#define GLOBAL_H_
 #include <QtCore/qglobal.h>
 #include <QObject>
 #include <QJsonArray>
@@ -19,33 +19,32 @@
 #endif
 
 inline static QJsonObject StringToJson(const QString& jsonString) {
-	QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
-	if (!jsonDoc.isNull() && jsonDoc.isObject()) {
-		return jsonDoc.object();
-	}
-	else {
-		return QJsonObject();
-	}
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+    if (!jsonDoc.isNull() && jsonDoc.isObject()) {
+        return jsonDoc.object();
+    } else {
+        return QJsonObject();
+    }
 }
 
 // 内联函数，将JSON对象转换为字符串
 inline static QString JsonToString(const QJsonObject& jsonObject) {
-	QJsonDocument jsonDoc(jsonObject);
-	return QString::fromUtf8(jsonDoc.toJson());
+    QJsonDocument jsonDoc(jsonObject);
+    return QString::fromUtf8(jsonDoc.toJson());
 }
 
 /**定义一个结构体来包含更详细的结果信息**/
 struct Result
 {
     int code{ -1 }; //错误码,0为成功
-    QString message{""};
-	Result(int i, const QString& msg = "") :code(i), message(msg) {}
+    QString message{ "" };
+    Result(int i, const QString& msg = "") :code(i), message(msg) {}
     Result(bool s = true, const QString& msg = "") :message(msg) {
-		if (s) {code = 0;}
-	}//隐式构造函数调用
-    static Result Success(const QString& msg = "") { return Result(true, msg); } 
+        if (s) { code = 0; }
+    }//隐式构造函数调用
+    static Result Success(const QString& msg = "") { return Result(true, msg); }
     static Result Failure(const QString& msg = "") { return Result(false, msg); }
-    operator bool() const { return code==0; }//重载了 bool 操作符，使其可以像之前的 bool 返回值一样使用例如：if (result)
+    operator bool() const { return code == 0; }//重载了 bool 操作符，使其可以像之前的 bool 返回值一样使用例如：if (result)
 
 };
 // 声明结构体为元类型
@@ -76,10 +75,10 @@ struct Atomic
     // 重载类型转换运算符，允许隐式转换为 T 类型
     operator T() const { return Get(); }
 
-	// 支持隐式转换
-	operator Result() const {
-		return Result(Get(), message);
-	}
+    // 支持隐式转换
+    operator Result() const {
+        return Result(Get(), message);
+    }
 
 };
 #include <QAtomicPointer>
@@ -102,43 +101,43 @@ struct AtomicPtr
 // 用于ws通信协议参考JSON-RPC 2.0 协议
 // 请求模型
 struct Session {
-	int id{ 0 };///< @brief 请求ID 可选
-	int code{ 0 };///< @brief 执行的错误码,非0为执行异常 可选
-	QPointer<QObject> socket;///< @brief 请求的socket 可选
-	QString module{ "" }; ///< @brief 可选
-	QString method;///< @brief 需要调用的函数,槽等 必须
-	QJsonValue params;///< @brief  请求参数,如果是一个数组,则反射动态调用槽函数，可以为空;否则调用默认的带完整请求的槽函数 可选
-	QJsonValue result;///< @brief 执行的结果 可选
-	QString message;///< @brief 执行的消息 可选
-	QVariant context;///< @brief  上下文信息 可选
+    int id{ 0 };///< @brief 请求ID 可选
+    int code{ 0 };///< @brief 执行的错误码,非0为执行异常 可选
+    QPointer<QObject> socket;///< @brief 请求的socket 可选
+    QString module{ "" }; ///< @brief 可选
+    QString method;///< @brief 需要调用的函数,槽等 必须
+    QJsonValue params;///< @brief  请求参数,如果是一个数组,则反射动态调用槽函数，可以为空;否则调用默认的带完整请求的槽函数 可选
+    QJsonValue result;///< @brief 执行的结果 可选
+    QString message;///< @brief 执行的消息 可选
+    QVariant context;///< @brief  上下文信息 可选
 
-	// 默认构造函数
-	Session() = default; // 默认构造函数
-	~Session() {
-		//if (socket) delete socket;
-	}
-	operator bool() const { return code == 0; }
-	// 从 JSON 字符串解析为 Request
-	Session(QJsonObject json) {
-		if (json.contains("id")) id = json["id"].toInt(0);
-		if (json.contains("code")) code = json["code"].toInt(-1);
-		if (json.contains("module")) module = json["module"].toString("");
-		if (json.contains("method")) method = json["method"].toString("");
-		if (json.contains("params")) params = json["params"];
-		if (json.contains("result")) result = json["result"];
-		if (json.contains("message")) message = json["message"].toString("");
-		if (json.contains("context")) context = json["context"].toVariant();
-	}
-	// 请求的Request发送
-	static QString RequestString(int id, const QString& module, const QString& method, const QJsonValue& params) {
-		return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
-	}
-	QString ErrorString(int errorCode, const QString& message) const {
-		return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"message", message} });
-	}
-	QString ResponseString(const QString& ExecutionMessage = QString()) const {
-		return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", result}, {"message", ExecutionMessage} });
-	}
+    // 默认构造函数
+    Session() = default; // 默认构造函数
+    ~Session() {
+        //if (socket) delete socket;
+    }
+    operator bool() const { return code == 0; }
+    // 从 JSON 字符串解析为 Request
+    Session(QJsonObject json) {
+        if (json.contains("id")) id = json["id"].toInt(0);
+        if (json.contains("code")) code = json["code"].toInt(-1);
+        if (json.contains("module")) module = json["module"].toString("");
+        if (json.contains("method")) method = json["method"].toString("");
+        if (json.contains("params")) params = json["params"];
+        if (json.contains("result")) result = json["result"];
+        if (json.contains("message")) message = json["message"].toString("");
+        if (json.contains("context")) context = json["context"].toVariant();
+    }
+    // 请求的Request发送
+    static QString RequestString(int id, const QString& module, const QString& method, const QJsonValue& params) {
+        return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
+    }
+    QString ErrorString(int errorCode, const QString& message) const {
+        return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"message", message} });
+    }
+    QString ResponseString(const QString& ExecutionMessage = QString()) const {
+        return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", result}, {"message", ExecutionMessage} });
+    }
     QString getRequest() const {
         return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params}, {"message", message} });
     }
@@ -162,7 +161,7 @@ inline QMap<QString, SessionHandler> gSession;
     gSession[#name] = &Class::name
 
 inline void RegisterHandler(const QString& module, const QString& method, SessionHandler handler) {
-	gSession[module + "." + method] = handler;
+    gSession[module + "." + method] = handler;
 }
 template<typename F>
 void register_handler(const std::string& name, F&& handler) {//“万能引用”（Universal Reference）的语法。它可以绑定到左值或右值引用，具体取决于传入的参数类型。这使得函数可以接受各种类型的参数，包括临时对象和可移动对象。
@@ -174,27 +173,117 @@ void register_handler(const std::string& name, F&& handler) {//“万能引用�
  * @brief 定义过滤器接口基类
  * @details 详细说明
  */
-// 全局过滤器映射
+ // 全局过滤器映射
 class SessionFilterable;
 inline QList<SessionFilterable*> gSessionFilter;//使用函数映射不能直接应用到成员函数
 class SessionFilterable {
 public:
     virtual Result filter(Session& recv) = 0;// 纯虚函数，子类实现过滤逻辑
-    SessionFilterable(){
+    SessionFilterable() {
         gSessionFilter.append(this);
     }
-    virtual ~SessionFilterable(){
+    virtual ~SessionFilterable() {
         gSessionFilter.removeOne(this);
     }
     // QMutexLocker locker(&gFilterMutex); // 线程安全
 };
 
+/*!
+ * @brief 定义会话通信类型枚举
+ * @details 详细说明
+ */
+#pragma pack(push, 1) // 1字节对齐
+struct BinarySession {
+    quint8 module;///< @brief 请求模块名 1字节 用于区分模块
+    quint8 method;///< @brief 请求方法名 1字节 用于区分方法
+    quint64 size;///< @brief 请求参数大小 8字节
+    // 紧接着是数据 data[size]
+};
+#pragma pack(pop) // 恢复默认对齐
+
+using BinarySessionHandler = std::function<void(const QByteArray&)>;
+inline QMap<quint8, QMap<quint8, BinarySessionHandler>> gBinarySession;
+
 // 在头文件中定义会话通信类型枚举
 enum class SessionType {
-	Unknown,
-	Client,
-	Server,
-	Monitor,//监控
-	Other
+    Unknown,
+    Client,
+    Server,
+    Monitor,//监控
+    Other
 };
-#endif // GLOBAL_H
+
+Q_NAMESPACE
+enum PluginType {
+    _camera_hikvision_
+};
+Q_ENUM_NS(PluginType)
+
+//适用插件类型使用
+#include <QMetaEnum>
+static QString GetPluginType(PluginType name) {
+    // 获取枚举值对应的字符串
+    // 方法1：使用 QMetaEnum
+    static QMetaEnum metaEnum = QMetaEnum::fromType<PluginType>();
+    return metaEnum.valueToKey(name);
+    // 方法2：直接使用 QVariant
+    //return QVariant::fromValue(name).toString();
+}
+
+static PluginType GetPluginType(const QString& name) {
+    // 从字符串转换为枚举值
+    // 方法1：使用 QMetaEnum
+    static QMetaEnum metaEnum = QMetaEnum::fromType<PluginType>();
+    return static_cast<PluginType>(metaEnum.keyToValue(name.toStdString().c_str()));
+    // 方法2：直接使用 QVariant
+    //return QVariant(name).value<ModuleName>();
+}
+
+#include <QReadWriteLock>
+
+/**
+ * @brief 用于qt中QString和设备的const char*之间的转换
+ * @note 主要解决QString的方法toUtf8() 返回临时 QByteArray，语句结束后内存立即释放
+ * @note 其次是为了方便多线程高频读取,主线程修改的问题
+ */
+struct StringChar {
+    StringChar(const char* __char) {
+        *this = __char;
+    }
+    StringChar(const QString& _string) {
+        *this = _string;
+    }
+    // 重载 () 运算符实现无锁读取
+    const char* operator()() const {
+        return _char.loadRelaxed();
+    }
+    StringChar& operator=(const char* newChar) {
+        if (!newChar) return *this; // nullptr check
+        QWriteLocker locker(&_read_write_lock);
+        _storage = QByteArray(newChar);
+        _char.storeRelease(_storage.constData());
+        return *this;
+    }
+
+    StringChar& operator=(const QString& newStr) {
+        QWriteLocker locker(&_read_write_lock);
+        _storage = newStr.toUtf8();
+        _char.storeRelease(_storage.constData());
+        return *this;
+    }
+
+    // 隐式转换为const char*
+    operator const char* () const { return operator()(); }
+
+    ~StringChar() {
+        QWriteLocker locker(&_read_write_lock);
+        _storage.clear();
+        _char.storeRelease(nullptr);
+    }
+private:
+    QAtomicPointer<const char> _char = nullptr;
+    QByteArray _storage;
+    QReadWriteLock _read_write_lock;
+};
+
+#endif
