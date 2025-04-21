@@ -1,9 +1,19 @@
 /*!
  * @file CameraPlugin.cpp
- * @brief 度申相机DVP2(Digital Videl Platform 2) SDK 的API开发的实现文件->cn
- * @date 2025-02
+ * @brief 相机统一的通用接口 SDK 的API开发的实现文件->cn
+ * @date 2025-04
  */
 #include "CameraPlugin.h"
+
+#ifdef CAMERA_TYPE_HiKvision
+#include "MVS/HiKvisionCamera.h"
+#elif defined(CAMERA_TYPE_DvpLineScan)
+#include "Do3think/DvpLineScanCamera.h"
+#endif
+
+static ICameraBase* gCameraSDK = nullptr;
+static QString g_plugin_module_name = south::ShareLib::GetModuleName(south::ModuleName::camera);
+
 CameraPlugin::CameraPlugin() {
     IPluginDevice::initialize();
 }
@@ -13,19 +23,19 @@ CameraPlugin::~CameraPlugin() {
 }
 
 QString CameraPlugin::_module() const {
-    static QString module_name = south::ShareLib::GetModuleName(south::ModuleName::camera);
-    return module_name;
+    return g_plugin_module_name;
 }
-
 void CameraPlugin::initialize() {
-    //qDebug() <<"#测试:"<<&gController<<QThread::currentThreadId();
-    //gCameraController = new CameraController(this,_module());
-    //south::ShareLib::instance().registerHandler("camera", gCameraController.data());
-    //bool enable =	south::ShareLib::GetConfigSettings()->value("camera/enable",false).toBool();
-    //if (!enable) {
-        //south::ShareLib::GetConfigSettings()->setValue("camera/enable", true);
-    //}
-    gCameraSDK = new CameraSDK(this);
+    //此处头文件包含为局部类的实现
+#ifdef CAMERA_TYPE_HiKvision
+    gCameraSDK = new HiKvisionCamera();
+#elif defined(CAMERA_TYPE_DvpLineScan)
+    gCameraSDK = new DvpLineScanCamera();
+#else
+    qFatal(tr("No camera type defined").toUtf8().constData());
+    //qCritical() << "Camera initialization failed:" << e.what();
+#endif
+    gCameraSDK->initialize();
 }
 
 Result CameraPlugin::disconnect() {
@@ -57,11 +67,16 @@ void CameraPlugin::execute(const QString& method) {
 }
 
 void CameraPlugin::SetImageFormat(const Session& session) {
+    
     QString format = session.params.toString();
-    struCameraInfo::format = format;//静态全局变量,保存到文件中
-    QJsonObject general = config_["general"].toObject();
-    general["format"] = format;
-    config_["general"] = general;
+    if (format.isEmpty()) return;
+    c_image_format = format;//QString 转 const chat* 类型,方法toUtf8() 返回临时 QByteArray，语句结束后内存立即释放
+    {
+        QMutexLocker locker(&_mutex_config);
+        QJsonObject general = config_["general"].toObject();
+        general["format"] = format;
+        config_["general"] = general;
+    }
     Result result = gSouth.WriteJsonFile(ConfigFilePath(), config_);
     gSouth.on_send(result, session);
 }
@@ -70,9 +85,7 @@ void CameraPlugin::scan(const Session& session) {
     Result result = gCameraSDK->scan();
     if (result) {
         QString deviceNames = gCameraSDK->devicesIdList.join(",");
-        Session session1 = session;
-        session1.result = deviceNames;
-        emit gSigSent(session1.ResponseString(tr("succeed")));
+        emit gSigSent(session.ResponseString(deviceNames,tr("succeed")));
     } else {
         emit gSigSent(session.ErrorString(result.code, result.message));
     }
@@ -103,7 +116,8 @@ void CameraPlugin::onConfigChanged() {
 }
 
 void CameraPlugin::GetUpdateFrameInfo(const Session& session) {
-    Result result = gCameraSDK->slotDispRate();
+    //Result result = gCameraSDK->slotDispRate();
+    Result result(1, "TODO");
     gSouth.on_send(result, session);
 }
 
@@ -116,13 +130,6 @@ void CameraPlugin::SetCamerasParams(const Session& session) {
 
 void CameraPlugin::SaveCamerasParams(const Session& session) {
     config_ = session.params.toObject();
-    //   QString filePath = obj["filePath"].toString();
-    //   QJsonObject cameraParams = obj["params"].toObject();
-       //// 检测文件后缀是否为json
-       //if (filePath.isEmpty() || !filePath.endsWith(".json", Qt::CaseInsensitive)) {
-       //	filePath = CameraConfigFileName;
-       //}
-       //Result result = gSouth.WriteJsonFile(filePath, cameraParams);
     Result result = gSouth.WriteJsonFile(ConfigFilePath(), config_);
     if (!result) {
         LOG_WARNING(result.message);
@@ -131,6 +138,7 @@ void CameraPlugin::SaveCamerasParams(const Session& session) {
 }
 
 void CameraPlugin::show(const Session& session) {
-    Result result = gCameraSDK->Property();
+    //Result result = gCameraSDK->Property();
+    Result result(1, "TODO");
     gSouth.on_send(result, session);
 }

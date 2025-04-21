@@ -4,7 +4,6 @@
  * @date 2025-02
  */
 #include "iPluginDevice.h"
-
 class CameraPlugin : public IPluginDevice
 {
     Q_OBJECT
@@ -21,7 +20,6 @@ public:
     Result disconnect() override;
     QString name() const override;    // 设备名称
     QString version() const override; // 版本
-
 
 public slots:
     // 执行约定的方法
@@ -51,4 +49,5 @@ public slots:
 
 private:
     /* data */
+    QMutex _mutex_config;
 };

@@ -1,17 +1,13 @@
 #pragma once
-#include "global.h"
+
+#include "iCameraBase.h"
 #include "DVPCamera.h"
 #include <QThread>
-//#pragma comment(lib, "x64/DVPCamera64.lib") //该文件放到生成目录下 或启动cmake的链接
-//#ifdef _WIN64 //加载64-bit lib库 
-//#pragma comment(lib, "lib_x86_64/DVPCamera64.lib") 
-//#else //加载32-bit lib库 
-//#pragma comment(lib, "lib_x86_32/DVPCamera.lib") 
-//#endif 
+//#pragma comment(lib, DVP_LIB_PATH)//"x64/DVPCamera64.lib") //该文件放到生成目录下 或启动cmake的链接
+
 
 //是否有效句柄
-inline bool IsValidHandle(dvpHandle handle)
-{
+inline bool IsValidHandle(dvpHandle handle) {
 	bool bValidHandle;
 	dvpIsValid(handle, &bValidHandle);
 	return bValidHandle;
@@ -70,62 +66,54 @@ struct struCameraInfo {
 		// 基于唯一ID比较是否相等
 		return name == other.name;
 	}
-
-	INT AcquiringImage(dvpFrame* pFrame, void* pBuffer) const
-	{
-		QString image_path = QString(path + "/%1#%2.%3").arg(pFrame->uTriggerId).arg(pFrame->uTimestamp).arg(format);
-		qDebug() << QThread::currentThread() << "AcquiringImage"
-			<<"uFrameID"<< pFrame->uFrameID <<"userValue" << pFrame->userValue
-			<<"uTriggerId"  << pFrame->uTriggerId << "uTimestamp" << pFrame->uTimestamp<< "图片路径"<<image_path;
-		dvpSavePicture(pFrame, pBuffer, image_path.toLocal8Bit().data(), 100);
-		return 0;
-	}
+    /**
+	* 采集图片保存
+	*/
+	INT AcquiringImage(dvpFrame* pFrame, void* pBuffer) const;
 };
 
 // Add this after your CameraInfo class definition 用于支持QSet
-inline uint qHash(const struCameraInfo& info, uint seed = 0)
-{
+inline size_t qHash(const struCameraInfo& info, uint seed = 0) {
 	return qHash(info.name, seed);
 }
 
-class CameraSDK : public QObject
+class DvpLineScanCamera : public ICameraBase
 {
-	Q_OBJECT
+	//用于支持tr的翻译
+	static QString tr(const char* sourceText) {
+		return QObject::tr(sourceText);
+	}
 public:
-	explicit CameraSDK(QObject* parent = nullptr);
-	~CameraSDK() = default;
-	void test();
-	const static int CurrentCameraCount = 8;
+	~DvpLineScanCamera() = default;
+	//基类方法
+	bool initialize() final;
+	Result SetCameraConfig(const QJsonObject& config) final;
+	Result scan() final; // 预先浏览相机设备
+	Result open() final; //打开相机
+	Result close() final; //关闭相机
+	Result start() final; //开始采集
+	Result stop() final; //停止采集
+	Result triggerFire() final; //软触发一次
+
+	//SDK内部调用
+	const static int kDefaultCameraCount = 8;
 	//相机内部的变量的声明
 	dvpStatus resultDvp;//统一的相机返回状态处理
-	dvpUint32 CameraActualTotal;//用于写入相机扫描个数的加载
-	qint8 activeIndex{ 0 };//当前选中默认
-	QStringList devicesIdList;//保存的相机名称,用于打开相机
-	
-	struCameraInfo cameraInfoArray[CurrentCameraCount]; //std::vector<int> cameraInfoArray(8);//也可以QSet<struCameraInfo> set_cameras;
+	dvpUint32 camera_scan_count;//用于写入相机扫描个数的加载
+	qint8 active_index{ 0 };//当前选中默认
+	QStringList camera_id_list;//保存的相机名称,用于打开相机
 
-	void initialize();
-
+	struCameraInfo camera_info_array[kDefaultCameraCount]; //std::vector<int> cameraInfoArray(8);//也可以QSet<struCameraInfo> set_cameras;
 	//设置所有相机要用的参数 commom task 的参数
-	Result SetCameraConfig(const QJsonObject& config);
 	//通过句柄设置单个相机单个参数
 	Result SetCameraParam(const dvpHandle& handle, const QJsonObject& param);
 	// 线扫模式使能配置,需要关闭触发使能,打开线扫模式使能 在句柄有效后使用
-    Result SetLineScanMode(const dvpHandle& handle);
+	Result SetLineScanMode(const dvpHandle& handle);
 	//相机内部调用
-	Result scan(); // 预先浏览相机设备
-	Result open();
-	Result close();
-	Result start();
-	Result stop();
 	Result Property();//仅在windows有效
-	Result triggerFire(); //软触发一次
-	bool isTriggerState{true}; //触发模式 在触发出图:true和连续出图模式之间切换.触发出图是有触发,软触发或者硬触发才会调用回调函数,连续出图是视频流一样调用回调函数
-
+	bool trigger_mode_enabled{ true }; //触发模式 在触发出图:true和连续出图模式之间切换.触发出图是有触发,软触发或者硬触发才会调用回调函数,连续出图是视频流一样调用回调函数
 	//与界面的交互
 	Result prepare(const Session& session);
 	// 自定义的槽函数
 	Result slotDispRate();
 };
-
-inline QPointer<CameraSDK> gCameraSDK = nullptr;
