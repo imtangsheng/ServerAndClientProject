@@ -20,6 +20,7 @@ public:
     QSet<QWebSocket*> others;
 public slots:
     void handleMessageSent(const QString& message, QObject* wsclient);
+    void handleBinarySent(const QByteArray& message, QObject* wsclient);
     void handleLogMessageSent(const QString& message,LogLevel level);
 Q_SIGNALS:
     void closed();

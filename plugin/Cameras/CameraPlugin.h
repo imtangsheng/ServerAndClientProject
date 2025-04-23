@@ -22,6 +22,7 @@ public:
     QString version() const override; // 版本
 
 public slots:
+    void initUi(const Session& session) final;//初始化UI,返回配置信息
     // 执行约定的方法
     void execute(const QString& method) final; // 执行特定功能
     //#采集控制接口
@@ -46,6 +47,7 @@ public slots:
     void SetCamerasParams(const Session& session);
     void SaveCamerasParams(const Session& session);
     void show(const Session& session);
+
 
 private:
     /* data */

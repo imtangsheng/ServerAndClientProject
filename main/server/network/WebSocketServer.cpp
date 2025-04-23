@@ -35,6 +35,7 @@ void WebSocketServer::initialize()
 {
 	// 通过信号槽在不同线程之间传递消息 使用const不可以使用this的对象,因为父子对象的不是const的
     connect(&gSouth, &south::ShareLib::sigSent, this, &WebSocketServer::handleMessageSent);
+	connect(&gSouth, &south::ShareLib::sigSentBinary, this, &WebSocketServer::handleBinarySent);
 	connect(&gLog, &Logger::new_message, this, &WebSocketServer::handleLogMessageSent);
 }
 
@@ -60,6 +61,7 @@ void WebSocketServer::SentMessageToClients(const QString& message) {
 
 void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclient)
 {
+	qDebug() <<"#Sent:size is"<< message.size()<< QThread::currentThread();
 	QPointer<QWebSocket> socket = qobject_cast<QWebSocket*>(wsclient);
 	//多线程下 加锁
 	static QMutex mutex_socket;
@@ -69,6 +71,20 @@ void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclien
 	else {
 		for (QPointer<QWebSocket> client : clients) {
 			client->sendTextMessage(message);
+		}
+	}
+}
+
+void WebSocketServer::handleBinarySent(const QByteArray& message, QObject* wsclient) {
+	qDebug() << "#Sent:size is" << message.size() << QThread::currentThread();
+	QPointer<QWebSocket> socket = qobject_cast<QWebSocket*>(wsclient);
+	//多线程下 加锁
+	static QMutex mutex_socket;
+	QMutexLocker locker(&mutex_socket);
+	if (message.isEmpty()) return;
+	if (socket) { socket->sendTextMessage(message); } else {
+		for (QPointer<QWebSocket> client : clients) {
+			client->sendBinaryMessage(message);
 		}
 	}
 }
@@ -139,7 +155,6 @@ void WebSocketServer::verify_device_type(const QString& message)
 	//返回消息,验证设备版本号是否一致
 	//handleMessageSent()
 	QJsonArray array{ double(deviceType),gSouth.version };
-	//newSocket->sendTextMessage(resp.ResponseString(tr("设备类型验证成功, 服务端版本是:%1").arg(gSouth.version)));
 	newSocket->sendTextMessage(Session::RequestString(1, sModuleUser, "login_verify", array));
 }
 
@@ -150,15 +165,15 @@ void WebSocketServer::handle_text_message(const QString& message)
 	//如果 pClient 是 QWebSocket 对象，并且它的父对象是 QWebSocketServer，那么它的生命周期将由 QWebSocketServer 管理，不需要手动释放。
 	//WebSocketPtr pClient = WebSocketPtr(qobject_cast<QWebSocket*>(sender()));
 	QPointer<QWebSocket> pClient = qobject_cast<QWebSocket*>(sender());
-	qDebug() << "#Received:" << pClient->peerAddress().toString() << "[Message]" << message << QThread::currentThread();;
+	qDebug() << "#[SendTo]" << pClient->peerAddress().toString() << "[Message]" << message.size() << QThread::currentThread();;
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
 	if (jsonDoc.isNull() || !jsonDoc.isObject()) {//向客户端发送错误信息
-		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("Invalid JOSN Data:%1").arg(message)));
+		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("Invalid JOSN Data:%1").arg(message.size())));
 	}
 	//Result result = gController.invoke(jsonDoc.object(), pClient);
 	Result result = south::ShareLib::instance().invoke(jsonDoc.object(), sender());
     if (!result) {
-		qWarning() << "消息处理失败:" << QThread::currentThread() << "[mess	age]" << message;
+		qWarning() << "消息处理失败:" << QThread::currentThread() << "[message]" << message;
 		pClient->sendTextMessage(result.message);
 	}
 
@@ -172,10 +187,16 @@ void WebSocketServer::handle_text_message(const QString& message)
 void WebSocketServer::handle_binary_message(const QByteArray& message)
 {
 	QWebSocket* pClient = qobject_cast<QWebSocket*>(sender());
-	qDebug() << pClient->peerAddress().toString() << "Binary Message received:" << message;
-	if (pClient) {
-		pClient->sendBinaryMessage(message);
-	}
+	qDebug() << pClient->peerAddress().toString() << "Binary Message received";
+	//pClient->sendBinaryMessage(message);
+	QDataStream in(message);
+	//in.setVersion(QDataStream::Qt_5_15);
+	quint8 invoke;
+	in >> invoke;
+	QByteArray data;
+	in >> data;
+	qDebug() << "invoke:" << invoke << "size:" << data.size();
+	gSouth.handlerBinarySession[south::ModuleName(invoke)](data);
 }
 
 void WebSocketServer::on_socket_disconnected()

@@ -10,8 +10,6 @@
  * @brief 用户服务管理类
  * 负责管理所有的用户服务,包含网络的启动,插件管理器类,任务执行等,几乎所有的主要控制类
  */
-
-
 class UserServer : public QObject
 {
     Q_OBJECT
@@ -33,7 +31,7 @@ public:
     //    return &self;
     //}
     
-    Q_INVOKABLE void onDeviceStateChanged(Session session);
+    Q_INVOKABLE void onDeviceStateChanged(Session session);//不使用 const Session& Qt 的元对象系统（MOC）会将 Q_INVOKABLE 方法编译 都能被统一调用
 public slots:
     void onLanguageChanged(QString language);
     void onAutoStartedClicked(bool checked);

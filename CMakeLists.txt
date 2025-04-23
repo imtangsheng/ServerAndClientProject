@@ -16,17 +16,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /ZI")#启用 "编辑并继续" 功能的编译器选项
 # 包含通用设置和依赖
 include(ProjectSettings)
+#添加插件目录
 include(Plugin)
-# add_subdirectory(include)
+#add_subdirectory("include")
 # 添加子项目
-#add_subdirectory(main)
-#add_subdirectory(modules)
-#add_subdirectory(devices)
-#add_subdirectory(example)
-add_subdirectory(libs/share)
-add_subdirectory("public/SouthStaticLib")
-
-# 在 Debug 模式下添加依赖
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_dependencies(server CameraDvp)
-endif()
+add_subdirectory(example)

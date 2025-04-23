@@ -57,25 +57,7 @@ foreach(DIR ${INCLUDE_DIRS})
 endforeach()
 
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-
-# 定义一个函数用于设置通用的目标属性
-function(set_common_target_properties TARGET_NAME)
-    set_target_properties(${TARGET_NAME} PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-        CXX_EXTENSIONS OFF
-        LINKER_LANGUAGE CXX
-    )
-    
-    # 添加通用的包含目录
-    target_include_directories(${TARGET_NAME}
-        PUBLIC
-            ${COMMON_INCLUDE_DIRS}
-    )
-    # 启用预编译头文件
-    target_precompile_headers(${TARGET_NAME} PRIVATE stdafx.h)
-endfunction()
-
+add_subdirectory(libs/share)
 add_subdirectory(main/server)
 add_subdirectory(main/client)
 

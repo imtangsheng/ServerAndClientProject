@@ -1,0 +1,103 @@
+## 安装环境
+1.安装驱动,后重启电脑
+	驱动通知
+	采集卡分配不到足够内存，请重新配置内存重启电脑!
+	启动视频流失败()
+
+2.如果模块的SDK未安装,会提示找不到模块,加载插件失败
+
+
+## 触发模式说明
+1.帧触发:可选软触发和硬触发拍照,可视为按下快门,开始采集一帧图像数据,完成后获取一帧图像数据
+2.行触发:接收到行触发信号后,开始采集一行图像数据,行信号的总数量满足图像高度,即行数后,视为采集完成,获取一帧图像数据
+3.连续模式:帧触发和行触发关闭使能,此时按照一定的时间间隔,获取一帧图像数据
+4.帧+行触发:帧触发和行触发同时使能,1)帧触发信号后,开始后开始计数行信号数量 2)开始计数行触发信号进行采集一行图像数据,满足行数后,视为采集完成,获取一帧图像数据
+
+设置后,当前配置会生效,但是如果未保存,下次重启后,会加载默认的配置
+
+◆ dvpSavePicture()
+
+
+
+dvp2api dvpStatus dvpSavePicture  ( const dvpFrame *  pFrame,  
+  const void *  pBuffer,  
+  dvpStr  file,  
+  dvpInt32  quality  
+ )   
+
+
+将图像保存到文件 
+参数
+[in] pFrame 帧信息  
+[in] pBuffer 图像数据的内存首地址（目前支持的数据格式包括：RAW, RGB24）  
+[in] file 文件名或完整路径（图像文件的格式由文件的扩展名来决定，目前支持的图像格式包括：bmp, jpeg, jpg, png, tiff, tif, gif, dat(纯图像数据)）  
+[in] quality 图像品质，仅对jpeg格式有效，并且取值范围是[1,100]  
+参见dvpGetFrame dvpStreamCallback 
+
+◆ dvpSetTargetFormat()
+
+
+
+dvp2api dvpStatus dvpSetTargetFormat  ( dvpHandle  handle,  
+  dvpStreamFormat  TargetFormat  
+ )   
+
+
+设置目标图像格式 
+参数
+[in] handle 相机句柄  
+[in] TargetFormat 目标图像格式  
+返回可预料的情况下，请确保返回DVP_STATUS_OK参见dvpSetTargetFormatSel dvpGetTargetFormat 注解通常是从相机直接输出的原始格式 
+
+dvpSetTriggerSource()
+
+
+
+dvp2api dvpStatus dvpSetTriggerSource  ( dvpHandle  handle,  
+  dvpTriggerSource  TriggerSource  
+ )   
+
+
+设置相机的触发源 
+参数
+[in] handle 相机句柄  
+[in] TriggerSource 相机的触发源  
+返回可预料的情况下，请确保返回DVP_STATUS_OK参见dvpGetTriggerSource 
+
+ dvpTriggerFire()
+
+
+
+dvp2api dvpStatus dvpTriggerFire  ( dvpHandle  handle )  
+
+
+发送软件触发信号 
+参数
+[in] handle 相机句柄  
+返回可预料的情况下，请确保返回DVP_STATUS_OK注解须先设置好软件触发源 
+
+/**
+*@brief 设置Boolean型属性值
+*@param[in] handle 设备句柄
+*@param[in] strKey 属性键值
+*@param[in] bValue 想要设置的设备的属性值
+*/
+dvp2api dvpStatus dvpSetBoolValue(IN dvpHandle handle, IN dvpStr strKey, IN bool bValue);
+
+
+/**
+*@brief 获取String属性值
+*@param[in] handle 设备句柄
+*@param[in] strKey 属性键值
+*@param[out] strValue 当前值
+*@param[in,out] iValueSize 字符串大小
+*/
+dvp2api dvpStatus dvpGetStringValue(IN dvpHandle handle, IN dvpStr strKey, OUT char* strValue, IN dvpInt32 iValueSize);
+
+/**
+*@brief 获取String属性值(同步获取方式接口)
+*@param[in] handle 设备句柄
+*@param[in] strKey 属性键值
+*@param[out] strValue 当前值
+*@param[in,out] iValueSize 字符串大小
+*/

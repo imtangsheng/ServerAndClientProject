@@ -9,6 +9,7 @@ WebSocketWidget::WebSocketWidget(QWidget *parent)
     connect(&gClient, &QWebSocket::connected, this, &WebSocketWidget::onConnected);
     connect(&gClient, &QWebSocket::disconnected, this, &WebSocketWidget::disConnected);
     connect(&gClient, &QWebSocket::textMessageReceived, this, &WebSocketWidget::onTextMessageReceived);
+    connect(&gClient, &QWebSocket::binaryMessageReceived,this,&WebSocketWidget::onBinaryMessageReceived);
     connect(&m_reconnectTimer, &QTimer::timeout, this, &WebSocketWidget::tryReconnect);
 
 	ui->checkBox_autoReconnect->setChecked(m_autoReconnect);
@@ -97,7 +98,8 @@ void WebSocketWidget::onConnected()
 {
     ui->textBrowser_MessageReceived->append("连接成功");
     ui->pushButton_onConnected->setText("断开");
-    gClient.sendTextMessage(Session::RequestString(1,sModuleUser,"login",gSouth.type));
+    QString module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    gClient.sendTextMessage(Session::RequestString(1,module_,"login",gSouth.sessiontype_));
 	m_reconnectTimer.stop();
 }
 
@@ -113,7 +115,7 @@ void WebSocketWidget::disConnected()
 	}
 }
 
-void WebSocketWidget::onTextMessageReceived(QString message)
+void WebSocketWidget::onTextMessageReceived(const QString &message)
 {
     // 显示接收到的消息，加上时间戳
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
@@ -136,6 +138,19 @@ void WebSocketWidget::onTextMessageReceived(QString message)
         qWarning() << "消息处理失败:" << QThread::currentThread() << "[mess	age]" << message;
         ui->textBrowser_MessageReceived->append(QString("[%1]客户端消息处理失败:\n %2").arg(timestamp,result.message));
 	}
+}
+
+void WebSocketWidget::onBinaryMessageReceived(const QByteArray &message)
+{
+    qDebug() << "WebSocketWidget::onBinaryMessageReceived" <<message.size();
+
+    QDataStream readStream(message);
+    quint8 invoke;
+    QByteArray bytes;
+    readStream >> invoke;
+    readStream >> bytes;
+    qDebug() << "WebSocketWidget::onBinaryMessageReceived bytes" <<bytes.size();
+    gSouth.handlerBinarySession[south::ModuleName(invoke)](message);
 }
 
 

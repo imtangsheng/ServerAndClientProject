@@ -6,6 +6,7 @@
 #ifndef QTPLUGINDEVICEINTERFACE_H
 #define QTPLUGINDEVICEINTERFACE_H
 #include"share_lib.h"
+#include "logger.h"
  //#include <QtPlugin>
 QT_BEGIN_NAMESPACE
 
@@ -39,7 +40,7 @@ public:
 
     // 基本操作接口
     virtual void initialize() {
-        if (!translator.load(":/" + _module() + "/" + zh_CN)) {
+        if (!translator.load(":/" + name() + "/" + zh_CN)) {
             LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(zh_CN));
         }
         if (gSouth.language == zh_CN) {
@@ -76,6 +77,7 @@ public:
         return Result(false, "Invalid state transition");
     }
 public slots:
+    virtual void initUi(const Session& session) = 0;//初始化UI,返回配置信息
     // 执行约定的方法
     virtual void execute(const QString& method) = 0; // 执行特定功能
 
@@ -107,8 +109,7 @@ protected:
 
     QTranslator translator;//成员变量,用于国际化 必须由qt主线程析构
     QString ConfigFilePath() const {
-        static QString filePath = "config/" + _module() + "_params.json";
-        //static QString filePath = gSouth.appDirPath + "/config/" + _module() + "_params.json";
+        static QString filePath = "config/" + name() + ".json";
         return filePath;
     }
     Result LoadConfigFromFile(const QString& jsonFilePath) {

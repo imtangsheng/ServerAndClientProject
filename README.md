@@ -1,3 +1,27 @@
+## 命名风格总纲
+### 文件命名
+    Qt:头文件,源文件和ui文件：使用 PascalCase。
+    Qt:资源文件：使用 snake_case。
+    一般文件:文件名使用小写字母，单词间用下划线连接 snake_case
+
+### 成员变量
+    私有成员变量：推荐使用 m_ 前缀。
+    公有和保护成员变量：通常不加前缀，除非是 Qt 对象指针。使用 snake_case。
+
+后缀:
+- **下划线**:当成员变量与构造函数参数和关键字同名时，使用后缀下划线.函数使用前缀下划线,当是getter函数使用,使用 snake_case。
+- **ptr**:当成员变量是指针时，使用 ptr 后缀
+- **ref**:当成员变量是引用时，使用 ref 后缀
+
+### 特别约定
+
+- **常用方法**:常用的方法使用小写替换,如init,get,set等常规方法
+- **信号**:使用signal_前缀的snake_case或者sig前缀的camelCase
+- **槽**:使用on_ slot_前缀的snake_case或者on handle slot 前缀的camelCase
+
+### 注意事项
+- **公有槽函数**:QString类型和结构体参数使用const type& 的引用(引用计数析构),普通类型如int double使用值传递(不得使用引用,数据可能会被立即销毁)
+
 # 采集软件开发
 
 Develop: Qt6 C++ cmake VS2022 QtCreator
@@ -334,24 +358,3 @@ void MainWindow::onDataLoaded(const QList<QString>& data) {
     // 处理数据
 }
 ```
-
-## 总结
-### 文件命名
-    Qt:头文件,源文件和ui文件：使用 PascalCase。
-    Qt:资源文件：使用 snake_case。
-    一般文件:文件名使用小写字母，单词间用下划线连接 snake_case
-
-### 成员变量
-    私有成员变量：推荐使用 m_ 前缀。
-    公有和保护成员变量：通常不加前缀，除非是 Qt 对象指针。
-
-后缀:
-- **下划线**:当成员变量与构造函数参数和关键字同名时，使用后缀下划线
-- **ptr**:当成员变量是指针时，使用 ptr 后缀
-- **ref**:当成员变量是引用时，使用 ref 后缀
-
-### 特别约定
-
-- **常用方法**:常用的方法使用小写替换,如init,get,set等常规方法
-- **信号**:使用signal_前缀的snake_case或者sig前缀的camelCase
-- **槽**:使用on_ slot_前缀的snake_case或者on handle slot 前缀的camelCase

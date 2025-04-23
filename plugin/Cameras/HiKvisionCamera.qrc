@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/camera">
+    <qresource prefix="/HiKvisionCamera">
         <file alias="zh_CN">../../assets/translations/HiKvisionCamera_zh_CN.qm</file>
     </qresource>
 </RCC>

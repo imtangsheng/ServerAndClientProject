@@ -1,10 +1,11 @@
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # 可执行文件输出目录
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/dll)  # 动态库输出目录
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态库输出目录
+# 设置插件输出目录 ${CMAKE_BINARY_DIR} 表示构建目录（通常是 build/）。
+set(PLUGIN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/plugins)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIR}) # 指定动态库的输出路径（Linux/macOS 的 .so/.dylib）。
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIR})# 可执行文件输出目录（Windows 下 .dll）
+# 设置配置文件输出目录
+set(CONFIG_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/config)
 
-add_subdirectory(plugin/Trolley)
-add_subdirectory(plugin/ScannerFaro)
-add_subdirectory(plugin/CameraDvp)
-
-#用于指定目标之间的构建依赖关系。它确保 dependee（被依赖的目标，South）在 target（Server）构建之前完成编译。
-add_dependencies(CameraDvp South)
+#add_subdirectory(plugin/Trolley)
+#add_subdirectory(plugin/ScannerFaro)
+#add_subdirectory(plugin/CameraDvp)
+add_subdirectory(plugin/Cameras)

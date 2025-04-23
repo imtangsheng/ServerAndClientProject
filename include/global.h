@@ -135,8 +135,8 @@ struct Session {
     QString ErrorString(int errorCode, const QString& message) const {
         return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"message", message} });
     }
-    QString ResponseString(const QString& ExecutionMessage = QString()) const {
-        return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", result}, {"message", ExecutionMessage} });
+    QString ResponseString(const QJsonValue& ExecutionResult,const QString& ExecutionMessage = QString()) const {
+        return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
     }
     QString getRequest() const {
         return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params}, {"message", message} });
@@ -247,20 +247,19 @@ static PluginType GetPluginType(const QString& name) {
  * @note 其次是为了方便多线程高频读取,主线程修改的问题
  */
 struct StringChar {
-    StringChar(const char* __char) {
-        *this = __char;
+    StringChar(const char* __char = nullptr) {*this = __char;}
+    StringChar(const QString& _string) {*this = _string;}
+    // 重载 () 运算符实现无锁读取 （高频调用）
+    QString operator()() const {
+        return _char.loadRelaxed();
     }
-    StringChar(const QString& _string) {
-        *this = _string;
-    }
-    // 重载 () 运算符实现无锁读取
-    const char* operator()() const {
+    const char* getChar() const {
         return _char.loadRelaxed();
     }
     StringChar& operator=(const char* newChar) {
         if (!newChar) return *this; // nullptr check
         QWriteLocker locker(&_read_write_lock);
-        _storage = QByteArray(newChar);
+        _storage = QByteArray(newChar);// 深度拷贝
         _char.storeRelease(_storage.constData());
         return *this;
     }
@@ -273,17 +272,11 @@ struct StringChar {
     }
 
     // 隐式转换为const char*
-    operator const char* () const { return operator()(); }
-
-    ~StringChar() {
-        QWriteLocker locker(&_read_write_lock);
-        _storage.clear();
-        _char.storeRelease(nullptr);
-    }
+    operator const char* () const { return getChar(); }
 private:
     QAtomicPointer<const char> _char = nullptr;
     QByteArray _storage;
-    QReadWriteLock _read_write_lock;
+    mutable QReadWriteLock _read_write_lock; // mutable允许const方法加锁
 };
 
 #endif

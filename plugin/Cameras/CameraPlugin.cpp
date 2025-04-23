@@ -7,14 +7,25 @@
 
 #ifdef CAMERA_TYPE_HiKvision
 #include "MVS/HiKvisionCamera.h"
+static ICameraBase* gCameraSDK = new HiKvisionCamera();
 #elif defined(CAMERA_TYPE_DvpLineScan)
 #include "Do3think/DvpLineScanCamera.h"
+static ICameraBase* gCameraSDK = new DvpLineScanCamera();
+#else
+//qFatal(tr("No camera type defined").toUtf8().constData());
 #endif
 
-static ICameraBase* gCameraSDK = nullptr;
 static QString g_plugin_module_name = south::ShareLib::GetModuleName(south::ModuleName::camera);
 
 CameraPlugin::CameraPlugin() {
+//#ifdef CAMERA_TYPE_HiKvision
+//    //gCameraSDK = new HiKvisionCamera();
+//#elif defined(CAMERA_TYPE_DvpLineScan)
+//    //gCameraSDK = new DvpLineScanCamera();
+//#else
+//    qFatal(tr("No camera type defined").toUtf8().constData());
+//    //qCritical() << "Camera initialization failed:" << e.what();
+//#endif
     IPluginDevice::initialize();
 }
 
@@ -27,14 +38,6 @@ QString CameraPlugin::_module() const {
 }
 void CameraPlugin::initialize() {
     //此处头文件包含为局部类的实现
-#ifdef CAMERA_TYPE_HiKvision
-    gCameraSDK = new HiKvisionCamera();
-#elif defined(CAMERA_TYPE_DvpLineScan)
-    gCameraSDK = new DvpLineScanCamera();
-#else
-    qFatal(tr("No camera type defined").toUtf8().constData());
-    //qCritical() << "Camera initialization failed:" << e.what();
-#endif
     gCameraSDK->initialize();
 }
 
@@ -54,12 +57,22 @@ Result CameraPlugin::AcquisitionStop() {
 }
 
 QString CameraPlugin::name() const {
-    return QString("camera");
+    return gCameraSDK->DeviceName();
 }
 
 QString CameraPlugin::version() const {
 
     return QString("0.0.1");
+}
+
+void CameraPlugin::initUi(const Session& session) {
+    QJsonObject obj;// = session.params.toObject();
+    obj["format"] = gCameraSDK->has_image_format;
+
+    emit gSigSent(session.ResponseString(obj, tr("succeed")), session.socket);
+
+    //onConfigChanged();//界面参数变化主动获取更新
+    emit gSigSent(Session::RequestString(2, _module(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
 }
 
 void CameraPlugin::execute(const QString& method) {
@@ -70,7 +83,7 @@ void CameraPlugin::SetImageFormat(const Session& session) {
     
     QString format = session.params.toString();
     if (format.isEmpty()) return;
-    c_image_format = format;//QString 转 const chat* 类型,方法toUtf8() 返回临时 QByteArray，语句结束后内存立即释放
+    gCameraSDK->SetImageFormat(format);
     {
         QMutexLocker locker(&_mutex_config);
         QJsonObject general = config_["general"].toObject();
@@ -84,7 +97,7 @@ void CameraPlugin::SetImageFormat(const Session& session) {
 void CameraPlugin::scan(const Session& session) {
     Result result = gCameraSDK->scan();
     if (result) {
-        QString deviceNames = gCameraSDK->devicesIdList.join(",");
+        QString deviceNames = gCameraSDK->camera_id_list.join(",");
         emit gSigSent(session.ResponseString(deviceNames,tr("succeed")));
     } else {
         emit gSigSent(session.ErrorString(result.code, result.message));

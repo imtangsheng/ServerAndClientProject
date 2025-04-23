@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
 
     gSouth.sessiontype_ = int(SessionType::Client);
     MainWindow window;
-    gSouth.RegisterHandler(sModuleUser,&window);
     window.show();
 
     return app.exec();

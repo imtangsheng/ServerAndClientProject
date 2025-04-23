@@ -4,6 +4,8 @@
 #include <QActionGroup>
 #include "mainwindow.h"
 
+#include "public/utils/windows_utils.h"
+
 #include "ui/WebSocketWidget.h"
 #include "ui/TrolleyWidget.h"
 #include "ui/CameraWidget.h"
@@ -16,8 +18,7 @@ QPointer<CameraWidget>gCamera;
 
 // 在源文件中定义全局变量
 // Q_GLOBAL_STATIC_WITH_ARGS(QString, zh_CN, ("zh_CN"))
-static const char* zh_CN = "zh_CN";
-static const char* en_US = "en_US";
+
 static bool lastDarkMode; // 记录上一次的主题状态
 
 /**
@@ -104,7 +105,7 @@ void IWidget::setDeviceState(bool offline)
 
 
 #include <QPropertyAnimation>
-#include "public/utils/windows_utils.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -116,6 +117,8 @@ MainWindow::MainWindow(QWidget *parent) :
     lastDarkMode = IsSystemDarkMode() ? TRUE : FALSE;
     SetDarkMode(hwnd,lastDarkMode);
 
+    module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    gSouth.RegisterHandler(module_,this);
     /*界面控件显示 加载模块*/
     gTrolley = new TrolleyWidget(this);
     gCamera = new CameraWidget(this);
@@ -231,17 +234,20 @@ void MainWindow::login_verify(double type,const QString& version)
     // QString 在 Qt 中是隐式共享（implicit sharing）的，使用了引用计数机制
     // 而 double 是基本类型，直接传递引用可能指向临时对象或已失效的内存：
     // Qt 5.15+ 才完全支持右值引用参数传递，但 Qt 的信号槽机制默认不支持直接传递右值引用。
-    if(int(type) == gSouth.sessiontype_){
+    if(int(type) != gSouth.sessiontype_){
         show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gSouth.sessiontype_),LogLevel::Warning);
     }
 
-    if(version == gSouth.version){
+    if(version != gSouth.version){
         show_message(tr("the device version does not match and the server is %1 a client is %2").arg(version,gSouth.version),LogLevel::Warning);
     }
     show_message(tr("the server connection is successful"),LogLevel::Info);
+
+    //获取设备状态
+    gClient.sendTextMessage(Session::RequestString(11,module_,"onDeviceStateChanged",true));
 }
 
-void MainWindow::show_log_message(const QString &message, double level)
+void MainWindow::show_log_message(QString message, double level)
 {
     show_message(message, LogLevel(level));
 }
@@ -421,9 +427,9 @@ void MainWindow::onNetworkStateShow(const QString& msg,const bool& isConnecting,
 
 void MainWindow::on_pushButton_language_switch_clicked()
 {
+    //当前是中文,切换移除中文
     if(g_language == zh_CN)
     {
-        //切换英文
         qApp->removeTranslator(&g_translator);
         // ui->pushButton_language_switch->setText("中文");
         g_language = en_US;
@@ -439,6 +445,8 @@ void MainWindow::on_pushButton_language_switch_clicked()
         }
     }
     gSettings->setValue("language",g_language);
+
+    gClient.sendTextMessage(Session::RequestString(11,module_,"onLanguageChanged",QJsonArray{g_language}));
     emit languageChanged();
 }
 
@@ -469,7 +477,7 @@ void MainWindow::on_action_LanguageChinese_triggered()
 void MainWindow::on_toolButton_devices_powered_off_clicked()
 {
     //ToDo
-    gClient.sendTextMessage(Session::RequestString(1,sModuleUser,"shutdown",QJsonArray()));
+    gClient.sendTextMessage(Session::RequestString(1,module_,"shutdown",QJsonArray()));
 }
 
 
@@ -488,8 +496,8 @@ void MainWindow::on_pushButton_test_clicked()
 
 void MainWindow::on_pushButton_AcquisitionBegins_clicked()
 {
-    gTrolley->start();
-    Session session({ {"id", 11}, {"module", sModuleUser}, {"method", "acquisition_begins"}, {"params", true} });
+    gTrolley->test();
+    Session session({ {"id", 11}, {"module", module_}, {"method", "acquisition_begins"}, {"params", true} });
     session.socket = &gClient;
     WaitDialog wait(this,&session,30);// = new WaitDialog(this);
     //100ms 以内防止弹窗显示
@@ -504,7 +512,7 @@ void MainWindow::on_pushButton_AcquisitionBegins_clicked()
 
 void MainWindow::on_pushButton_AcquisitionEnd_clicked()
 {
-    Session session({ {"id", 11}, {"module", sModuleUser}, {"method", "acquisition_end"}, {"params", true} });
+    Session session({ {"id", 11}, {"module", module_}, {"method", "acquisition_end"}, {"params", true} });
     session.socket = &gClient;
     WaitDialog wait(this,&session,30);// = new WaitDialog(this);
     //100ms 以内防止弹窗显示
@@ -545,5 +553,6 @@ void MainWindow::on_checkBox_AutoStart_clicked(bool checked)
 {
     qDebug() <<"on_checkBox_AutoStart_clicked"<< checked;
     SetAutoStart(checked);
+    gClient.sendTextMessage(Session::RequestString(11,module_,"onAutoStartedClicked",QJsonArray{checked}));
 }
 

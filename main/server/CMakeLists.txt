@@ -34,7 +34,7 @@ target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
 # 添加文本翻译文件
 qt_add_resources(${APP_NAME} resources.qrc)
 #自动生成翻译文本
-if(10)
+if(0)
 qt_add_lupdate(${APP_NAME}
     TS_FILES ${TS_FILES_}
     OPTIONS

@@ -26,8 +26,8 @@ public slots:
     void tryReconnect();
     void onConnected();
     void disConnected();
-    void onTextMessageReceived(QString message);
-
+    void onTextMessageReceived(const QString &message);
+    void onBinaryMessageReceived(const QByteArray &message);
 private slots:
     void on_pushButton_onConnected_clicked();
 
