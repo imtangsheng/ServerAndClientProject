@@ -1,7 +1,14 @@
 #include "DvpLineScanCamera.h"
 #include <QFile>
-QString struCameraInfo::format = gSouth.kImageFormat[0];
 #include <QDateTime>
+
+//是否有效句柄
+inline bool IsValidHandle(dvpHandle handle) {
+    bool bValidHandle;
+    dvpIsValid(handle, &bValidHandle);
+    return bValidHandle;
+}
+
 // 全局回调函数
 static INT AcquiringImageCallback(dvpHandle handle, dvpStreamEvent event, void* pContext, dvpFrame* pFrame, void* pBuffer) {
     // 记录开始时间
@@ -18,7 +25,7 @@ static INT AcquiringImageCallback(dvpHandle handle, dvpStreamEvent event, void* 
 #include<QImage>
 #include<QBuffer>
 INT struCameraInfo::AcquiringImage(dvpFrame* pFrame, void* pBuffer) const {
-    QString image_path = QString(path + "/%1#%2.%3").arg(pFrame->uTriggerId).arg(pFrame->uTimestamp).arg(format);
+    QString image_path = QString(path + "/%1#%2.%3").arg(pFrame->uTriggerId).arg(pFrame->uTimestamp).arg(c_image_format);
     qDebug() << QThread::currentThread() << "AcquiringImage"
         << "uFrameID" << pFrame->uFrameID << "userValue" << pFrame->userValue
         << "uTriggerId" << pFrame->uTriggerId << "uTimestamp" << pFrame->uTimestamp << "图片路径" << image_path;
@@ -106,7 +113,7 @@ INT struCameraInfo::AcquiringImage(dvpFrame* pFrame, void* pBuffer) const {
     //二进制数据 发送
     quint8 invoke = south::ModuleName::camera;
     quint8 userID = QString(info.UserID).toInt();
-    qint64  triggerID = pFrame->uTriggerId;
+    quint32  triggerID = pFrame->uTriggerId;
     QByteArray bytes;
     QDataStream out(&bytes, QIODevice::WriteOnly);
     out << invoke;
@@ -121,16 +128,38 @@ INT struCameraInfo::AcquiringImage(dvpFrame* pFrame, void* pBuffer) const {
     return 0;
 }
 
+// 使用函数映射表来处理不同类型的参数
+using SetParamFunc = std::function<dvpStatus(dvpHandle, dvpStr, const QJsonValue&)>;
+const std::map<QString, SetParamFunc> ParamSetters = {
+    {"enum", [](dvpHandle handle, dvpStr paramName, const QJsonValue& value) {
+        return dvpSetEnumValue(handle, paramName, value.toInt());
+    }},
+    {"float", [](dvpHandle handle, dvpStr paramName, const QJsonValue& value) {
+        return dvpSetFloatValue(handle, paramName, value.toDouble());
+    }},
+    {"int32", [](dvpHandle handle, dvpStr paramName, const QJsonValue& value) {
+        return dvpSetInt32Value(handle, paramName, value.toInt());
+    }},
+    {"bool", [](dvpHandle handle, dvpStr paramName, const QJsonValue& value) {
+        return dvpSetBoolValue(handle, paramName, value.toBool());
+    }},
+    {"string", [](dvpHandle handle, dvpStr paramName, const QJsonValue& value) {
+        QByteArray ba = value.toString().toLocal8Bit();
+        return dvpSetStringValue(handle, paramName, ba.data());
+    }}
+};
+
 
 bool DvpLineScanCamera::initialize() {
     qDebug() << "#DvpLineScanCamera: initialize";
+    has_image_format = "bmp,jpeg,jpg,png,tiff,tif,gif,dat";//支持的图片格式
     return scan();
 }
 
 Result DvpLineScanCamera::SetCameraConfig(const QJsonObject& config) {
     //qDebug() << "#DvpLineScanCamera: SetCamerasParams:" << params;
     QJsonObject general = config.value("general").toObject();
-    if (general.contains("format")) struCameraInfo::format = general.value("format").toString();
+    if (general.contains("format")) c_image_format = general.value("format").toString();
 
     QJsonObject commonParams = config.value("params").toObject();
     QJsonObject taskParams = config.value("task").toObject();
@@ -368,18 +397,6 @@ Result DvpLineScanCamera::stop() {
 }
 
 
-Result DvpLineScanCamera::Property() {
-    if (IsValidHandle(camera_info_array[active_index].handle)) {
-#ifdef Q_OS_WIN32
-        //this就是要获取句柄的窗体的类名；
-        //dvpShowPropertyModalDialog(m_handle, (HWND)this->winId());
-        dvpShowPropertyModalDialog(camera_info_array[active_index].handle, nullptr);
-#endif
-        return Result(0, ("显示成功"));
-    }
-    return Result(11, ("显示失败"));
-}
-
 Result DvpLineScanCamera::triggerFire() {
     for (dvpUint32 i = 0; i < camera_scan_count; ++i) {
         auto& device = camera_info_array[i];
@@ -396,26 +413,15 @@ Result DvpLineScanCamera::triggerFire() {
     return Result(0, ("相机软触发成功"));
 }
 
-Result DvpLineScanCamera::prepare(const Session& session) {
-    //触发使能
-    bool triggerState = true;
-    resultDvp = dvpSetTriggerState(camera_info_array[active_index].handle, &triggerState);
-    return Result(session.id, ("敬请期待"));
-}
 
-Result DvpLineScanCamera::slotDispRate() {
-    dvpStatus status;
-    dvpFrameCount       FrameCount;
+Result DvpLineScanCamera::Property() {
     if (IsValidHandle(camera_info_array[active_index].handle)) {
-        // 更新帧率信息
-        status = dvpGetFrameCount(camera_info_array[active_index].handle, &FrameCount);
-        if (status != DVP_STATUS_OK) {
-            qWarning() << ("#DvpLineScanCamera:Get frame count fail!");
-        }
-        //采集帧数:%1 采集帧率:%2
-        QString strFrameInfo = tr("Frames:%1 Rate:%2").arg(FrameCount.uFrameCount).arg(FrameCount.fFrameRate);
-        qDebug() << strFrameInfo;
-        return Result(true, strFrameInfo);
+#ifdef Q_OS_WIN32
+        //this就是要获取句柄的窗体的类名；
+        //dvpShowPropertyModalDialog(m_handle, (HWND)this->winId());
+        dvpShowPropertyModalDialog(camera_info_array[active_index].handle, nullptr);
+#endif
+        return Result(0, ("显示成功"));
     }
-    return Result::Failure("Invalid handle");
+    return Result(11, ("显示失败"));
 }

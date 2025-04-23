@@ -2,7 +2,8 @@
 ScannerController::ScannerController(QObject* parent, const QString& module)
      :QObject(parent)
 {
-	name = module;
+	module_ = south::ShareLib::GetModuleName(south::ModuleName::scanner);
+	gSouth.RegisterHandler(module_, this);
 	initialize();
 }
 
