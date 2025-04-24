@@ -1,4 +1,4 @@
-#include "DvpLineScanCamera.h"
+#include "dvp_line_scan_camera.h"
 #include <QFile>
 #include <QDateTime>
 
@@ -25,7 +25,7 @@ static INT AcquiringImageCallback(dvpHandle handle, dvpStreamEvent event, void* 
 #include<QImage>
 #include<QBuffer>
 INT struCameraInfo::AcquiringImage(dvpFrame* pFrame, void* pBuffer) const {
-    QString image_path = QString(path + "/%1#%2.%3").arg(pFrame->uTriggerId).arg(pFrame->uTimestamp).arg(c_image_format);
+    QString image_path = QString(path + "/%1#%2.%3").arg(pFrame->uTriggerId).arg(pFrame->uTimestamp).arg(g_image_format);
     qDebug() << QThread::currentThread() << "AcquiringImage"
         << "uFrameID" << pFrame->uFrameID << "userValue" << pFrame->userValue
         << "uTriggerId" << pFrame->uTriggerId << "uTimestamp" << pFrame->uTimestamp << "图片路径" << image_path;
@@ -159,7 +159,7 @@ bool DvpLineScanCamera::initialize() {
 Result DvpLineScanCamera::SetCameraConfig(const QJsonObject& config) {
     //qDebug() << "#DvpLineScanCamera: SetCamerasParams:" << params;
     QJsonObject general = config.value("general").toObject();
-    if (general.contains("format")) c_image_format = general.value("format").toString();
+    if (general.contains("format")) g_image_format = general.value("format").toString();
 
     QJsonObject commonParams = config.value("params").toObject();
     QJsonObject taskParams = config.value("task").toObject();

@@ -2,7 +2,7 @@
 #pragma once
 
 //声明图片格式
-inline static QString c_image_format("jpg");
+inline static QString g_image_format("jpg");
 
 class ICameraBase {
 public:
@@ -28,7 +28,7 @@ public:
         return name;
     }
     virtual bool SetImageFormat(const QString& format) {
-        c_image_format = format;
+        g_image_format = format;
         return true;
     }
 protected:

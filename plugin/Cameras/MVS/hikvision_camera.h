@@ -11,7 +11,7 @@ struct MvCamera
     QString path;//图片存储路径
     void savaImage() {};
 };
-#include "iCameraBase.h"
+#include "icamera.h"
 class HiKvisionCamera : public ICameraBase
 {
 public:

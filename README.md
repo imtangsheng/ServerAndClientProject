@@ -1,6 +1,6 @@
 ## 命名风格总纲
 ### 文件命名
-    Qt:头文件,源文件和ui文件：使用 PascalCase。
+    Qt:头文件,源文件使用 PascalCase。(UI文件和继承QObject,QWidget的类)
     Qt:资源文件：使用 snake_case。
     一般文件:文件名使用小写字母，单词间用下划线连接 snake_case
 

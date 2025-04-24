@@ -10,6 +10,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui LinguistTools)
 # 将源文件组织在变量中
 set(CAMERA_PUBLIC_FILE
     "${INCLUDE_DIR}interface/iPluginDevice.h"
+    #"${INCLUDE_DIR}interface/icamera.h"
     CameraPlugin.h CameraPlugin.cpp
     CameraPlugin.json
 )
@@ -33,12 +34,12 @@ function(plugin_add_ PLUGIN_NAME PLUGIN_SOURCE)
 endfunction()
 #INTERFACE
 set(HiKvision_FILE
-    MVS/HiKvisionCamera.h MVS/HiKvisionCamera.cpp
+    MVS/hikvision_camera.h MVS/hikvision_camera.cpp
 )
 
 set(DvpLineScan_FILE
     "Do3think/readme.md"
-    Do3think/DvpLineScanCamera.h Do3think/DvpLineScanCamera.cpp
+    Do3think/dvp_line_scan_camera.h Do3think/dvp_line_scan_camera.cpp
 )
 
 plugin_add_(HikvisionCamera ${CAMERA_PUBLIC_FILE} ${HiKvision_FILE})
@@ -61,9 +62,9 @@ target_link_libraries(DvpLineScanCamera PRIVATE
 
 #设置编译编译定义是在编译过程中传递给预处理器的符号，可以用来控制代码中的条件编译。
 target_compile_definitions(HikvisionCamera PRIVATE
-    CAMERA_TYPE_HiKvision
+    DEVICE_TYPE_CAMERA_HiKvision
 )
 target_compile_definitions(DvpLineScanCamera PRIVATE
-    CAMERA_TYPE_DvpLineScan
+    DEVICE_TYPE_CAMERA_DvpLineScan
     #DVP_LIB_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/Do3think/DVPCamera64.lib\"
 )

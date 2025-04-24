@@ -5,11 +5,11 @@
  */
 #include "CameraPlugin.h"
 
-#ifdef CAMERA_TYPE_HiKvision
-#include "MVS/HiKvisionCamera.h"
+#ifdef DEVICE_TYPE_CAMERA_HiKvision
+#include "MVS/hikvision_camera.h"
 static ICameraBase* gCameraSDK = new HiKvisionCamera();
-#elif defined(CAMERA_TYPE_DvpLineScan)
-#include "Do3think/DvpLineScanCamera.h"
+#elif defined(DEVICE_TYPE_CAMERA_DvpLineScan)
+#include "Do3think/dvp_line_scan_camera.h"
 static ICameraBase* gCameraSDK = new DvpLineScanCamera();
 #else
 //qFatal(tr("No camera type defined").toUtf8().constData());

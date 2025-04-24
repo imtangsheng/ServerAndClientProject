@@ -1,6 +1,6 @@
 #pragma once
 
-#include "iCameraBase.h"
+#include "icamera.h"
 #include "DVPCamera.h"
 #include <QThread>
 //#pragma comment(lib, DVP_LIB_PATH)//"x64/DVPCamera64.lib") //该文件放到生成目录下 或启动cmake的链接

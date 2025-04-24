@@ -1,4 +1,4 @@
-#include "HiKvisionCamera.h"
+#include "hikvision_camera.h"
 #include<QImage>
 #include<QBuffer>
 
@@ -77,7 +77,7 @@ static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX
     unsigned int iTriggerId = pFrameInfo->nFrameNum;
     // 通过pUser访问设备对象
     MvCamera* device = static_cast<MvCamera*>(pUser);
-    QString image_path = QString(device->path + "/%1#%2.%3").arg(pFrameInfo->nFrameNum).arg(pFrameInfo->nHostTimeStamp).arg(c_image_format);
+    QString image_path = QString(device->path + "/%1#%2.%3").arg(pFrameInfo->nFrameNum).arg(pFrameInfo->nHostTimeStamp).arg(g_image_format);
     qDebug() << "图片路径" << image_path;
     //非RAW格式
     if (g_enSaveImageType != MV_Image_Undefined) {
@@ -211,7 +211,7 @@ bool HiKvisionCamera::initialize() {
 Result HiKvisionCamera::SetCameraConfig(const QJsonObject& config) {
     //qDebug() << "#DvpLineScanCamera: SetCamerasParams:" << params;
     QJsonObject general = config.value("general").toObject();
-    if (general.contains("format")) c_image_format = general.value("format").toString();
+    if (general.contains("format")) g_image_format = general.value("format").toString();
 
     QJsonObject commonParams = config.value("params").toObject();
     QJsonObject taskParams = config.value("task").toObject();
@@ -406,7 +406,7 @@ bool HiKvisionCamera::SetImageFormat(const QString& format) {
         LOG_ERROR(tr("Unsupported format:%1").arg(format));
         return false;
     }
-    c_image_format = format;
+    g_image_format = format;
     return true;
 }
 
