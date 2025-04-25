@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/Trolley">
+        <file alias="zh_CN">../../assets/translations/Trolley_zh_CN.qm</file>
+    </qresource>
+</RCC>

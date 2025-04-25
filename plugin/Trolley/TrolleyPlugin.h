@@ -13,23 +13,40 @@ class TrolleyPlugin : public IPluginDevice
 public:
 	TrolleyPlugin();
 	~TrolleyPlugin() override;
-	// 基本操作接口
-	Result initialize()override;
-	Result connect() override; // 连接到特定设备
-	Result disconnect() override;
-	Result AcquisitionStart()override;
-	Result AcquisitionStop()override;
+    // 基本数据定义
+    QString _module() const override;    // 设备名称
+    // 基本操作接口
+    void initialize() override;
+    Result disconnect() override;
+    QString name() const override;    // 设备名称
+    QString version() const override; // 版本
 
-	// 参数设置接口 根据接收到的json数据,自动化设置参数
-	Result SetParameters(const QJsonObject& parameters) override;
+    //#属性设置接口
+    Q_INVOKABLE void SetSpeedMultiplier(const Session& session); // 设置小车速度乘数
 
-	QString name() const override;    // 设备名称
-	QString version() const override; // 版本
-	// 执行约定的方法
-	Result execute(const QString& method) override; // 执行特定功能
+public slots:
+    void initUi(const Session& session) final;//初始化UI,返回配置信息
+    void SaveConfig(const Session& session) final;
+    // 执行约定的方法
+    void execute(const QString& method) final; // 执行特定功能
 
+    Result AcquisitionStart() final;
+    Result AcquisitionStop() final;
+    //interface IControllerSDK
+    //速度 1.直接C++调用	1x	最快，
+    //2.Q_INVOKABLE通过QMetaObject::invokeMethod	约10-20x	比直接调用慢
+    //3.slot通过信号触发	约25-40x	最慢的调用方式
+    //#SDK接口方法
+    void scan(const Session& session);
+    void open(const Session& session);
+    void start(const Session& session);
+    void stop(const Session& session);
 
+    //#界面操作接口
+    void onConfigChanged() const;
+    void SetParams(const Session& session);
 
 private:
     /* data */
+    QMutex _mutex_config;
 };
