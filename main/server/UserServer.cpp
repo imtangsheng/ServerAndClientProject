@@ -1,10 +1,13 @@
 #include "UserServer.h"
+#include "network/HttpServer.h"
 #include "network/WebSocketServer.h"
 #include "manager/ManagerPlugin.h"
 
 #include "public/utils/windows_utils.h"
 
+static QPointer<HttpServer> gHttpServer;
 static QPointer<WebSocketServer> gWebSocketServer;
+
 UserServer::UserServer(QObject* parent): QObject(parent) {
     module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
     gSouth.RegisterHandler(module_, this);
@@ -31,6 +34,10 @@ UserServer::~UserServer() {
 };
 
 void UserServer::initialize(quint16 port) {
+    gHttpServer = new HttpServer();
+    if (!gHttpServer->StartServer(80)) {
+        LOG_ERROR(tr("Failed to start HTTP server"));
+    }
     gWebSocketServer = new WebSocketServer(port, this);
     gWebSocketServer->initialize();
     //connect(gWebSocketServer, &WebSocketServer::closed, &app, &QCoreApplication::quit);

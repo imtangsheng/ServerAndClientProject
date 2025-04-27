@@ -5,8 +5,9 @@
 //inline QWebSocket client;
 #define gController MainController::instance()
 
-inline QWebSocket gClient;//不可拷贝的类型
-// inline QSharedPointer<QWebSocket> gSocket{nullptr};
+//不可拷贝复制,也不可以先于qApp先初始化
+#define gClient MainController::instance().webSocketClient
+inline QSharedPointer<QWebSocket> gSocket{nullptr};
 
 class MainController
 {
@@ -24,7 +25,9 @@ private:
     ~MainController();
 };
 
+
 #include <QGlobalStatic>
+
 class MySingleton {
 public:
     void doSomething() { /*...*/ }

@@ -480,10 +480,11 @@ void MainWindow::on_toolButton_devices_powered_off_clicked()
     gClient.sendTextMessage(Session::RequestString(1,module_,"shutdown",QJsonArray()));
 }
 
-
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 void MainWindow::on_pushButton_test_clicked()
 {
-    on_pushButton_language_switch_clicked();
+    // on_pushButton_language_switch_clicked();
     // ui->dockWidget_Settings->show();
     // // ui->dockWidget_Settings->setFloating(true);//Qt::CustomizeWindowHint
     // // ui->dockWidget_Settings->setWindowFlags(Qt::FramelessWindowHint);//Qt::FramelessWindowHint
@@ -491,6 +492,84 @@ void MainWindow::on_pushButton_test_clicked()
     // ui->dockWidget_Settings->setWindowOpacity(0.5);
     // ui->dockWidget_Settings->move(ui->stackedWidget_MainWidget->mapToGlobal(QPoint(0,0)));
     // ui->dockWidget_Settings->adjustSize();
+    QNetworkAccessManager manager;
+
+    QUrl getUrl("http://127.0.0.1:80/user/Bob");
+    QNetworkRequest getRequest(getUrl);
+    QNetworkReply *getReply = manager.get(getRequest);
+    // QObject::connect(getReply, &QNetworkReply::finished, [=]() {
+    //     if (getReply->error() == QNetworkReply::NoError) {
+    //         QJsonDocument doc = QJsonDocument::fromJson(getReply->readAll());
+    //         qDebug() << "GET Response:" << doc.toJson(QJsonDocument::Indented);
+    //     } else {
+    //         qDebug() << "GET Error:" << getReply->errorString();
+    //     }
+    //     getReply->deleteLater();
+    // });
+
+    // 创建事件循环等待响应
+    QEventLoop loop;
+    QObject::connect(getReply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    // loop.exec(); // 阻塞直到 finished 信号发出
+    QTimer timer;
+    timer.setSingleShot(true);
+    QObject::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+    timer.start(5000); // 5秒超时
+    loop.exec();
+    if (timer.isActive()) {
+        timer.stop(); // 请求正常完成
+        // 处理响应
+        QJsonDocument doc;
+        if (getReply->error() == QNetworkReply::NoError) {
+            doc = QJsonDocument::fromJson(getReply->readAll());
+            qDebug() << "GET Response:" << doc.toJson(QJsonDocument::Indented);
+        } else {
+            qDebug() << "GET Error:" << getReply->errorString();
+        }
+
+        // 清理
+        getReply->deleteLater();
+    } else {
+        qDebug() << "Request timed out";
+        getReply->abort();
+        getReply->deleteLater();
+    }
+
+    // POST 请求
+    QUrl postUrl("http://127.0.0.1:80/login");
+    QNetworkRequest postRequest(postUrl);
+    postRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QJsonObject postData;
+    postData["username"] = "admin";
+    postData["password"] = "123456";
+    QJsonDocument postDoc(postData);
+    QNetworkReply *postReply = manager.post(postRequest, postDoc.toJson());
+    // 创建事件循环等待响应
+    QEventLoop loop2;
+    QObject::connect(postReply, &QNetworkReply::finished, &loop2, &QEventLoop::quit);
+    // loop.exec(); // 阻塞直到 finished 信号发出
+    QTimer timer2;
+    timer2.setSingleShot(true);
+    QObject::connect(&timer2, &QTimer::timeout, &loop2, &QEventLoop::quit);
+    timer2.start(5000); // 5秒超时
+    loop2.exec();
+    if (timer2.isActive()) {
+        timer2.stop(); // 请求正常完成
+        // 处理响应
+        if (postReply->error() == QNetworkReply::NoError) {
+            QJsonDocument doc = QJsonDocument::fromJson(postReply->readAll());
+            qDebug() << "POST Response:" << doc.toJson(QJsonDocument::Indented);
+        } else {
+            qDebug() << "POST Error:" << postReply->errorString();
+        }
+        // 清理
+        getReply->deleteLater();
+    } else {
+        qDebug() << "Request timed out";
+        postReply->abort();
+        postReply->deleteLater();
+    }
+
 }
 
 
