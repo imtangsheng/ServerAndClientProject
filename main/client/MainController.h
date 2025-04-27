@@ -4,6 +4,10 @@
 #include <QtWebSockets/QWebSocket>
 //inline QWebSocket client;
 #define gController MainController::instance()
+
+inline QWebSocket gClient;//不可拷贝的类型
+// inline QSharedPointer<QWebSocket> gSocket{nullptr};
+
 class MainController
 {
 public:
@@ -19,10 +23,8 @@ private:
 	MainController();
     ~MainController();
 };
-#define gClient MainController::instance().webSocketClient
 
 #include <QGlobalStatic>
-
 class MySingleton {
 public:
     void doSomething() { /*...*/ }

@@ -1,15 +1,17 @@
 #include "WebSocketWidget.h"
 #include <QMessageBox>
+#include "MainController.h"
 
-WebSocketWidget::WebSocketWidget(QWidget *parent)
+WebSocketWidget::WebSocketWidget(QWebSocket* socket,QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::WebSocketWidget)
+    , ui(new Ui::WebSocketWidget),m_socket(socket)
 {
     ui->setupUi(this);
-    connect(&gClient, &QWebSocket::connected, this, &WebSocketWidget::onConnected);
-    connect(&gClient, &QWebSocket::disconnected, this, &WebSocketWidget::disConnected);
-    connect(&gClient, &QWebSocket::textMessageReceived, this, &WebSocketWidget::onTextMessageReceived);
-    connect(&gClient, &QWebSocket::binaryMessageReceived,this,&WebSocketWidget::onBinaryMessageReceived);
+    if(m_socket==nullptr) m_socket = &gClient;
+    connect(m_socket, &QWebSocket::connected, this, &WebSocketWidget::onConnected);
+    connect(m_socket, &QWebSocket::disconnected, this, &WebSocketWidget::disConnected);
+    connect(m_socket, &QWebSocket::textMessageReceived, this, &WebSocketWidget::onTextMessageReceived);
+    connect(m_socket, &QWebSocket::binaryMessageReceived,this,&WebSocketWidget::onBinaryMessageReceived);
     connect(&m_reconnectTimer, &QTimer::timeout, this, &WebSocketWidget::tryReconnect);
 
 	ui->checkBox_autoReconnect->setChecked(m_autoReconnect);
@@ -23,7 +25,7 @@ WebSocketWidget::~WebSocketWidget()
 {
 	qDebug() << "WebSocket::~WebSocket() 析构函数";
 	m_reconnectTimer.stop();
-    gClient.close();
+    m_socket->close();
     delete ui;
 }
 
@@ -34,20 +36,20 @@ void WebSocketWidget::registerFunctions()
 
 void WebSocketWidget::on_pushButton_onConnected_clicked()
 {
-    if (gClient.state() == QAbstractSocket::UnconnectedState) {
+    if (m_socket->state() == QAbstractSocket::UnconnectedState) {
         QString urlStr = ui->lineEdit_url->text().trimmed();// 获取URL并连接
         QUrl url(urlStr);
         if (!url.isValid()) {
             QMessageBox::warning(this, "Error", "Invalid URL!");
             return;
         }
-        gClient.open(url);
+        m_socket->open(url);
         ui->textBrowser_MessageReceived->append("Connecting to " + urlStr + "...");
     }
     else
     {
         // 断开连接
-        gClient.close();
+        m_socket->close();
         ui->pushButton_onConnected->setText("连接");
     }
 }
@@ -55,7 +57,7 @@ void WebSocketWidget::on_pushButton_onConnected_clicked()
 
 void WebSocketWidget::on_pushButton_sendMessage_clicked()
 {
-    if (gClient.state() != QAbstractSocket::ConnectedState) {
+    if (m_socket->state() != QAbstractSocket::ConnectedState) {
         QMessageBox::warning(this, "Error", "Please connect to server first!");
         return;
     }
@@ -66,7 +68,7 @@ void WebSocketWidget::on_pushButton_sendMessage_clicked()
     }
 
     // 发送消息
-    gClient.sendTextMessage(message);
+    m_socket->sendTextMessage(message);
 
     // 显示发送的消息，加上时间戳
     QString timestamp = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
@@ -78,14 +80,14 @@ void WebSocketWidget::on_pushButton_sendMessage_clicked()
 
 void WebSocketWidget::tryReconnect()
 {
-    if (m_autoReconnect && gClient.state() != QAbstractSocket::ConnectedState) {
+    if (m_autoReconnect && m_socket->state() != QAbstractSocket::ConnectedState) {
 		QString urlStr = ui->lineEdit_url->text().trimmed();
         QUrl url(urlStr);
 		if (!url.isValid()) {
 			QMessageBox::warning(this, "Error", "Invalid URL!");
 			return;
 		}
-        gClient.open(url);
+        m_socket->open(url);
         ui->textBrowser_MessageReceived->append("尝试重新连接到:" + urlStr + "...");
     }
     else
@@ -99,7 +101,7 @@ void WebSocketWidget::onConnected()
     ui->textBrowser_MessageReceived->append("连接成功");
     ui->pushButton_onConnected->setText("断开");
     QString module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
-    gClient.sendTextMessage(Session::RequestString(1,module_,"login",gSouth.sessiontype_));
+    m_socket->sendTextMessage(Session::RequestString(1,module_,"login",gSouth.sessiontype_));
 	m_reconnectTimer.stop();
 }
 
