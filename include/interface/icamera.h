@@ -2,7 +2,7 @@
 #pragma once
 
 //声明图片格式
-inline static QString g_image_format("jpg");
+inline QString g_image_format("jpg");//使用static会造成 变量在每个编译单元都有自己的实例
 
 class ICameraBase {
 public:
