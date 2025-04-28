@@ -15,6 +15,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs)  # 动态库输
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态库输出目录
 
 set(ProjectPath ../../)
+include_directories(${ProjectPath})
 include_directories(${ProjectPath}/include)
 ##动态库依赖
 set(SHARE_SOURCES
@@ -24,8 +25,17 @@ set(SHARE_SOURCES
 
 ##客户端程序
 set(client CameraClient)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Network WebSockets LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network WebSockets LinguistTools)
+
+set(PathClient "${ProjectPath}/main/client/")
+include_directories(${PathClient})
+set(CONTROLLER_FILES
+    ${PathClient}MainController.h ${PathClient}MainController.cpp
+    ${PathClient}ui/WebSocketWidget.h ${PathClient}ui/WebSocketWidget.cpp ${PathClient}ui/WebSocketWidget.ui
+    ${PathClient}dialog/HttpDialog.h ${PathClient}dialog/HttpDialog.cpp ${PathClient}dialog/HttpDialog.ui
+)
+source_group("Controllers" FILES ${CONTROLLER_FILES})
 
 set(TS_FILES ${client}_en_US.ts)
 set(PROJECT_SOURCES
@@ -36,16 +46,19 @@ set(PROJECT_SOURCES
         ${TS_FILES} ${client}.qrc
 )
 qt_add_executable(${client}
-    ${SHARE_SOURCES}
+    ${SHARE_SOURCES} ${CONTROLLER_FILES}
     ${PROJECT_SOURCES}
     readme.md
+
 )
 
-target_precompile_headers(${client} PUBLIC ${ProjectPath}libs/share/stdafx.h)
+target_precompile_headers(${client} PRIVATE ${ProjectPath}libs/share/stdafx.h)
 
 target_link_libraries(${client} PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Network
+    Qt${QT_VERSION_MAJOR}::WebSockets
 )
 
 # 添加更新翻译的目标

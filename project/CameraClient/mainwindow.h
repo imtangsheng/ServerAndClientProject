@@ -5,18 +5,17 @@
 #include <QTranslator>
 inline QString g_language;
 inline QTranslator g_translator;//qt的国际化
-
 #include <QString>
 
-class WasmSettings {
-public:
-    static void setValue(const QString &key, const QString &value);
-    static QString getValue(const QString &key, const QString &defaultValue = QString());
-    static void remove(const QString &key);
-    static void clear();
-};
+#if defined(Q_OS_WINDOWS)
+#include "public/utils/windows_utils.h"
+#elif defined(Q_OS_WASM) //__EMSCRIPTEN __
+#include "public/utils/wasm_utils.h"
+
+#endif
 
 #include <QMainWindow>
+#include "MainController.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -31,9 +30,18 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
+    QString module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    // 修改函数签名，直接传值而不是引用
+    Q_INVOKABLE void login_verify(double type,const QString& version);//设备登录验证程序
+protected slots:
+    void onStateChanged(QAbstractSocket::SocketState state);
+    // 网络连接状态:显示信息 是否在Connecting中 已连接Connected
+    void onNetworkStateShow(const QString& msg,const bool& isConnecting = false,const bool& isConnected = false);
+    void show_message(const QString& message, LogLevel level=LogLevel::Debug);
 private slots:
-    void on_pushButton_clicked();
+    void on_pushButton_language_switch_clicked();
+
+    void on_pushButton_test_clicked();
 
 private:
     Ui::MainWindow *ui;

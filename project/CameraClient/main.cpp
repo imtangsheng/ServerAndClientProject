@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
     // gSouth.InitConfigSettings(appDir.absolutePath(), "CameraClient");//初始化配置文件路径,名称
 
-    g_language = WasmSettings::getValue("language", "en_US");
+    g_language = LocalValueGet("language", "en_US");
     // g_language = gSettings->value("language").toString();
     qDebug() << "当前应用程序的语言Settings：" << g_language;
     if(g_language.isEmpty()){
