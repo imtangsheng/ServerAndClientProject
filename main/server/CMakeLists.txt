@@ -1,13 +1,14 @@
 # 设置可执行文件名称
 set(APP_NAME server)
 # 查找所需的 Qt 组件
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core WebSockets LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core WebSockets LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core WebSockets HttpServer LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core WebSockets HttpServer LinguistTools)
 
 
 # 将源文件组织在变量中
 set(NETWORK_SOURCES
     network/WebSocketServer.h network/WebSocketServer.cpp
+    network/HttpServer.h network/HttpServer.cpp
 )
 
 set(CONTROLLER_SOURCES
@@ -52,5 +53,6 @@ set_target_properties(${APP_NAME} PROPERTIES
 target_link_libraries(${APP_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::WebSockets
+    Qt${QT_VERSION_MAJOR}::HttpServer
     South
 )

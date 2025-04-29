@@ -125,25 +125,26 @@ void MainWindow::on_pushButton_language_switch_clicked()
     ui->retranslateUi(this);
     // qDebug() << "读取配置中的语言"<<gSettings->value("language").toString();
 }
-#include<QMessageBox>
 
 void MainWindow::on_pushButton_test_clicked()
 {
+    static int num =0;
     // 使用方法
     // QMessageBox *msgBox = new QMessageBox(this);
     // msgBox->setText("消息内容");
     // msgBox->show();
     HttpDialog *http = new HttpDialog(this,30);
-    // http->setWindowModality(Qt::ApplicationModal); // 不设置的话,失去焦点不会显示
+    http->setWindowModality(Qt::ApplicationModal); // 不设置的话,失去焦点不会显示
     http->setAttribute(Qt::WA_DeleteOnClose);// 不设置的话,不会自动析构
-    http->get("http://127.0.0.1:80/user/Test",
+    http->get("http://127.0.0.1:80/get",
     [&](const QByteArray& data){
-         QJsonObject obj;
-         static int num =0;
-         ui->pushButton_test->setText(tr("Test:%1").arg(num++));
+        QJsonObject obj = QJsonValue::fromJson(data).toObject();
+        qDebug() << "data"<<obj;
+        ui->pushButton_test->setText(tr("Test:%1").arg(num++));
         },
-    [this](const QString& error){
-        this->show_message(error,LogLevel::Error);
+    [&](const QString& error){
+        ui->pushButton_test->setText(tr("Test:%1").arg(num--));
+        show_message(error,LogLevel::Error);
     });
 }
 

@@ -7,10 +7,9 @@ public:
     HttpServer() = default;
     ~HttpServer();
 
-    bool StartServer(int port);
+    bool StartServer(int port=80);
 
     QHttpServer server;
-
     QJsonObject handle_request(const QHttpServerRequest& request);
 
     // 2. 静态成员函数
@@ -22,11 +21,5 @@ public:
     // 3. 普通成员函数
     QJsonObject memberHandler(const QHttpServerRequest& request) {
         return QJsonObject{ {"type", "member method"} };
-    }
-
-    // 函数对象
-    QJsonObject RequestHandler(const QHttpServerRequest& request) {
-            return QJsonObject{ {"type", "functor"} };
-        
     }
 };

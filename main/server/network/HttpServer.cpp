@@ -4,8 +4,6 @@
 /*!
 * Qt 支持 GET、POST 还是其他 HTTP 方法，body() 都可以调用，且不会抛出异常
 */
-
-
 // 1. 独立的自由函数 1)全局静态,2)无参数 都可以
 QJsonObject GlobalHandler(const QHttpServerRequest& request) {
     qDebug() << "body:" << request.body();
@@ -15,9 +13,15 @@ QJsonObject GlobalHandler(const QHttpServerRequest& request) {
 HttpServer::~HttpServer() {
    
 }
-
+#include <QHttpServerResponse>
 bool HttpServer::StartServer(int port) {
 
+    server.addAfterRequestHandler(&server, [](const QHttpServerRequest&, QHttpServerResponse& resp) {
+        qDebug() << "addAfterRequestHandler";
+        auto h = resp.headers();
+        h.append(QHttpHeaders::WellKnownHeader::AccessControlAllowOrigin, "*");
+        resp.setHeaders(std::move(h));
+    });
     qDebug() << "HTTP server starting on port" << port;
     //处理GET请求
     server.route("/hello", [this]() {
@@ -34,8 +38,8 @@ bool HttpServer::StartServer(int port) {
         qDebug() << "Keyword:" << keyword;
         return QJsonObject{ {"keyword", keyword} };
         });
-    // 带参数的GET请求
     server.route("/user/<arg>", [](const QString& name) {
+        qDebug() << "Received GET request to /user/" << name;
         QJsonObject response;
         response["message"] = QString("Hello, %1!").arg(name);
         return response;
@@ -47,11 +51,9 @@ bool HttpServer::StartServer(int port) {
             // 解析JSON请求体
             QJsonDocument doc = QJsonDocument::fromJson(request.body());
             QJsonObject requestData = doc.object();
-
             // 处理登录逻辑
             QString username = requestData["username"].toString();
             QString password = requestData["password"].toString();
-
             QJsonObject response;
             if (username == "admin" && password == "123456") {
                 response["status"] = "success";
@@ -81,6 +83,7 @@ bool HttpServer::StartServer(int port) {
             return handle_request(request);
         });
 
+    //启动http服务
     auto tcpserver = std::make_unique<QTcpServer>();
     if (!tcpserver->listen(QHostAddress::Any, port)) {
         qDebug() << "Failed to start server:" << tcpserver->errorString();
