@@ -1,5 +1,5 @@
-# 设置可执行文件名称
-set(SHARE_NAME South)
+# 设置可执行文件名称 移动到最顶层中定义
+#set(SHARE_NAME Shared)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
@@ -11,7 +11,7 @@ file(GLOB_RECURSE PROJECT_SOURCES
 )
 
 add_library(${SHARE_NAME} SHARED
-  ${INCLUDE_DIR}share_lib.h ${INCLUDE_DIR}Logger.h
+  ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h
   ${PROJECT_SOURCES}
 )
 

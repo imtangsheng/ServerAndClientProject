@@ -5,7 +5,7 @@
  */
 #ifndef QTPLUGINDEVICEINTERFACE_H
 #define QTPLUGINDEVICEINTERFACE_H
-#include"share_lib.h"
+#include"shared.h"
 #include "logger.h"
  //#include <QtPlugin>
 QT_BEGIN_NAMESPACE
@@ -46,7 +46,7 @@ public:
         if (gSouth.language == zh_CN) {
             emit gSouth.signal_translator_load(translator, true);
         }
-        connect(&gSouth, &south::ShareLib::signal_language_changed, this, [this](const QString& language) {
+        connect(&gSouth, &south::Shared::signal_language_changed, this, [this](const QString& language) {
             if (language == zh_CN) {
                 emit gSouth.signal_translator_load(translator, true);
             } else {
@@ -78,6 +78,7 @@ public:
     }
 public slots:
     virtual void initUi(const Session& session) = 0;//初始化UI,返回配置信息
+    virtual void SaveConfig(const Session& session) = 0;//保存配置
     // 执行约定的方法
     virtual void execute(const QString& method) = 0; // 执行特定功能
 

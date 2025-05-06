@@ -1,11 +1,7 @@
 
 # 设置可执行文件名称
-#set(PLUGIN_NAME HikvisionCamera)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui LinguistTools)
-
-#add_subdirectory(Do2think)#度申线阵相机开发包
-#add_subdirectory(MVS)#海康相机开发包
 
 # 将源文件组织在变量中
 set(CAMERA_PUBLIC_FILE
@@ -27,10 +23,10 @@ function(plugin_add_ PLUGIN_NAME PLUGIN_SOURCE)
     target_link_libraries(${PLUGIN_NAME} PRIVATE
         Qt${QT_VERSION_MAJOR}::Core
         Qt${QT_VERSION_MAJOR}::Gui
-        South
+        ${SHARE_NAME}
     )
 
-    add_dependencies(${PLUGIN_NAME} South)
+    # add_dependencies(${PLUGIN_NAME} ${SHARE_NAME})
 endfunction()
 #INTERFACE
 set(HiKvision_FILE
@@ -42,7 +38,7 @@ set(DvpLineScan_FILE
     Do3think/dvp_line_scan_camera.h Do3think/dvp_line_scan_camera.cpp
 )
 
-plugin_add_(HikvisionCamera ${CAMERA_PUBLIC_FILE} ${HiKvision_FILE})
+plugin_add_(HiKvisionCamera ${CAMERA_PUBLIC_FILE} ${HiKvision_FILE})
 plugin_add_(DvpLineScanCamera ${CAMERA_PUBLIC_FILE} ${DvpLineScan_FILE})
 
 #自动生成翻译文本
@@ -53,7 +49,7 @@ plugin_add_(DvpLineScanCamera ${CAMERA_PUBLIC_FILE} ${DvpLineScan_FILE})
 #)
 
 
-target_link_libraries(HikvisionCamera PRIVATE
+target_link_libraries(HiKvisionCamera PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/MVS/MvCameraControl.lib"
 )
 target_link_libraries(DvpLineScanCamera PRIVATE
@@ -61,7 +57,7 @@ target_link_libraries(DvpLineScanCamera PRIVATE
 )
 
 #设置编译编译定义是在编译过程中传递给预处理器的符号，可以用来控制代码中的条件编译。
-target_compile_definitions(HikvisionCamera PRIVATE
+target_compile_definitions(HiKvisionCamera PRIVATE
     DEVICE_TYPE_CAMERA_HiKvision
 )
 target_compile_definitions(DvpLineScanCamera PRIVATE

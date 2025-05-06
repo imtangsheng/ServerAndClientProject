@@ -5,7 +5,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIR})# 可执行文件输出�
 # 设置配置文件输出目录
 set(CONFIG_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/config)
 
-#add_subdirectory(plugin/Trolley)
+add_subdirectory(plugin/Trolley)
 #add_subdirectory(plugin/ScannerFaro)
-#add_subdirectory(plugin/CameraDvp)
 add_subdirectory(plugin/Cameras)

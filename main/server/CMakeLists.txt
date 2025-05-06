@@ -54,5 +54,5 @@ target_link_libraries(${APP_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::WebSockets
     Qt${QT_VERSION_MAJOR}::HttpServer
-    South
+    ${SHARE_NAME}
 )

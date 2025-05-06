@@ -5,6 +5,7 @@
 #define QT_FORWARD_DECLARE_CLASS(name) QT_BEGIN_NAMESPACE class name; QT_END_NAMESPACE using QT_PREPEND_NAMESPACE(name);
 #define Q_SLOTS QT_ANNOTATE_ACCESS_SPECIFIER(qt_slot)
 #define Q_SLOTS
+#define emit
 #define slots
 #define Q_OBJECT public: QT_WARNING_PUSH Q_OBJECT_NO_OVERRIDE_WARNING static const QMetaObject staticMetaObject; virtual const QMetaObject *metaObject() const; virtual void *qt_metacast(const char *); virtual int qt_metacall(QMetaObject::Call, int, void **); QT_TR_FUNCTIONS private: Q_OBJECT_NO_ATTRIBUTES_WARNING Q_DECL_HIDDEN_STATIC_METACALL static void qt_static_metacall(QObject *, QMetaObject::Call, int, void **); QT_WARNING_POP QT_DEFINE_TAG_STRUCT(QPrivateSignal); QT_ANNOTATE_CLASS(qt_qobject, "")
 #define Q_OBJECT
@@ -12,3 +13,11 @@
 #define PluginDeviceInterface_iid
 #define Q_INVOKABLE QT_ANNOTATE_FUNCTION(qt_invokable)
 #define Q_INVOKABLE
+#define Q_ENUM_NS(x) Q_ENUMS(x) Q_ENUM_NS_IMPL(x)
+#define Q_NAMESPACE Q_NAMESPACE_EXPORT()
+#define QT_BEGIN_NAMESPACE
+#define QT_BEGIN_NAMESPACE inline namespace QT_NAMESPACE {
+#define QT_BEGIN_NAMESPACE namespace QT_NAMESPACE {
+#define gSouth south::Share::instance()
+#define gSouth south::ShareLib::instance()
+#define DefineFunction(name) funtion##name(const QByteArray& data)

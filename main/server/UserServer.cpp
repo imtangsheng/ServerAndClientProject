@@ -9,7 +9,7 @@ static QPointer<HttpServer> gHttpServer;
 static QPointer<WebSocketServer> gWebSocketServer;
 
 UserServer::UserServer(QObject* parent): QObject(parent) {
-    module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    module_ = south::Shared::GetModuleName(south::ModuleName::user);
     gSouth.RegisterHandler(module_, this);
     //connect(&gSouth, &south::ShareLib::signal_language_changed, this, &UserServer::onLanguageChanged);
     //语言翻译文件加载
@@ -19,7 +19,7 @@ UserServer::UserServer(QObject* parent): QObject(parent) {
     if (gSouth.language == zh_CN) {
         emit gSouth.signal_translator_load(translator, true);
     }
-    connect(&gSouth, &south::ShareLib::signal_language_changed, this, [this](const QString& language) {
+    connect(&gSouth, &south::Shared::signal_language_changed, this, [this](const QString& language) {
         if (language == zh_CN) {
             emit gSouth.signal_translator_load(translator, true);
         } else {
@@ -84,8 +84,8 @@ void UserServer::acquisition_begins(const Session& session) {
     }
     // 定义设备启动顺序 1.相机 2.扫描仪 3.其他
     static const QStringList START_ORDER = { 
-        south::ShareLib::GetModuleName(south::ModuleName::camera),
-        south::ShareLib::GetModuleName(south::ModuleName::scanner)
+        south::Shared::GetModuleName(south::ModuleName::camera),
+        south::Shared::GetModuleName(south::ModuleName::scanner)
     };
     // 按照预定义顺序启动特定设备
     for (const auto& deviceType : START_ORDER) {
@@ -110,9 +110,9 @@ void UserServer::acquisition_end(const Session& session) {
     QStringList devices = gManagerPlugin->m_plugins.keys();
     // 定义设备停止顺序 1.小车 2.扫描仪 3.相机
     static const QStringList STOP_ORDER = {
-        south::ShareLib::GetModuleName(south::ModuleName::trolley),
-        south::ShareLib::GetModuleName(south::ModuleName::scanner),
-        south::ShareLib::GetModuleName(south::ModuleName::camera)
+        south::Shared::GetModuleName(south::ModuleName::trolley),
+        south::Shared::GetModuleName(south::ModuleName::scanner),
+        south::Shared::GetModuleName(south::ModuleName::camera)
     };
     // 按照预定义顺序停止设备
     for (const auto& deviceType : STOP_ORDER) {

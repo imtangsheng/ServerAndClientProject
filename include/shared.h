@@ -3,17 +3,17 @@
  * @brief 共享库的声明文件->cn
  * @date 2025-02
  */
-#ifndef SHARE_LIB_H_
-#define SHARE_LIB_H_
+#ifndef _SHARED_H_
+#define _SHARED_H_
 #include <QPromise>
 #include <QFuture>
 #include <QSettings>
 #include <QTranslator>
 #include "global.h"
 //定义快捷方式
-#define gSouth south::ShareLib::instance()
-#define gSigSent south::ShareLib::instance().sigSent
-#define gSettings south::ShareLib::GetConfigSettings()
+#define gSouth south::Shared::instance()
+#define gSigSent south::Shared::instance().sigSent
+#define gSettings south::Shared::GetConfigSettings()
 
 //定义模块名称 对非的插件类适用
 constexpr auto sModuleScanner = "scanner";
@@ -39,12 +39,12 @@ namespace south {
     };
     Q_ENUM_NS(ModuleName)
 
-class SHAREDLIB_EXPORT ShareLib : public QObject
+class SHAREDLIB_EXPORT Shared : public QObject
 {
     Q_OBJECT
 public:
-    static ShareLib& instance() {//使用引用,返回其静态变量,不进行拷贝数据
-        static ShareLib instance;
+    static Shared& instance() {//使用引用,返回其静态变量,不进行拷贝数据
+        static Shared instance;
         return instance;
     }
     //适用模块使用
@@ -243,18 +243,18 @@ public slots:
     void on_send(const Result& result, const Session& session);
 protected:
     // 保护构造函数,只能继承使用
-    explicit ShareLib(QObject* parent = nullptr) : QObject(parent) {
+    explicit Shared(QObject* parent = nullptr) : QObject(parent) {
         qDebug() << tr("Share::Share() - Current thread:") << QThread::currentThread();
         // 取消线程:确保对象移动到目标线程,构造函数本身的代码仍在原始线程（如主线程）中执行，只有对象的信号槽和事件处理会迁移到目标线程。线程亲和性(thread affinity)有严格限制
     }
 private:
     QMap<QString, QObject*> handlers;//需要手动管理
-    ~ShareLib() {
+    ~Shared() {
         qDebug() << "Share::~Share() 析构函数 - Current thread:" << QThread::currentThread();
         handlers.clear();
     }
-    ShareLib(const ShareLib&) = delete;
-    ShareLib& operator=(const ShareLib&) = delete;
+    Shared(const Shared&) = delete;
+    Shared& operator=(const Shared&) = delete;
 signals:
     void sigSent(const QString& message, QObject* client = nullptr);//多线程的网络发送,需要使用信号连接到统一的线程中发送信息
     void sigSentBinary(const QByteArray& message, QObject* client = nullptr);//发送二进制数据

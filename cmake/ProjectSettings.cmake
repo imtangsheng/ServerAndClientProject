@@ -60,6 +60,3 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 add_subdirectory(libs/share)
 add_subdirectory(main/server)
 add_subdirectory(main/client)
-
-#用于指定目标之间的构建依赖关系。它确保 dependee（被依赖的目标，South）在 target（Server）构建之前完成编译。
-add_dependencies(server South)

@@ -39,3 +39,4 @@ CMakeLists.txt.user
 *.out
 *.app
 
+/project/CameraClient/build

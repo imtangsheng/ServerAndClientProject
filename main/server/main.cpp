@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 		language = QLocale(locale).name();
 	}
     gSouth.language = language;
-	QObject::connect(&gSouth, &south::ShareLib::signal_translator_load, &app, [&app](QTranslator& translator,bool isLoad) {
+	QObject::connect(&gSouth, &south::Shared::signal_translator_load, &app, [&app](QTranslator& translator,bool isLoad) {
 		if (isLoad) {
 			app.installTranslator(&translator);
 		} else {

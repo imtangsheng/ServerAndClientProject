@@ -1,7 +1,7 @@
 using namespace south;
 #include <QLockFile>
 
-Result ShareLib::FindFilePath(const QString& fileName, QString& validConfigPath) {
+Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {
     // 创建搜索路径列表
     QStringList searchPaths;
     // 应用程序所在目录
@@ -28,7 +28,7 @@ Result ShareLib::FindFilePath(const QString& fileName, QString& validConfigPath)
     return true;
 }
 
-Result ShareLib::ReadJsonFile(const QString& filePath, QJsonObject& json) {
+Result Shared::ReadJsonFile(const QString& filePath, QJsonObject& json) {
     QFile configFile(filePath);
     // 尝试打开文件
     if (!configFile.open(QIODevice::ReadOnly)) {
@@ -51,7 +51,7 @@ Result ShareLib::ReadJsonFile(const QString& filePath, QJsonObject& json) {
     return true;
 }
 
-Result ShareLib::WriteJsonFile(const QString& filePath, const QJsonObject& json) {
+Result Shared::WriteJsonFile(const QString& filePath, const QJsonObject& json) {
     QString fullPath = appDirPath + "/" + filePath;
     // 检查并创建目录
     QFileInfo fileInfo(fullPath);
@@ -91,7 +91,7 @@ Result ShareLib::WriteJsonFile(const QString& filePath, const QJsonObject& json)
 }
 
 
-void ShareLib::on_send(const Result& result, const Session& session) {
+void Shared::on_send(const Result& result, const Session& session) {
     if (result) {
         emit sigSent(session.ResponseString(result.code, result.message), session.socket);
     } else {
