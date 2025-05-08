@@ -1,22 +1,22 @@
 
 # 设置可执行文件名称
-set(PLUGIN_NAME Trolley)
+set(PLUGIN_NAME Serial)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core SerialPort)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core SerialPort)
 
 # 将源文件组织在变量中
-set(Trolley_SOURCES
+set(Serial_SOURCES
     "${INCLUDE_DIR}interface/iSerialPort.h"
-    trolley_control.h trolley_control.cpp
+    ActiveSerial.h ActiveSerial.cpp
     "${INCLUDE_DIR}interface/iPluginDevice.h"
-    TrolleyPlugin.h TrolleyPlugin.cpp
-    TrolleyPlugin.json "readme.md"
+    SerialPlugin.h SerialPlugin.cpp
+    SerialPlugin.json "readme.md"
 )
 
 #INTERFACE
 add_library(${PLUGIN_NAME} SHARED 
-    ${Trolley_SOURCES}
+    ${Serial_SOURCES}
     "${PLUGIN_NAME}.qrc"
 )
 
@@ -40,5 +40,6 @@ add_dependencies(${PLUGIN_NAME} ${SHARE_NAME})
 
 #设置编译编译定义是在编译过程中传递给预处理器的符号，可以用来控制代码中的条件编译。
 target_compile_definitions(${PLUGIN_NAME} PRIVATE
-    DEVICE_TYPE_TROLLEY
+    DEVICE_TYPE_CAR #小车中控箱设备控制的串口控制板
+    DEVICE_TYPE_CLOVER #三叶草相机设备类型的控制串口
 )

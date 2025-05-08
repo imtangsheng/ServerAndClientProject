@@ -1,0 +1,6 @@
+{
+  "Keys": [ "SerialPort" ],
+  "Version": "1.0.0",
+  "Name": "SerialPort SDK Plugin",
+  "Description": "Plugin for SerialPort"
+}

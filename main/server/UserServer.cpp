@@ -58,7 +58,7 @@ void UserServer::onDeviceStateChanged(Session session) {
     for (auto& plugin : gManagerPlugin->m_plugins) {
         session.module = plugin.interface->_module();
         session.params = QJsonArray{ {plugin.interface->state_,"state"} };
-        emit gSigSent(session.getRequest(), session.socket);
+        emit gSigSent(session.GetRequest(), session.socket);
     }
 }
 
@@ -110,7 +110,7 @@ void UserServer::acquisition_end(const Session& session) {
     QStringList devices = gManagerPlugin->m_plugins.keys();
     // 定义设备停止顺序 1.小车 2.扫描仪 3.相机
     static const QStringList STOP_ORDER = {
-        south::Shared::GetModuleName(south::ModuleName::trolley),
+        south::Shared::GetModuleName(south::ModuleName::serial),
         south::Shared::GetModuleName(south::ModuleName::scanner),
         south::Shared::GetModuleName(south::ModuleName::camera)
     };

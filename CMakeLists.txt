@@ -29,7 +29,7 @@ add_subdirectory(example)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     # 这里添加 Debug 模式下的特定代码
-    add_dependencies(server Trolley)
+    #add_dependencies(server )
 else()
     
     # 这里添加 Release 或其他模式下的代码

@@ -19,7 +19,7 @@
 constexpr auto sModuleScanner = "scanner";
 constexpr auto sModuleCamera = "camera";
 constexpr auto sModuleManager = "manager";
-constexpr auto sModuleTrolley = "trolley";
+constexpr auto sModuleSerial = "serial";
 constexpr auto sModuleOther = "other";
 constexpr auto sModuleUser = "user";
 
@@ -30,7 +30,7 @@ static const QString en_US = "en_US";
 namespace south {
     Q_NAMESPACE
         enum ModuleName {
-        trolley,
+        serial,
         scanner,
         camera,
         manager,
@@ -38,7 +38,7 @@ namespace south {
         user
     };
     Q_ENUM_NS(ModuleName)
-
+//Share名称被msvc使用,故使用Shared
 class SHAREDLIB_EXPORT Shared : public QObject
 {
     Q_OBJECT
@@ -94,6 +94,8 @@ public:
         handlers[module] = handler;//静态变量的生命周期与程序相同，无法在 Controller 销毁时释放资源
         //handler->setParent(this);//QObject::setParent: Cannot set parent, new parent is in a different thread
     }
+
+#pragma region InvokeMethod
     /**
 		* @brief 使用宏定义自动生成映射
 		* @param message 消息内容
@@ -229,6 +231,7 @@ public:
         // 5. 立即返回future对象
         return future;
     }
+#pragma endregion
 
     static QSharedPointer<QSettings>& GetConfigSettings() {
         static QSharedPointer<QSettings> settings;

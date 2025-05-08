@@ -1,18 +1,18 @@
 /*!
- * @file TrolleyPlugin.h
+ * @file SerialPlugin.h
  * @brief 插件的声明文件,未使用 #pragma once 防止重复包含
  * @date 2025-02
  */
 #include "iPluginDevice.h"
 
-class TrolleyPlugin : public IPluginDevice
+class SerialPlugin : public IPluginDevice
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID PluginDeviceInterface_iid FILE "TrolleyPlugin.json") //QPluginLoader 类来加载插件并读取元数据
+    Q_PLUGIN_METADATA(IID PluginDeviceInterface_iid FILE "SerialPlugin.json") //QPluginLoader 类来加载插件并读取元数据
     Q_INTERFACES(IPluginDevice)
 public:
-	TrolleyPlugin();
-	~TrolleyPlugin() override;
+	SerialPlugin();
+	~SerialPlugin() override;
     // 基本数据定义
     QString _module() const override;    // 设备名称
     // 基本操作接口
@@ -21,9 +21,10 @@ public:
     QString name() const override;    // 设备名称
     QString version() const override; // 版本
 
+#ifdef DEVICE_TYPE_CAR
     //#属性设置接口
     Q_INVOKABLE void SetSpeedMultiplier(const Session& session); // 设置小车速度乘数
-
+#endif // DEVICE_TYPE_CAR
 public slots:
     void initUi(const Session& session) final;//初始化UI,返回配置信息
     void SaveConfig(const Session& session) final;
@@ -41,7 +42,9 @@ public slots:
     void open(const Session& session);
     void start(const Session& session);
     void stop(const Session& session);
-
+    
+    void GetTrolleyInfo(const Session& session);//根据指令获取信息
+    void SetTrolleyCode(const Session& session);//设置小车参数
     //#界面操作接口
     void onConfigChanged() const;
     void SetParams(const Session& session);

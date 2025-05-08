@@ -123,9 +123,11 @@ enum FileType;
 ```
 ### 7.2 枚举值
     使用 Pascal 命名法
+    全大写，单词间用下划线连接
     示例：
 ```cpp
 enum Color {
+    COLOR_RED,
     Red,
     Blue,
     Green
