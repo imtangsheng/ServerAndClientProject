@@ -1,10 +1,42 @@
 #include "HttpServer.h"
 #include <QTcpServer>
+#include <QCoreApplication>
+#include <QProcess>
+#include <QTimer>
+class HttpSession
+{
+public:
+    static qint64 GetTimestamp() {
+        return QDateTime::currentDateTime().toMSecsSinceEpoch();
+    }
+    static QJsonObject Response(quint8 status=0, QJsonValue data="") {
+        return QJsonObject{
+            {"status", status},
+            {"data", data},
+            {"timestamp", GetTimestamp()}
+        };
+    }
+};
 
 /*!
 * Qt 支持 GET、POST 还是其他 HTTP 方法，body() 都可以调用，且不会抛出异常
+* 独立的自由函数 1)全局静态,2)无参数 都可以
+* 绑定到成员函数 Lambda方式
+QJsonObject(*)(const QHttpServerRequest&)）此处为函数指针 void (*funcPtr)() = myFunction;  // 合法，隐式转换
+void (*funcPtr)() = &myFunction; // 合法，显式取地址
 */
-// 1. 独立的自由函数 1)全局静态,2)无参数 都可以
+static QJsonObject RestartApp() {
+    //使用系统特定的重启方法（跨平台）
+    // 延迟重启,否则会立马重启
+    QTimer::singleShot(100, []() {
+        QStringList args = QCoreApplication::arguments();
+        QString program = args.takeFirst();
+        QProcess::startDetached(program, args);
+        QCoreApplication::exit();
+        });
+
+    return HttpSession::Response(0, "restart app");
+}
 QJsonObject GlobalHandler(const QHttpServerRequest& request) {
     qDebug() << "body:" << request.body();
     return QJsonObject{ {"type", "global function"} };
@@ -23,15 +55,8 @@ bool HttpServer::StartServer(int port) {
         resp.setHeaders(std::move(h));
     });
     qDebug() << "HTTP server starting on port" << port;
-    //处理GET请求
-    server.route("/hello", [this]() {
-        // Handle GET request to /api
-        qDebug() << "Received GET request to /api";
-        QJsonObject response;
-        response["message"] = "Hello from the HTTP server!";
-        return response;
-        }
-    );
+    /*处理GET请求*/
+    server.route("/restart", QHttpServerRequest::Method::Get, RestartApp);
     server.route("/search", QHttpServerRequest::Method::Get, [](const QHttpServerRequest& request) {
         QUrlQuery query(request.url().query());
         QString keyword = query.queryItemValue("keyword");
@@ -67,17 +92,6 @@ bool HttpServer::StartServer(int port) {
         }
     );
 
-    
-    /*
-    QJsonObject(*)(const QHttpServerRequest&)）此处为函数指针 void (*funcPtr)() = myFunction;  // 合法，隐式转换
-    void (*funcPtr)() = &myFunction; // 合法，显式取地址
-    */
-    // 1. 绑定全局函数 
-    server.route("/global", QHttpServerRequest::Method::Get,GlobalHandler);//不加&也可以使用
-    // 2. 绑定静态成员函数
-    server.route("/static", QHttpServerRequest::Method::Get,&HttpServer::staticHandler);
-
-    // 3. 直接绑定到成员函数 Lambda方式
     server.route("/get", QHttpServerRequest::Method::Get,
         [this](const QHttpServerRequest &request) {
             return handle_request(request);

@@ -14,6 +14,7 @@ set(NETWORK_SOURCES
 set(CONTROLLER_SOURCES
     manager/ManagerPlugin.h manager/ManagerPlugin.cpp
     UserServer.h UserServer.cpp
+    #stdafx.h
 )
 # 设置翻译文件
 set(TS_FILES_
@@ -25,15 +26,15 @@ source_group("control" FILES ${CONTROLLER_SOURCES})
 
 # 创建可执行文件
 add_executable(${APP_NAME}
-    stdafx.h main.cpp "resource.qrc"
+    main.cpp "${APP_NAME}.qrc"
     ${NETWORK_SOURCES}
     ${CONTROLLER_SOURCES}
     ${TS_FILES_}
 )
 # 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。
-target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
+#target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
 # 添加文本翻译文件
-qt_add_resources(${APP_NAME} resources.qrc)
+qt_add_resources(${APP_NAME} ${APP_NAME}.qrc)
 #自动生成翻译文本
 if(0)
 qt_add_lupdate(${APP_NAME}

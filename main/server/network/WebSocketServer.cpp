@@ -34,8 +34,8 @@ WebSocketServer::~WebSocketServer()
 void WebSocketServer::initialize()
 {
 	// 通过信号槽在不同线程之间传递消息 使用const不可以使用this的对象,因为父子对象的不是const的
-    connect(&gSouth, &south::ShareLib::sigSent, this, &WebSocketServer::handleMessageSent);
-	connect(&gSouth, &south::ShareLib::sigSentBinary, this, &WebSocketServer::handleBinarySent);
+    connect(&gSouth, &south::Shared::sigSent, this, &WebSocketServer::handleMessageSent);
+	connect(&gSouth, &south::Shared::sigSentBinary, this, &WebSocketServer::handleBinarySent);
 	connect(&gLog, &Logger::new_message, this, &WebSocketServer::handleLogMessageSent);
 }
 
@@ -171,7 +171,7 @@ void WebSocketServer::handle_text_message(const QString& message)
 		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("Invalid JOSN Data:%1").arg(message.size())));
 	}
 	//Result result = gController.invoke(jsonDoc.object(), pClient);
-	Result result = south::ShareLib::instance().invoke(jsonDoc.object(), sender());
+	Result result = south::Shared::instance().invoke(jsonDoc.object(), sender());
     if (!result) {
 		qWarning() << "消息处理失败:" << QThread::currentThread() << "[message]" << message;
 		pClient->sendTextMessage(result.message);
