@@ -43,8 +43,8 @@ public slots:
     void start(const Session& session);
     void stop(const Session& session);
     
-    void GetTrolleyInfo(const Session& session);//根据指令获取信息
-    void SetTrolleyCode(const Session& session);//设置小车参数
+    void GetInfoByCode(const Session& session);//根据指令获取信息
+    void SetParamsByCode(const Session& session);//设置小车参数
     //#界面操作接口
     void onConfigChanged() const;
     void SetParams(const Session& session);

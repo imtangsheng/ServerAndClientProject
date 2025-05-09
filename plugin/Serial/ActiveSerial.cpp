@@ -14,9 +14,9 @@ Result ActiveSerial::SetConfig(const QJsonObject& config) {
 Result ActiveSerial::start() {
     Result result(false);
     //先启动相机,再启动小车
-#ifdef DEVICE_TYPE_CLOVER
+#ifdef DEVICE_TYPE_CAMERA
     result = WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x01)));
-#endif // DEVICE_TYPE_CLOVER
+#endif // DEVICE_TYPE_CAMERA
 #ifdef DEVICE_TYPE_CAR
     result = WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01))); //00：启动小车 01：启动并清除里程
 #endif // DEVICE_TYPE_CAR
@@ -30,9 +30,9 @@ Result ActiveSerial::stop() {
 #ifdef DEVICE_TYPE_CAR
     result = WriteData(CAR_STOP, QByteArray(1, static_cast<char>(0x01))); //00：停止小车 01：停止并清除里程
 #endif // DEVICE_TYPE_CAR
-#ifdef DEVICE_TYPE_CLOVER
+#ifdef DEVICE_TYPE_CAMERA
     result = WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x00)));
-#endif // DEVICE_TYPE_CLOVER
+#endif // DEVICE_TYPE_CAMERA
     return result;
 }
 
@@ -61,7 +61,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     case CAR_SET_SPEED:
     case CAR_RESET_TOTAL_MILEAGE:
 #endif // DEVICE_TYPE_CAR
-#ifdef DEVICE_TYPE_CLOVER
+#ifdef DEVICE_TYPE_CAMERA
     case CAMERA_START_STOP:
     case CAMERA_SET_ENABLE_MODE:
     case CAMERA_LED_CONTROL:
@@ -70,7 +70,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     case CAMERA_MOTOR_START_STOP_CONTROL://00：正常 01：已经在旋转 02：超时
     case CAMERA_SET_MOTOR_POSITION:
     case CAMERA_SET_TRIGGER_POSITION:
-#endif // DEVICE_TYPE_CLOVER
+#endif // DEVICE_TYPE_CAMERA
         stream >> u8result;
         result = u8result;
         break;
@@ -230,7 +230,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         }
     }return true;
 #endif // DEVICE_TYPE_CAR
-#ifdef DEVICE_TYPE_CLOVER
+#ifdef DEVICE_TYPE_CAMERA
     case CAMERA_GET_MSG:
     {
         stream >> clover_info_.enable >> clover_info_.mode;
@@ -287,17 +287,17 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         obj.insert("position", trigger.position);
         PushCilents(SUBSCRIBE_METHOD(CloverTrigger), obj);
     }return true;
-#endif // DEVICE_TYPE_CLOVER
+#endif // DEVICE_TYPE_CAMERA
     //功能码,获取设备类型
     case CODE_TEST:
     {
         quint8 type;
         stream >> type;
         result = type;//由界面设置设备类型
-        if ((g_serial_device_type & type) == 0) {
+        if ((kSupportedSerialDevices & type) == 0) {
             LOG_ERROR(tr("The device type that is currently set is inconsistent with the device type that is currently supported!"));
         }
-        g_serial_device_type = type;
+        //kSupportedSerialDevices = type;
         gSouth.RegisterSettings->setValue("type", type);//注册表类型设置
     }break;
     default:

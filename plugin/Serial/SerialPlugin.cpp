@@ -131,13 +131,13 @@ void SerialPlugin::stop(const Session& session) {
     g_serial_session.addSession(CAR_STOP, session);
 }
 
-void SerialPlugin::GetTrolleyInfo(const Session& session) {
+void SerialPlugin::GetInfoByCode(const Session& session) {
     FunctionCodeType code = static_cast<FunctionCodeType>(session.params.toInt());
     gSerial->WriteData(code);
     g_serial_session.addSession(code, session);
 }
 
-void SerialPlugin::SetTrolleyCode(const Session& session) {
+void SerialPlugin::SetParamsByCode(const Session& session) {
     QJsonObject obj = session.params.toObject();
     if (obj.contains("code")) {
         FunctionCodeType code = static_cast<FunctionCodeType>(obj["code"].toInt());

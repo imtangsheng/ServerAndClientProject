@@ -66,20 +66,10 @@ public:
     */
     static QString DeviceName() {
         //static QMetaEnum metaEnum = QMetaEnum::fromType<SerialDeviceType>();
-        //return metaEnum.valueToKey(g_serial_device_type);
-        return QVariant::fromValue(SerialDeviceType(g_serial_device_type)).toString();
+        //return metaEnum.valueToKey(kSupportedSerialDevices);
+        return QVariant::fromValue(kSupportedSerialDevices).toString();
     }
-//    constexpr const char* DeviceNames() {
-//#if defined(DEVICE_TYPE_CAR) && defined(DEVICE_TYPE_CLOVER)
-//        return "Serial_All";
-//#elif defined(DEVICE_TYPE_CAR)
-//        return "Serial_Car";
-//#elif defined(DEVICE_TYPE_CLOVER)
-//        return "Serial_Clover";
-//#else
-//        return "Serial";
-//#endif
-//    }
+
 
     // 定义共享的任务的接口方法
     Result start(); //开始采集
