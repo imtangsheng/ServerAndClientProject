@@ -28,8 +28,8 @@ Result WaitDialog::init()
     }
     // connect(pCilent,&QWebSocket::textMessageReceived,this,&WaitDialog::message_received);
     // gFilter.append(std::bind(&WaitDialog::HandleFilte, this, std::placeholders::_1));
-    pCilent->sendTextMessage(session->getRequest());
-    qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<<" Dialog Send:"<<session->getRequest();
+    pCilent->sendTextMessage(session->GetRequest());
+    qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<<" Dialog Send:"<<session->GetRequest();
     QTimer::singleShot(100, &loop, &QEventLoop::quit);
     loop.exec();
     if(hasRuselt) return hasRuselt;

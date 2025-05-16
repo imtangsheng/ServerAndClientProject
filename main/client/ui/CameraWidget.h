@@ -21,9 +21,9 @@ public:
     void initialize() final;
     QString _module() const final;
 
-    QJsonObject parameter; //统一的相机配置参数界面json对象
-    QJsonObject task; //执行任务的时候的参数
-    QJsonObject general;//通用配置参数
+    // QJsonObject parameter; //统一的相机配置参数界面json对象
+    // QJsonObject task; //执行任务的时候的参数
+    // QJsonObject general;//通用配置参数
     void ShowMessage(const QString& msg);
 
     void handle_binary_message(const QByteArray &bytes);
@@ -70,6 +70,8 @@ private slots:
     void on_pushButton_image_format_set_clicked();
 
     void on_toolButton_image_clicked();
+
+    void on_pushButton_serial_names_set_clicked();
 
 private:
 

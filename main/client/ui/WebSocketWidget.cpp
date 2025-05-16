@@ -1,6 +1,6 @@
 #include "WebSocketWidget.h"
 #include <QMessageBox>
-#include "MainController.h"
+#include "MainControl.h"
 
 WebSocketWidget::WebSocketWidget(QWebSocket* socket,QWidget *parent)
     : QWidget(parent)
@@ -100,7 +100,7 @@ void WebSocketWidget::onConnected()
 {
     ui->textBrowser_MessageReceived->append("连接成功");
     ui->pushButton_onConnected->setText("断开");
-    QString module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    QString module_ = south::Shared::GetModuleName(south::ModuleName::user);
     m_socket->sendTextMessage(Session::RequestString(1,module_,"login",gSouth.sessiontype_));
 	m_reconnectTimer.stop();
 }

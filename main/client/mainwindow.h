@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    QString module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    QString module_ = south::Shared::GetModuleName(south::ModuleName::user);
     // gSouth.RegisterHandler(module_,&window);
     Ui::MainWindow *ui;
     explicit MainWindow(QWidget *parent = nullptr);
@@ -44,7 +44,7 @@ protected slots:
     void onStateChanged(QAbstractSocket::SocketState state);
     // 网络连接状态:显示信息 是否在Connecting中 已连接Connected
     void onNetworkStateShow(const QString& msg,const bool& isConnecting = false,const bool& isConnected = false);
-    void show_message(const QString& message, LogLevel level);
+    void show_message(const QString& message, LogLevel level=LogLevel::Debug);
 private slots:
 
     void on_pushButton_language_switch_clicked();

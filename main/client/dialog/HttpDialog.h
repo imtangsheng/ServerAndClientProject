@@ -47,7 +47,7 @@ public:
         // 使用智能指针管理回调生命周期
         // auto successPtr = std::make_shared<std::function<void(QByteArray)>>(onSuccess);
         // auto errorPtr = std::make_shared<std::function<void(QString)>>(onError);
-        connect(currentReply, &QNetworkReply::finished, this, [=]() {
+        connect(currentReply, &QNetworkReply::finished, this, [this, onSuccess, onError]() {
             hasResult = true;
             if(currentReply->error() == QNetworkReply::NoError) {
                 onSuccess(currentReply->readAll());

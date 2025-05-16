@@ -22,6 +22,12 @@ public:
     double state_{0};//记录当前设备状态值
     QString stateString;//监控显示信息
     QJsonObject config_;//设备参数 json格式
+    QJsonObject parameter; //统一的相机配置参数界面json对象
+    QJsonObject task; //执行任务的时候的参数
+    QJsonObject general;//通用配置参数
+    // QJsonObject GetGeneral(){
+    //     return config_.value("general").toObject();//返回的是临时对象
+    // }
 
     virtual void initialize();
     bool isInitUi{false};
@@ -29,6 +35,7 @@ public:
     Q_INVOKABLE void setDeviceState(bool offline=true);//设备登录状态显示
 public slots:
     virtual void initUi(const Session& session) = 0;
+    virtual void onConfigChanged(QJsonObject config) = 0;
     virtual void onDeviceStateChanged(double state,QString message){
         qDebug() <<"[#IWidget]"<<deviceType <<"state:" <<state << message;
         setDeviceState(false);

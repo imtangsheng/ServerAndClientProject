@@ -117,7 +117,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lastDarkMode = IsSystemDarkMode() ? TRUE : FALSE;
     SetDarkMode(hwnd,lastDarkMode);
 
-    module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    module_ = south::Shared::GetModuleName(south::ModuleName::user);
     gSouth.RegisterHandler(module_,this);
     /*界面控件显示 加载模块*/
     gTrolley = new TrolleyWidget(this);
@@ -137,7 +137,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /*全局变量 信号连接*/
     //显示消息,和显示日志信息
-    connect(&gSouth,&south::ShareLib::signal_set_window_title,this,&MainWindow::setWindowTitle);
+    connect(&gSouth,&south::Shared::signal_set_window_title,this,&MainWindow::setWindowTitle);
     // 显式指定 要连接的版本 兼容重载槽函数
     connect(&gLog,static_cast<void (Logger::*)(const QString&, LogLevel)>(&Logger::new_message)
             ,this,static_cast<void (MainWindow::*)(const QString&, LogLevel)>(&MainWindow::show_message));

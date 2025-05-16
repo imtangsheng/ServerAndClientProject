@@ -6,8 +6,12 @@
 #define gController MainController::instance()
 
 //不可拷贝复制,也不可以先于qApp先初始化
-#define gClient MainController::instance().webSocketClient
+#define gClient GetWebSocketClient()
 inline QSharedPointer<QWebSocket> gSocket{nullptr};
+inline QWebSocket& GetWebSocketClient(){
+    static QWebSocket socketClient;
+    return socketClient;
+}
 
 class MainController
 {
@@ -17,7 +21,6 @@ public:
 		return instance;
 	}
     void initialize();
-    QWebSocket webSocketClient;//QWebSocket 依赖于 Qt 事件循环和其他 Qt 基础设施，这些在 QApplication/QCoreApplication 初始化之前是不可用的
 // public slots:
     Result handleSession(Session &session,quint8 sTimeout = 30);
 private:

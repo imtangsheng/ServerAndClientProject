@@ -48,7 +48,7 @@ void CameraWidget::initialize()
 
 QString CameraWidget::_module() const
 {
-    static QString module = south::ShareLib::GetModuleName(south::ModuleName::camera);
+    static QString module = south::Shared::GetModuleName(south::ModuleName::camera);
     return module;
 }
 
@@ -196,7 +196,8 @@ void CameraWidget::on_pushButton_scan_clicked()
         return;
     }
     qDebug() << session.result;
-    QString names = session.result.toString();
+    QJsonObject obj = session.result.toObject();
+    QString names = obj.value("camera_id_list").toString();
     qDebug() << "Result Camera::scan()"<<names;
     QStringList cameralist = names.split(",");
     qDebug() << cameralist;
@@ -205,6 +206,13 @@ void CameraWidget::on_pushButton_scan_clicked()
         ui->comboBox_device_list->clear();
     }
     ui->comboBox_device_list->addItems(cameralist);
+
+    //MS301 的有雷达串口
+    QString serialPortNames = obj.value("serial_id_list").toString();
+    QStringList serialPortNameList = serialPortNames.split(",");
+    qDebug() << "serialPortNameList "<<serialPortNameList ;
+    ui->comboBox_serial_names->addItems(serialPortNameList);
+
 }
 
 void CameraWidget::on_pushButton_task_key_reset_clicked()
@@ -313,7 +321,7 @@ void CameraWidget::on_pushButton_param_server_save_clicked()
     config_["task"] = task;
     config_["params"] = parameter;
     config_["general"] = general;
-    Session session({ {"id", 11}, {"module", _module()}, {"method", "SaveCamerasParams"}, {"params", config_} });
+    Session session({ {"id", 11}, {"module", _module()}, {"method", "SaveConfig"}, {"params", config_} });
     gController.handleSession(session);
 
 }
@@ -372,5 +380,19 @@ void CameraWidget::on_pushButton_image_format_set_clicked()
 void CameraWidget::on_toolButton_image_clicked()
 {
     qDebug() <<"CameraWidget::on_toolButton_image_clicked()";
+}
+
+
+void CameraWidget::on_pushButton_serial_names_set_clicked()
+{
+    QString serialName = ui->comboBox_serial_names->currentText();
+    if(serialName.isEmpty()){
+        qWarning() << "ui->comboBox_serial_names->currentText(); is Enpty";
+        return;
+    }
+    QJsonObject obj;
+    obj[CAMERA_KEY_PORTNAME] = serialName;
+    Session session({ {"id", 11}, {"module", sModuleUser}, {"method", "SetRegisterSettings"}, {"params", obj} });
+    gController.handleSession(session);
 }
 

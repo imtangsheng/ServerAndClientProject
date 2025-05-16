@@ -164,7 +164,7 @@ public:
         // 方法2：直接使用 QVariant
         //return QVariant(name).value<ModuleName>();
     }
-
+    int sessiontype_{ 0 };//注册会话通话的类型,用于验证设备通信是否连接正确
     QString version{ "v1.0.0" };
     QString language;//记录当前显示语言
 

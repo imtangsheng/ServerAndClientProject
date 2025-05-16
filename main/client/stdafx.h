@@ -1,3 +1,3 @@
 #pragma once
-#include "MainController.h"
+#include "MainControl.h"
 #include "dialog/WaitDialog.h"

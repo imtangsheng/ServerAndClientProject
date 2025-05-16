@@ -9,11 +9,11 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 # 按类别组织源文件
 set(CORE_FILES
-    MainController.h MainController.cpp
+    MainControl.h MainControl.cpp
 )
 #Custom drawing自定义的绘制控件
 set(CustomUI_FILES
-    ui/ImageViewer.h ui/ImageViewer.cpp ui/ImageViewer.ui
+    #ui/ImageViewer.h ui/ImageViewer.cpp ui/ImageViewer.ui
     ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.h ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.cpp
     ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.h ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.cpp
 
@@ -58,7 +58,7 @@ target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
 # CMakeLists.txt 中添加
 qt_add_resources(${APP_NAME} "resources.qrc")
 #自动生成翻译文本
-if(10)
+if(0)
 qt_add_lupdate(${APP_NAME}
     TS_FILES ${TS_FILES_}
     OPTIONS
@@ -75,7 +75,7 @@ endif()
 
 # 链接 Qt 库
 target_link_libraries(${APP_NAME} PRIVATE
-    South
+    ${SHARE_NAME}
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::WebSockets
