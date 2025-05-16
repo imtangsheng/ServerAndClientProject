@@ -7,11 +7,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 # 使用file命令自动查找所有源文件
 file(GLOB_RECURSE PROJECT_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/*.h
 )
 
+#需要包含头文件 继承QObject的类
 add_library(${SHARE_NAME} SHARED
-  ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h
+  stdafx.h
+  ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h ${INCLUDE_DIR}WorkHandler.h
   ${PROJECT_SOURCES}
 )
 

@@ -184,6 +184,7 @@ void Logger::check_log_file_date()
 		}
 
 		logFile = new QFile(newLogFileName);
+		//使用 QIODevice::Unbuffered 标志打开文件，禁用 Qt 的内部缓冲，直接写入磁盘。
 		if (!logFile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
 			qWarning() << "Cannot open log file:" << newLogFileName;
 			delete logFile;

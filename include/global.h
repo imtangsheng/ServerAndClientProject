@@ -9,9 +9,11 @@
 #include <QtCore/qglobal.h>
 #include <QObject>
 #include <QJsonArray>
+#include <QJsonValue>
 #include <QJsonObject>
 #include <QJsonDocument>
 
+//公有类QObject需要声明,否则需要显示包含
 #if defined(SHAREDLIB_API)
 #define SHAREDLIB_EXPORT Q_DECL_EXPORT
 #else
@@ -33,6 +35,7 @@ inline static QString JsonToString(const QJsonObject& jsonObject) {
     return QString::fromUtf8(jsonDoc.toJson());
 }
 
+
 /**定义一个结构体来包含更详细的结果信息**/
 struct Result
 {
@@ -51,6 +54,9 @@ struct Result
 //Q_DECLARE_METATYPE(Result)
 // 注册 结构体为元类型 运行时环境初始化时调用  main 函数或者构造函数中
 //qRegisterMetaType<Result>("Result");
+
+// 定义回调函数类型（支持异步回调函数lambda）
+using CallbackResult = std::function<void(Result)>;
 
 /**定义一个原子类的结构体**/
 #include <QAtomicInteger>
@@ -101,7 +107,7 @@ struct AtomicPtr
 // 用于ws通信协议参考JSON-RPC 2.0 协议
 // 请求模型
 struct Session {
-    int id{ 0 };///< @brief 请求ID 可选
+    qint64 id{ 0 };///< @brief 请求ID 可选
     int code{ 0 };///< @brief 执行的错误码,非0为执行异常 可选
     QPointer<QObject> socket;///< @brief 请求的socket 可选
     QString module{ "" }; ///< @brief 可选
@@ -119,7 +125,7 @@ struct Session {
     operator bool() const { return code == 0; }
     // 从 JSON 字符串解析为 Request
     Session(QJsonObject json) {
-        if (json.contains("id")) id = json["id"].toInt(0);
+        if (json.contains("id")) id = json["id"].toInteger(0);
         if (json.contains("code")) code = json["code"].toInt(-1);
         if (json.contains("module")) module = json["module"].toString("");
         if (json.contains("method")) method = json["method"].toString("");
@@ -129,7 +135,10 @@ struct Session {
         if (json.contains("context")) context = json["context"].toVariant();
     }
     // 请求的Request发送
-    static QString RequestString(int id, const QString& module, const QString& method, const QJsonValue& params) {
+    static QString RequestString(const QString& module, const QString& method, const QJsonValue& params) {
+        return JsonToString({ {"id", NextId()}, {"module", module}, {"method", method}, {"params", params} });
+    }
+    static QString RequestString(qint64 id, const QString& module, const QString& method, const QJsonValue& params) {
         return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
     }
     QString ErrorString(int errorCode, const QString& message) const {
@@ -138,8 +147,16 @@ struct Session {
     QString ResponseString(const QJsonValue& ExecutionResult,const QString& ExecutionMessage = QString()) const {
         return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
     }
-    QString getRequest() const {
+    QString GetRequest() const {
         return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params}, {"message", message} });
+    }
+    static qint64 NextId(){// 生成下一个唯一ID
+        static QAtomicInteger<quint64> counter{0};
+        static constexpr int kShiftBits = 20;  // 计数器位数
+        static constexpr quint64 kMask = (1 << kShiftBits) - 1;// 计数器掩码(低20位为1)
+        // static constexpr quint64 kEpoch = 1609459200000LL;//// 2021-01-01 00:00:00 作为基准时间
+        const qint64 now = QDateTime::currentMSecsSinceEpoch();
+        return (now << kShiftBits) | (++counter & kMask); // 时间戳左移20位,空出低20位给计数器 counter自增并取低20位,与时间戳组合形成唯一ID
     }
 };
 ///用std::function定义处理器类型 QFunctionPointer 为Qt的函数指针类型无参数无类型返回值;不支持通过字符串动态查找函数。
@@ -238,6 +255,26 @@ static PluginType GetPluginType(const QString& name) {
     // 方法2：直接使用 QVariant
     //return QVariant(name).value<ModuleName>();
 }
+
+/*任务状态枚举*/
+#define TaskEnumName(name) TaskState_##name
+enum TaskState : quint8 {
+    TaskEnumName(Unknown),//未知
+    TaskEnumName(Waiting),//等待
+    TaskEnumName(PreStart),//准备开始
+    TaskEnumName(Starting),//开始
+    TaskEnumName(Started),//已开始
+    TaskEnumName(Running),//运行中
+    TaskEnumName(Finished),//已完成
+    TaskEnumName(Paused),//暂停
+    TaskEnumName(Resumed),//恢复
+    TaskEnumName(Cancelled),//取消
+    TaskEnumName(Timeout),//超时
+    TaskEnumName(Failed),//失败
+    TaskEnumName(Stopped),//停止
+    TaskEnumName(Aborted),//中止
+    TaskEnumName(Error)//错误
+};
 
 #include <QReadWriteLock>
 
