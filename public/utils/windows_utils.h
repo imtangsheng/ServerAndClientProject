@@ -67,4 +67,29 @@ inline QString GetSysError() {
     LocalFree(lpMsgBuf);
     return sysError;
 }
+
+#include <shellapi.h>
+//移动指定目录到回收站
+inline bool MoveToRecycleBin(const QString& path) {
+    if (path.isEmpty()) {
+        return false;
+    }
+    QFileInfo fileInfo(path);
+    if (!fileInfo.exists()) {
+        return false;
+    }
+    WCHAR from[MAX_PATH];
+    path.toWCharArray(from);
+    from[path.length()] = '\0';
+
+    SHFILEOPSTRUCTW fileOp;
+    memset(&fileOp, 0, sizeof(fileOp));
+    fileOp.wFunc = FO_DELETE;
+    fileOp.pFrom = from;
+    fileOp.fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+
+    int ret = SHFileOperationW(&fileOp);
+    return (ret == 0);
+    return false;
+}
 #endif // WINDOWS_UTILS_H

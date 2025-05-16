@@ -35,8 +35,11 @@ public:
 public slots:
     void onLanguageChanged(QString language);
     void onAutoStartedClicked(bool checked);
-    void acquisition_begins(const Session& session);
 
+    //设置注册表参数 配置
+    void SetRegisterSettings(const Session& session);
+    // 任务执行方法
+    void acquisition_begins(const Session& session);
     void acquisition_end(const Session& session);
 
     /**

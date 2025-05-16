@@ -19,7 +19,7 @@ ManagerPlugin::~ManagerPlugin()
 Result ManagerPlugin::start(QStringList& pluginsName) {
     Result result(true);
 	for (const auto& name: pluginsName) {
-		result = m_plugins[name].interface->AcquisitionStart();
+		result = m_plugins[name].interface->OnStarted();
         if (!result) break;
 	}
     return result;
@@ -28,7 +28,7 @@ Result ManagerPlugin::start(QStringList& pluginsName) {
 Result ManagerPlugin::stop(QStringList& pluginsName) {
 	Result ret(true);
 	for (const auto& name : pluginsName) {
-		ret = m_plugins[name].interface->AcquisitionStop();
+		ret = m_plugins[name].interface->OnStopped();
         if (!ret) break;
 	}
     return ret;
