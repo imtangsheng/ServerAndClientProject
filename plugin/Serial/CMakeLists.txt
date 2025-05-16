@@ -33,7 +33,7 @@ string(JOIN "" DeviceNameSuffix ${NameSuffix}) #将分号连接在一起 (输出
 # 将源文件组织在变量中
 set(Serial_SOURCES
     "${INCLUDE_DIR}interface/iSerialPort.h"
-    ActiveSerial.h ActiveSerial.cpp
+    ${PROJECT_SOURCE_DIR}/public/serial/ActiveSerial.h ${PROJECT_SOURCE_DIR}/public/serial/ActiveSerial.cpp
     "${INCLUDE_DIR}interface/iPluginDevice.h"
     SerialPlugin.h SerialPlugin.cpp
     SerialPlugin.json "readme.md"

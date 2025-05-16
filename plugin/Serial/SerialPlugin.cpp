@@ -4,7 +4,7 @@
  * @date 2025-04
  */
 #include "SerialPlugin.h"
-#include "ActiveSerial.h"
+#include "public/serial/ActiveSerial.h"
 
 static ActiveSerial* gSerial{ nullptr };// = new ActiveSerial();
 
@@ -52,6 +52,14 @@ QString SerialPlugin::version() const {
     return QString("0.0.1");
 }
 
+Result SerialPlugin::OnStarted(CallbackResult callback) {
+    return gSerial->OnStarted(callback);
+}
+
+Result SerialPlugin::OnStopped(CallbackResult callback) {
+    return gSerial->OnStopped(callback);
+}
+
 #ifdef DEVICE_TYPE_CAR
 void SerialPlugin::SetSpeedMultiplier(const Session& session) {
     QString key = session.params.toString();
@@ -72,7 +80,7 @@ void SerialPlugin::SetSpeedMultiplier(const Session& session) {
         general["speed_multiplier"] = key;
         config_["general"] = general;
     }
-    Result result = gSouth.WriteJsonFile(ConfigFilePath(), config_);
+    Result result = WriteJsonFile(ConfigFilePath(), config_);
     gSouth.on_send(result, session);
 }
 #endif // DEVICE_TYPE_CAR
@@ -88,7 +96,7 @@ void SerialPlugin::initUi(const Session& session) {
 
 void SerialPlugin::SaveConfig(const Session& session) {
     config_ = session.params.toObject();
-    Result result = gSouth.WriteJsonFile(ConfigFilePath(), config_);
+    Result result = WriteJsonFile(ConfigFilePath(), config_);
     if (!result) {
         LOG_WARNING(tr("Save params error:%1").arg(result.message));
     }
@@ -97,14 +105,6 @@ void SerialPlugin::SaveConfig(const Session& session) {
 
 void SerialPlugin::execute(const QString& method) {
     qDebug() << "[#Trolley]执行方法" << method;
-}
-
-Result SerialPlugin::AcquisitionStart() {
-    return gSerial->start();
-}
-
-Result SerialPlugin::AcquisitionStop() {
-    return gSerial->stop();
 }
 
 void SerialPlugin::scan(const Session& session) {
@@ -122,13 +122,11 @@ void SerialPlugin::open(const Session& session) {
 }
 
 void SerialPlugin::start(const Session& session) {
-    gSerial->start();
-    g_serial_session.addSession(CAR_STARTUP, session);
+    gSerial->start(session);
 }
 
 void SerialPlugin::stop(const Session& session) {
-    gSerial->stop();
-    g_serial_session.addSession(CAR_STOP, session);
+    gSerial->stop(session);
 }
 
 void SerialPlugin::GetInfoByCode(const Session& session) {

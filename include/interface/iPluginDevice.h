@@ -10,12 +10,14 @@
  //#include <QtPlugin>
 QT_BEGIN_NAMESPACE
 
+
+
 // 定义设备事件类型
-enum DeviceEvent {
+enum class DeviceEvent {
     Initialize, Start, Pause, Resume, Stop, Error, Reset, Update, Custom
 };
 // 定义设备的状态
-enum DeviceState {
+enum class DeviceState {
     Disconnected, Connected, Capturing
 };
 
@@ -34,11 +36,12 @@ public:
     }
 
     virtual QString _module() const = 0;//记录当前设备模块名称 必要用于注册设备
-    double state_{ 0 };//记录当前设备状态值
-    QString stateString;//监控显示信息
+    double state_;//记录设备状态值,int类型,double类型用于json数据网络传输
     QJsonObject config_;//设备配置参数 json格式
+    TaskState taskState{ TaskState::TaskState_Waiting };//任务状态
 
-    // 基本操作接口
+
+    // 基本操作接口 默认设计的是首先要执行一次,执行初始化变量赋值等操作
     virtual void initialize() {
         if (!translator.load(":/" + name() + "/" + zh_CN)) {
             LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(zh_CN));
@@ -64,6 +67,10 @@ public:
     virtual QString name() const = 0;    // 设备名称
     virtual QString version() const = 0; // 版本
 
+    // 事件 直接调用
+    virtual Result OnStarted(CallbackResult callback = nullptr) =0;
+    virtual Result OnStopped(CallbackResult callback = nullptr) =0;
+
     virtual DeviceState GetCurrentState() { return currentState; }
     // 获取错误信息
     virtual QString GetLastError() { return lastError; };
@@ -82,9 +89,7 @@ public slots:
     // 执行约定的方法
     virtual void execute(const QString& method) = 0; // 执行特定功能
 
-    // 事件
-    virtual Result AcquisitionStart() = 0; // 开始捕获
-    virtual Result AcquisitionStop() = 0;
+
 
 signals:
     void state_changed(DeviceState oldState, DeviceState newState);
@@ -110,7 +115,7 @@ protected:
 
     QTranslator translator;//成员变量,用于国际化 必须由qt主线程析构
     QString ConfigFilePath() const {
-        static QString filePath = "config/" + name() + ".json";
+        static QString filePath = gSouth.appDirPath + "/config/" + name() + ".json";
         return filePath;
     }
     Result LoadConfigFromFile(const QString& jsonFilePath) {
@@ -122,7 +127,7 @@ protected:
             return result;
         }
         //获取相机配置文件的json数据
-        result = gSouth.ReadJsonFile(absolutePath, config_);
+        result = ReadJsonFile(absolutePath, config_);
         if (!result || config_.isEmpty()) {
             LOG_WARNING(result.message);
             return result;
