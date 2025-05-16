@@ -149,11 +149,20 @@ const std::map<QString, SetParamFunc> ParamSetters = {
     }}
 };
 
+#include "public/serial/LeiShenLidarN10Plus.h"
+LeiShenLidarN10Plus* gAnotherSerial = nullptr;//可使用智能指针 替代手动管理生命周期
 
 bool DvpLineScanCamera::initialize() {
     qDebug() << "#DvpLineScanCamera: initialize";
     has_image_format = "bmp,jpeg,jpg,png,tiff,tif,gif,dat";//支持的图片格式
+    gAnotherSerial = new LeiShenLidarN10Plus();
+    //another = new LeiShenLidarN10Plus(nullptr,gSouth.RegisterSettings->value(KEY_LIDAR_PORTNAME).toString());
     return scan();
+}
+
+DvpLineScanCamera::~DvpLineScanCamera() {
+    delete gAnotherSerial;
+    gAnotherSerial = nullptr;
 }
 
 Result DvpLineScanCamera::SetCameraConfig(const QJsonObject& config) {
@@ -320,6 +329,10 @@ Result DvpLineScanCamera::open() {
             resultDvp = dvpStop(device.handle);
         }
     }
+
+    if (!gAnotherSerial->open(gSouth.RegisterSettings->value(CAMERA_KEY_PORTNAME).toString())) {
+        return Result::Failure("打开雷达串口失败");
+    };
     return Result(0, ("打开相机成功"));
 }
 
@@ -346,6 +359,7 @@ Result DvpLineScanCamera::close() {
         resultDvp = dvpClose(device.handle);//关闭相机后，相机句柄将不再可用。但是再次打开相机时，又可能会得到相同的句柄值 
         device.handle = 0;
     }
+    gAnotherSerial->close();
     return Result(true, ("关闭相机成功"));
 }
 
@@ -411,6 +425,34 @@ Result DvpLineScanCamera::triggerFire() {
         }
     }
     return Result(0, ("相机软触发成功"));
+}
+
+void DvpLineScanCamera::start(const Session& session) {
+    gSouth.on_send(start(), session);
+
+}
+
+void DvpLineScanCamera::stop(const Session& session) {
+    gSouth.on_send(stop(), session);
+}
+
+Result DvpLineScanCamera::OnStarted(CallbackResult callback) {
+    Result result = start();
+    if (callback) { callback(result); }
+    return result;
+}
+
+Result DvpLineScanCamera::OnStopped(CallbackResult callback) {
+    Result result = stop();
+    if (callback) { callback(result); }
+    return result;
+}
+
+QJsonObject DvpLineScanCamera::GetDeviceIdList() const {
+    QJsonObject obj;
+    obj["camera_id_list"] = camera_id_list.join(",");
+    obj["serial_id_list"] = gAnotherSerial->GetAvailablePorts().join(",");
+    return obj;
 }
 
 

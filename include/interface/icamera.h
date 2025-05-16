@@ -19,8 +19,15 @@ public:
     virtual Result start() = 0; //开始采集
     virtual Result stop() = 0; //停止采集
     virtual Result triggerFire() = 0; //软触发一次
+    //任务类的方法,需要回应
+    virtual void start(const Session& session) = 0;
+    virtual void stop(const Session& session) = 0;
+    //直接调用 使用回调函数在执行特定顺序的任务
+    virtual Result OnStarted(CallbackResult callback = nullptr) = 0;
+    virtual Result OnStopped(CallbackResult callback = nullptr) = 0;
 
-    QStringList camera_id_list;//保存的相机名称,用于打开相机
+    QStringList camera_id_list;//相机id值,是保存的名称,用于打开设备的唯一标志
+    virtual QJsonObject GetDeviceIdList() const = 0;//返回相机ID列表
     QString has_image_format{"jpg,bmp"};//支持的图片格式
 
     virtual QString DeviceName() const {
@@ -36,4 +43,6 @@ protected:
     static QString tr(const char* sourceText) {
         return QObject::tr(sourceText);
     }
+
+
 };

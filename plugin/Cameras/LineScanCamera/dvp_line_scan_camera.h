@@ -43,16 +43,16 @@ struct struCameraInfo {
 };
 
 // Add this after your CameraInfo class definition 用于支持QSet
-inline size_t qHash(const struCameraInfo& info, uint seed = 0) {
-    return qHash(info.name, seed);
-}
+//inline static size_t qHash(const struCameraInfo& info, uint seed = 0) {
+//    return qHash(info.name, seed);
+//}
 
 class DvpLineScanCamera : public ICameraBase
 {
 public:
-    ~DvpLineScanCamera() = default;
     //基类方法
     bool initialize() final;
+    ~DvpLineScanCamera();
     Result SetCameraConfig(const QJsonObject& config) final;
     Result scan() final; // 预先浏览相机设备
     Result open() final; //打开相机
@@ -61,6 +61,15 @@ public:
     Result stop() final; //停止采集
     Result triggerFire() final; //软触发一次
 
+    //任务类的方法,需要回应
+    void start(const Session& session) final;
+    void stop(const Session& session) final;
+
+    //直接调用 使用回调函数在执行特定顺序的任务
+    Result OnStarted(CallbackResult callback = nullptr) final;
+    Result OnStopped(CallbackResult callback = nullptr) final;
+
+    QJsonObject GetDeviceIdList() const final;
     QString DeviceName() const final {
         static QString name{ "DvpLineScanCamera" };
         return name;
