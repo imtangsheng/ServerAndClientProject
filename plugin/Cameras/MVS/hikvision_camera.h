@@ -26,6 +26,16 @@ public:
     Result stop() final; //停止采集
     Result triggerFire() final; //软触发一次
 
+    //任务类的方法,需要回应
+    void start(const Session& session) final;
+    void stop(const Session& session) final;
+
+    //直接调用 使用回调函数在执行特定顺序的任务
+    Result OnStarted(CallbackResult callback = nullptr) final;
+    Result OnStopped(CallbackResult callback = nullptr) final;
+
+    QJsonObject GetDeviceIdList() const final;
+
     QString DeviceName() const final {
         static QString name{ "HiKvisionCamera" };
         return name;

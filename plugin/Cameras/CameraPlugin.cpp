@@ -9,13 +9,13 @@
 #include "MVS/hikvision_camera.h"
 static ICameraBase* gCameraSDK = new HiKvisionCamera();
 #elif defined(DEVICE_TYPE_CAMERA_DvpLineScan)
-#include "Do3think/dvp_line_scan_camera.h"
+#include "LineScanCamera/dvp_line_scan_camera.h"
 static ICameraBase* gCameraSDK = new DvpLineScanCamera();
 #else
 //qFatal(tr("No camera type defined").toUtf8().constData());
 #endif
 
-static QString g_plugin_module_name = south::ShareLib::GetModuleName(south::ModuleName::camera);
+static QString g_plugin_module_name = south::Shared::GetModuleName(south::ModuleName::camera);
 
 CameraPlugin::CameraPlugin() {
 //#ifdef CAMERA_TYPE_HiKvision
@@ -46,23 +46,20 @@ Result CameraPlugin::disconnect() {
     return Result();
 }
 
-Result CameraPlugin::AcquisitionStart() {
-    qDebug() << "#PluginCamera开始采集函数";
-    return gCameraSDK->start();
-}
-
-Result CameraPlugin::AcquisitionStop() {
-    qDebug() << "#PluginCamera停止采集函数";
-    return gCameraSDK->stop();
-}
-
 QString CameraPlugin::name() const {
     return gCameraSDK->DeviceName();
 }
 
 QString CameraPlugin::version() const {
-
     return QString("0.0.1");
+}
+
+Result CameraPlugin::OnStarted(CallbackResult callback) {
+    return gCameraSDK->OnStarted(callback);
+}
+
+Result CameraPlugin::OnStopped(CallbackResult callback) {
+    return gCameraSDK->OnStopped(callback);
 }
 
 void CameraPlugin::initUi(const Session& session) {
@@ -73,6 +70,15 @@ void CameraPlugin::initUi(const Session& session) {
 
     //onConfigChanged();//界面参数变化主动获取更新
     emit gSigSent(Session::RequestString(2, _module(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
+}
+
+void CameraPlugin::SaveConfig(const Session& session) {
+    config_ = session.params.toObject();
+    Result result = WriteJsonFile(ConfigFilePath(), config_);
+    if (!result) {
+        LOG_WARNING(result.message);
+    }
+    gSouth.on_send(result, session);
 }
 
 void CameraPlugin::execute(const QString& method) {
@@ -90,15 +96,14 @@ void CameraPlugin::SetImageFormat(const Session& session) {
         general["format"] = format;
         config_["general"] = general;
     }
-    Result result = gSouth.WriteJsonFile(ConfigFilePath(), config_);
+    Result result = WriteJsonFile(ConfigFilePath(), config_);
     gSouth.on_send(result, session);
 }
 
 void CameraPlugin::scan(const Session& session) {
     Result result = gCameraSDK->scan();
     if (result) {
-        QString deviceNames = gCameraSDK->camera_id_list.join(",");
-        emit gSigSent(session.ResponseString(deviceNames,tr("succeed")));
+        emit gSigSent(session.ResponseString(gCameraSDK->GetDeviceIdList(),tr("succeed")));
     } else {
         emit gSigSent(session.ErrorString(result.code, result.message));
     }
@@ -110,8 +115,7 @@ void CameraPlugin::open(const Session& session) {
 }
 
 void CameraPlugin::start(const Session& session) {
-    Result result = gCameraSDK->start();
-    gSouth.on_send(result, session);
+    gCameraSDK->start(session);
 }
 
 void CameraPlugin::stop(const Session& session) {
@@ -138,15 +142,6 @@ void CameraPlugin::GetUpdateFrameInfo(const Session& session) {
 void CameraPlugin::SetCamerasParams(const Session& session) {
     QJsonObject root = session.params.toObject();
     Result result = gCameraSDK->SetCameraConfig(root);
-    gSouth.on_send(result, session);
-}
-
-void CameraPlugin::SaveCamerasParams(const Session& session) {
-    config_ = session.params.toObject();
-    Result result = gSouth.WriteJsonFile(ConfigFilePath(), config_);
-    if (!result) {
-        LOG_WARNING(result.message);
-    }
     gSouth.on_send(result, session);
 }
 

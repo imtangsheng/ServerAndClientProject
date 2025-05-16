@@ -3,7 +3,55 @@
 #include<QBuffer>
 
 static MV_SAVE_IAMGE_TYPE g_enSaveImageType{ MV_Image_Jpeg };
+static bool IsColor(MvGvspPixelType enType) {
+    switch (enType) {
+    case PixelType_Gvsp_BGR8_Packed:
+    case PixelType_Gvsp_YUV422_Packed:
+    case PixelType_Gvsp_YUV422_YUYV_Packed:
+    case PixelType_Gvsp_BayerGR8:
+    case PixelType_Gvsp_BayerRG8:
+    case PixelType_Gvsp_BayerGB8:
+    case PixelType_Gvsp_BayerBG8:
+    case PixelType_Gvsp_BayerGB10:
+    case PixelType_Gvsp_BayerGB10_Packed:
+    case PixelType_Gvsp_BayerBG10:
+    case PixelType_Gvsp_BayerBG10_Packed:
+    case PixelType_Gvsp_BayerRG10:
+    case PixelType_Gvsp_BayerRG10_Packed:
+    case PixelType_Gvsp_BayerGR10:
+    case PixelType_Gvsp_BayerGR10_Packed:
+    case PixelType_Gvsp_BayerGB12:
+    case PixelType_Gvsp_BayerGB12_Packed:
+    case PixelType_Gvsp_BayerBG12:
+    case PixelType_Gvsp_BayerBG12_Packed:
+    case PixelType_Gvsp_BayerRG12:
+    case PixelType_Gvsp_BayerRG12_Packed:
+    case PixelType_Gvsp_BayerGR12:
+    case PixelType_Gvsp_BayerGR12_Packed:
+    case PixelType_Gvsp_BayerRBGG8:
+    case PixelType_Gvsp_BayerGR16:
+    case PixelType_Gvsp_BayerRG16:
+    case PixelType_Gvsp_BayerGB16:
+    case PixelType_Gvsp_BayerBG16:
+        return true;
+    default:
+        return false;
+    }
+}
 
+static bool IsMono(MvGvspPixelType enType) {
+    switch (enType) {
+    case PixelType_Gvsp_Mono10:
+    case PixelType_Gvsp_Mono10_Packed:
+    case PixelType_Gvsp_Mono12:
+    case PixelType_Gvsp_Mono12_Packed:
+    case PixelType_Gvsp_Mono14:
+    case PixelType_Gvsp_Mono16:
+        return true;
+    default:
+        return false;
+    }
+}
 static bool IsHBPixelFormat(MvGvspPixelType ePixelType) {
     switch (ePixelType) {
     case PixelType_Gvsp_HB_Mono8:
@@ -56,16 +104,13 @@ static bool SaveToFile(unsigned char* pData, int nLen,const QString& filename) {
         LOG_ERROR(QObject::tr("Failed to open file: %1").arg(filename));
         return false;
     }
+    //可使用缓冲区提高写入性能
     qint64 written = file.write(reinterpret_cast<char*>(pData), nLen);
     file.close();
     return written == nLen;
 }
 
 static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX* pFrameInfo, void* pUser) {
-    if (NULL == pFrameInfo || NULL == pData) {
-        printf("ImageCallBackEx Input Param invalid.\n");
-        return;
-    }
     // 记录开始时间
     QDateTime startTime = QDateTime::currentDateTime();
     qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") << QThread::currentThread() << "采集回调函数调用";
@@ -74,11 +119,43 @@ static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX
     qDebug() << "enPixelType" << pFrameInfo->enPixelType << "nFrameNum" << pFrameInfo->nFrameNum << "nTriggerIndex " << pFrameInfo->nTriggerIndex
         << "nHostTimeStamp" << pFrameInfo->nHostTimeStamp<< QDateTime::fromMSecsSinceEpoch(pFrameInfo->nHostTimeStamp) << "timestamp" << QDateTime::fromMSecsSinceEpoch(combined);
 
-    unsigned int iTriggerId = pFrameInfo->nFrameNum;
     // 通过pUser访问设备对象
     MvCamera* device = static_cast<MvCamera*>(pUser);
-    QString image_path = QString(device->path + "/%1#%2.%3").arg(pFrameInfo->nFrameNum).arg(pFrameInfo->nHostTimeStamp).arg(g_image_format);
+    QString image_path = QString("%1/%2#%3.%4")
+        .arg(device->path)
+        .arg(pFrameInfo->nFrameNum)
+        .arg(pFrameInfo->nHostTimeStamp)
+        .arg(g_image_format);
     qDebug() << "图片路径" << image_path;
+
+	//需要旋转270度
+    MV_CC_ROTATE_IMAGE_PARAM stRotateParam{};
+    // 设置源图像参数
+    stRotateParam.enPixelType = pFrameInfo->enPixelType;
+    stRotateParam.nWidth = pFrameInfo->nWidth;
+    stRotateParam.nHeight = pFrameInfo->nHeight;
+    stRotateParam.pSrcData = pData;//原始图像数据
+    stRotateParam.nSrcDataLen = pFrameInfo->nFrameLen;//输入数据长度
+    //分配目标缓冲区
+    unsigned int nConvertDataSize{ 0 };
+    if (IsColor(pFrameInfo->enPixelType)) {
+        nConvertDataSize = pFrameInfo->nWidth * pFrameInfo->nHeight * 3;
+    } else if (IsMono(pFrameInfo->enPixelType)) {
+        nConvertDataSize = pFrameInfo->nWidth * pFrameInfo->nHeight;
+    } else {
+        qWarning() << "不支持的像素格式";
+        return;
+    }
+    stRotateParam.nDstBufSize = nConvertDataSize;//提供的输出缓冲区大小
+    //设置为270度旋转
+    stRotateParam.enRotationAngle = MV_IMAGE_ROTATE_270;
+    MV_CC_RotateImage(device->handle, &stRotateParam);
+    //数据交换
+    pFrameInfo->nWidth = stRotateParam.nWidth;
+    pFrameInfo->nHeight = stRotateParam.nHeight;
+    pFrameInfo->nFrameLen = stRotateParam.nDstBufLen;
+    pData = stRotateParam.pDstBuf;
+
     //非RAW格式
     if (g_enSaveImageType != MV_Image_Undefined) {
         //保存图像到文件接口
@@ -109,7 +186,7 @@ static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX
             stDecodeParam.pSrcBuf = pData;
             stDecodeParam.nSrcLen = pFrameInfo->nFrameLen;
             // 分配目标缓冲区
-            size_t nPayloadSize = pFrameInfo->nWidth * pFrameInfo->nHeight * 3;
+            unsigned int nPayloadSize = pFrameInfo->nWidth * pFrameInfo->nHeight * 3;
             uchar* pDstBuf = new uchar[nPayloadSize];
             stDecodeParam.pDstBuf = pDstBuf;
             stDecodeParam.nDstBufSize = nPayloadSize;
@@ -140,7 +217,7 @@ static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX
     MvGvspPixelType pixelType = pFrameInfo->enPixelType;
     if ((pixelType & 0xFF000000) == MV_GVSP_PIX_MONO) {
         qDebug() << "单色（灰度或 Bayer）";
-        image = QImage(data, width, height, QImage::Format_Grayscale8);
+        image = QImage(data, width, height, QImage::Format_Grayscale8);// 创建深拷贝避免数据竞争 .cppy()
     }else if ((pixelType & 0xFF000000) == MV_GVSP_PIX_COLOR) {
         qDebug() << "彩色（RGB、YUV 等）";
         image = QImage(data, width, height, QImage::Format_RGB888);
@@ -166,7 +243,7 @@ static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX
     //二进制数据 发送
     quint8 invoke = south::ModuleName::camera;
     quint8 userID = QString(device->id).toInt();
-    quint32  triggerID = iTriggerId;
+    quint32  triggerID = pFrameInfo->nFrameNum;
     QByteArray bytes;
     QDataStream out(&bytes, QIODevice::WriteOnly);
     out << invoke;
@@ -197,14 +274,17 @@ HiKvisionCamera::~HiKvisionCamera() {
     MV_CC_Finalize();
 }
 
+#include "public/serial/ActiveSerial.h"
+ActiveSerial* gAnotherSerial = nullptr;//可使用智能指针 替代手动管理生命周期
+
 bool HiKvisionCamera::initialize() {
     nRet = MV_CC_Initialize();
     if (MV_OK != nRet) {
         LOG_ERROR(tr("[#HiKvisionCamera]MV_CC_Initialize failed! nRet:0x%1").arg(nRet, 0, 16));
         return false;
     }
-
     has_image_format = "jpeg,bmp,png,tiff,raw";//支持的图片格式
+    gAnotherSerial = new ActiveSerial();
     return scan();
 }
 
@@ -314,6 +394,9 @@ Result HiKvisionCamera::open() {
             continue;
         }
     }
+    //if (!another->open(gSouth.RegisterSettings->value(CAMERA_KEY_PORTNAME).toString())) {
+    //    return Result::Failure("打开相机串口失败");
+    //};
     return Result();
 }
 
@@ -334,6 +417,7 @@ Result HiKvisionCamera::close() {
         }
         device->handle = nullptr;
     }
+    gAnotherSerial->close();
     return Result();
 }
 
@@ -353,7 +437,6 @@ Result HiKvisionCamera::start() {
             LOG_ERROR(tr("[#HiKvisionCamera]%1 Start Grabbing fail! nRet:0x%2").arg(device->id).arg(nRet, 0, 16));
             continue;
         }
-
     }
     return Result();
 }
@@ -389,6 +472,35 @@ Result HiKvisionCamera::triggerFire() {
     }
     return Result();
 }
+
+void HiKvisionCamera::start(const Session& session) {
+    start();//没有返回值的
+    gAnotherSerial->start(session);
+
+}
+
+void HiKvisionCamera::stop(const Session& session) {
+    stop();
+    gAnotherSerial->stop(session);
+}
+
+Result HiKvisionCamera::OnStarted(CallbackResult callback) {
+    start();
+    return gAnotherSerial->OnStarted(callback);
+}
+
+Result HiKvisionCamera::OnStopped(CallbackResult callback) {
+    stop();
+    return gAnotherSerial->OnStopped(callback);
+}
+
+QJsonObject HiKvisionCamera::GetDeviceIdList() const {
+    QJsonObject obj;
+    obj["camera_id_list"] = camera_id_list.join(",");
+    obj["serial_id_list"] = gAnotherSerial->GetAvailablePorts().join(",");
+    return obj;
+}
+
 
 bool HiKvisionCamera::SetImageFormat(const QString& format) {
     // 根据文件后缀选择保存格式

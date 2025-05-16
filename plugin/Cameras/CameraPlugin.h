@@ -21,15 +21,18 @@ public:
     QString name() const override;    // 设备名称
     QString version() const override; // 版本
 
-public slots:
-    void initUi(const Session& session) final;//初始化UI,返回配置信息
-    // 执行约定的方法
-    void execute(const QString& method) final; // 执行特定功能
-    //#采集控制接口
+    //直接调用 使用回调函数在执行特定顺序的任务
+    Result OnStarted(CallbackResult callback = nullptr) final;
+    Result OnStopped(CallbackResult callback = nullptr) final;
+    //#采集控制属性设置接口
     Q_INVOKABLE void SetImageFormat(const Session& session); // 设置图像格式
 
-    Result AcquisitionStart() final;
-    Result AcquisitionStop() final;
+public slots:
+    void initUi(const Session& session) final;//初始化UI,返回配置信息
+    void SaveConfig(const Session& session) final;
+    // 执行约定的方法
+    void execute(const QString& method) final; // 执行特定功能
+
     //interface IControllerSDK 
     //速度 1.直接C++调用	1x	最快，
     //2.Q_INVOKABLE通过QMetaObject::invokeMethod	约10-20x	比直接调用慢 
@@ -45,9 +48,7 @@ public slots:
     void onConfigChanged();
     void GetUpdateFrameInfo(const Session& session);
     void SetCamerasParams(const Session& session);
-    void SaveCamerasParams(const Session& session);
     void show(const Session& session);
-
 
 private:
     /* data */
