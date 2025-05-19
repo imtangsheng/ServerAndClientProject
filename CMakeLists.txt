@@ -1,4 +1,11 @@
-cmake_minimum_required(VERSION 3.16) # 指定最低CMake版本要求
+cmake_minimum_required(VERSION 3.25) # 指定最低CMake版本要求
+# 如果支持，请为 MSVC 编译器启用热重载。
+if (POLICY CMP0141)
+    message("MSVC 编译器启用热重载")
+    cmake_policy(SET CMP0141 NEW)
+    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
 # 定义项目名称和版本 
 project(AcquisitionProject VERSION 0.0.1 LANGUAGES CXX) #project() 会创建项目和VERSION版本的CMake 变量
 # 打印版本信息
@@ -9,6 +16,11 @@ message("PROJECT_VERSION: ${PROJECT_VERSION}")
 # 打印路径信息
 message("Source dir: ${AcquisitionProject_SOURCE_DIR}")
 message("Binary dir: ${AcquisitionProject_BINARY_DIR}")
+
+# 设置 C++ 标准
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 设置全局 Debug 后缀
 set(CMAKE_DEBUG_POSTFIX "d")

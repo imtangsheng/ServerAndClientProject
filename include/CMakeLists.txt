@@ -9,6 +9,7 @@ set(INTERFACE_NAME IncludeInterface)
 # 收集头文件
 file(GLOB_RECURSE PROJECT_HEADERS 
     ${CMAKE_CURRENT_SOURCE_DIR}/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.ixx
 )
 
 # 添加接口库 接口库无法被链接到可执行文件或共享库中,包含文件是找不到链接头文件的

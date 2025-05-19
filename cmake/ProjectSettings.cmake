@@ -1,19 +1,3 @@
-# 设置 C++ 标准
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# 设置编译器选项
-if(MSVC)
-    add_compile_options(/W4 /MP) # Windows下的警告级别
-    add_compile_definitions(
-        _CRT_SECURE_NO_WARNINGS
-        NOMINMAX
-        WIN32_LEAN_AND_MEAN
-    )
-else()
-    add_compile_options(-Wall -Wextra -Wpedantic) # Unix下的警告级别
-endif()
-
 # 设置默认的构建类型
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build" FORCE)
@@ -30,9 +14,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态�
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 #set(CMAKE_AUTOUIC ON)
-# Specify MSVC UTF-8 (65001) encoding 编码不对会导致 MOC 无法正确解析文件，从而生成的元对象代码不完整或错误，最终引发链接错误。
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 

@@ -13,6 +13,7 @@ file(GLOB_RECURSE PROJECT_SOURCES
 add_library(${SHARE_NAME} SHARED
     stdafx.h
     ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h ${INCLUDE_DIR}WorkHandler.h
+    #${INCLUDE_DIR}common/FileReadAndSave.ixx
     ${PROJECT_SOURCES}
 )
 
@@ -28,6 +29,3 @@ target_compile_definitions(${SHARE_NAME} PRIVATE
 
 target_precompile_headers(${SHARE_NAME} PUBLIC stdafx.h)
 
-#set_target_properties(${SHARE_NAME} PROPERTIES
-#    DEBUG_POSTFIX "d"
-#)
