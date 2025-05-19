@@ -154,7 +154,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 	connect(newSocket, &QWebSocket::textMessageReceived, this, &WebSocketServer::handle_text_message);
 	//返回消息,验证设备版本号是否一致
 	//handleMessageSent()
-	QJsonArray array{ double(deviceType),gSouth.version };
+	QJsonArray array{ double(deviceType),gSouth.GetVersion()};
 	newSocket->sendTextMessage(Session::RequestString(1, sModuleUser, "login_verify", array));
 }
 

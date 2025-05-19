@@ -1,5 +1,10 @@
 using namespace south;
 
+QString Shared::GetVersion() {
+    static QString version = VERSION_STR;
+    return version;
+}
+
 Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {
     // 创建搜索路径列表
     QStringList searchPaths;

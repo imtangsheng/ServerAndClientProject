@@ -222,7 +222,7 @@ using BinarySessionHandler = std::function<void(const QByteArray&)>;
 inline QMap<quint8, QMap<quint8, BinarySessionHandler>> gBinarySession;
 
 // 在头文件中定义会话通信类型枚举
-enum class SessionType {
+enum class SessionType : int {
     Unknown,
     Client,
     Server,
@@ -256,9 +256,11 @@ static PluginType GetPluginType(const QString& name) {
     //return QVariant(name).value<ModuleName>();
 }
 
+using TaskStateType = quint8;
+
 /*任务状态枚举*/
 #define TaskEnumName(name) TaskState_##name
-enum TaskState : quint8 {
+enum TaskState : TaskStateType {
     TaskEnumName(Unknown),//未知
     TaskEnumName(Waiting),//等待
     TaskEnumName(PreStart),//准备开始

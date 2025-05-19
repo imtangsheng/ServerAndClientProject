@@ -87,3 +87,8 @@ install(FILES ${qm_files}
     DESTINATION translations
     COMPONENT Runtime
 )
+
+# 设置目标属性
+set_target_properties(${APP_NAME} PROPERTIES
+    OUTPUT_NAME "${APP_NAME}${PROJECT_VERSION}" # 修改输出文件名
+)

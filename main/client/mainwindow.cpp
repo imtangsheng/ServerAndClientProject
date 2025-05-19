@@ -238,8 +238,8 @@ void MainWindow::login_verify(double type,const QString& version)
         show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gSouth.sessiontype_),LogLevel::Warning);
     }
 
-    if(version != gSouth.version){
-        show_message(tr("the device version does not match and the server is %1 a client is %2").arg(version,gSouth.version),LogLevel::Warning);
+    if(version != gSouth.GetVersion()){
+        show_message(tr("the device version does not match and the server is %1 a client is %2").arg(version,gSouth.GetVersion()),LogLevel::Warning);
     }
     show_message(tr("the server connection is successful"),LogLevel::Info);
 

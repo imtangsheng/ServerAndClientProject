@@ -42,13 +42,7 @@ qt_add_lupdate(${APP_NAME}
     OPTIONS
     -no-obsolete        # 删除过时的翻译
 )
-
 endif()
-# 设置目标属性
-set_target_properties(${APP_NAME} PROPERTIES
-    WIN32_EXECUTABLE FALSE
-    MACOSX_BUNDLE FALSE
-)
 
 # 链接 Qt 库
 target_link_libraries(${APP_NAME} PUBLIC
@@ -56,4 +50,9 @@ target_link_libraries(${APP_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::WebSockets
     Qt${QT_VERSION_MAJOR}::HttpServer
     ${SHARE_NAME}
+)
+
+# 设置目标属性
+set_target_properties(${APP_NAME} PROPERTIES
+    OUTPUT_NAME "${APP_NAME}${PROJECT_VERSION}" # 修改输出文件名
 )

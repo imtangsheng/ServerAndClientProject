@@ -11,16 +11,21 @@ file(GLOB_RECURSE PROJECT_SOURCES
 
 #需要包含头文件 继承QObject的类
 add_library(${SHARE_NAME} SHARED
-  stdafx.h
-  ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h ${INCLUDE_DIR}WorkHandler.h
-  ${PROJECT_SOURCES}
+    stdafx.h
+    ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h ${INCLUDE_DIR}WorkHandler.h
+    ${PROJECT_SOURCES}
 )
 
 target_link_libraries(${SHARE_NAME} PRIVATE
-	Qt${QT_VERSION_MAJOR}::Core
+    Qt${QT_VERSION_MAJOR}::Core
 )
 
-target_compile_definitions(${SHARE_NAME} PRIVATE SHAREDLIB_API)
+#添加版本号信息
+target_compile_definitions(${SHARE_NAME} PRIVATE 
+    SHAREDLIB_API #导出标志
+    VERSION_STR="${PROJECT_VERSION}"
+)
+
 target_precompile_headers(${SHARE_NAME} PUBLIC stdafx.h)
 
 #set_target_properties(${SHARE_NAME} PROPERTIES

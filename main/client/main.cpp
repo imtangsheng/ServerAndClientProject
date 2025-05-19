@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     }
     // SetDarkTheme(false);
 
-    gSouth.sessiontype_ = int(SessionType::Client);
+    gSouth.sessiontype_ = static_cast<int>(SessionType::Client);
     MainWindow window;
     window.show();
 

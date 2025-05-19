@@ -150,7 +150,7 @@ const std::map<QString, SetParamFunc> ParamSetters = {
 };
 
 #include "public/serial/LeiShenLidarN10Plus.h"
-LeiShenLidarN10Plus* gAnotherSerial = nullptr;//可使用智能指针 替代手动管理生命周期
+QPointer<LeiShenLidarN10Plus> gAnotherSerial;//可在其类内使用智能独占指针 当对象被删除时,QPointer自动设为nullptr,QPointer只能用于QObject及其子类
 
 bool DvpLineScanCamera::initialize() {
     qDebug() << "#DvpLineScanCamera: initialize";

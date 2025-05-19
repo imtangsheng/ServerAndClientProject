@@ -1,8 +1,15 @@
-# 指定最低CMake版本要求
-cmake_minimum_required(VERSION 3.16)
-# 在CMakeLists.txt之前设置
-# 定义项目名称和版本
-project(AcquisitionProject VERSION 1.0.0 LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.16) # 指定最低CMake版本要求
+# 定义项目名称和版本 
+project(AcquisitionProject VERSION 0.0.1 LANGUAGES CXX) #project() 会创建项目和VERSION版本的CMake 变量
+# 打印版本信息
+message("PROJECT_NAME: ${PROJECT_NAME}")
+message("AcquisitionProject_VERSION: ${AcquisitionProject_VERSION}")
+message("AcquisitionProject_VERSION_MAJOR: ${AcquisitionProject_VERSION_MAJOR}")
+message("PROJECT_VERSION: ${PROJECT_VERSION}")
+# 打印路径信息
+message("Source dir: ${AcquisitionProject_SOURCE_DIR}")
+message("Binary dir: ${AcquisitionProject_BINARY_DIR}")
+
 # 设置全局 Debug 后缀
 set(CMAKE_DEBUG_POSTFIX "d")
 # 设置特定目标的 Debug 后缀
@@ -16,6 +23,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /ZI")#启用 "编辑并继续" 功能的编译器选项
 # 包含通用设置和依赖
+
 # 设置可执行文件名称
 set(SHARE_NAME Shared)
 

@@ -9,11 +9,11 @@
 
 //#include "WorkHandler.h"
 // 定义雷达数据帧结构
-#define LIDAR_DATA_FRAME_SIZE 108
+constexpr quint8 LIDAR_DATA_FRAME_SIZE = 108;
 static inline const QByteArray LIDAR_DATA_FRAME_HEADER = QByteArrayLiteral("\xA5\x5A");
-#define LIDAR_DATA_POINT_CLOUD_SIZE 32
+constexpr auto LIDAR_DATA_POINT_CLOUD_SIZE = 32;
 
-#define LidarBaudRate 460800 //波特率 为460800
+constexpr qint32 LidarBaudRate = 460800; //波特率 为460800;
 #pragma pack(push, 1)  // 设置1字节对齐
 // 雷达数据点结构
 typedef struct {

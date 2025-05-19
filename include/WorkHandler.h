@@ -128,7 +128,7 @@ inline static size_t qHash(const ProjectInfo& info, size_t seed = 0) noexcept {
 //记录当前的项目和执行的任务信息
 extern SHAREDLIB_EXPORT ProjectInfo* gProject;//当前正在执行的项目信息
 extern SHAREDLIB_EXPORT TaskInfo* gTask;//当前正在执行的任务信息
-inline static Atomic<quint8> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
+inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
 
 #define gWorkHandler WorkHandler::instance()
 class SHAREDLIB_EXPORT WorkHandler : public QObject
