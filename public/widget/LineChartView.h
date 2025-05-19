@@ -1,6 +1,8 @@
 #ifndef LINECHARTVIEW_H
 #define LINECHARTVIEW_H
 
+#include <QtCore>
+#include <QtGui> // ✅ 正确引入 QtCharts 中的类
 #include <QChartView>
 #include <QChart>
 #include <QLineSeries>

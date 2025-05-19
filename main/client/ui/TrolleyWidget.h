@@ -8,6 +8,7 @@
 // class TrolleyWidget;
 // }
 
+#include "public/widget/LineChartView.h"
 class TrolleyWidget : public IWidget
 {
     Q_OBJECT
@@ -45,5 +46,5 @@ private slots:
 private:
     void retranslate();// 对自定义组件（如图表） 更新显示,重新翻译
 };
-extern QPointer<TrolleyWidget>gTrolley;
+
 #endif // TROLLEYWIDGET_H

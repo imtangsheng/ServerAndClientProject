@@ -13,7 +13,6 @@ set(CORE_FILES
 )
 #Custom drawing自定义的绘制控件
 set(CustomUI_FILES
-    #ui/ImageViewer.h ui/ImageViewer.cpp ui/ImageViewer.ui
     ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.h ${PROJECT_SOURCE_DIR}/public/widget/LineChartView.cpp
     ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.h ${PROJECT_SOURCE_DIR}/public/widget/AlarmToolButton.cpp
 
