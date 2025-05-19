@@ -19,7 +19,7 @@ ManagerPlugin::~ManagerPlugin()
 Result ManagerPlugin::start(QStringList& pluginsName) {
     Result result(true);
 	for (const auto& name: pluginsName) {
-		result = m_plugins[name].interface->OnStarted();
+		result = m_plugins[name].self->OnStarted();
         if (!result) break;
 	}
     return result;
@@ -28,7 +28,7 @@ Result ManagerPlugin::start(QStringList& pluginsName) {
 Result ManagerPlugin::stop(QStringList& pluginsName) {
 	Result ret(true);
 	for (const auto& name : pluginsName) {
-		ret = m_plugins[name].interface->OnStopped();
+		ret = m_plugins[name].self->OnStopped();
         if (!ret) break;
 	}
     return ret;
@@ -114,7 +114,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	// 添加插件到列表 存储插件信息
 	PluginData pluginData;
 	pluginData.loader = loader;
-	pluginData.interface = plugin;
+	pluginData.self = plugin;
 	pluginData.json = jsonFile;
 	m_plugins.insert(pluginName, pluginData);
 	qInfo() << "Plugin loaded:" << pluginName << "version:" << plugin->version() << "name:" << plugin->name();
@@ -149,7 +149,7 @@ IPluginDevice* ManagerPlugin::PluginGetPtr(const QString& pluginName)
 	if (!m_plugins.contains(pluginName)) {
 		return nullptr;
 	}
-	return m_plugins[pluginName].interface;
+	return m_plugins[pluginName].self;
 }
 
 void ManagerPlugin::switch_plugin(const QString& pluginName, const bool& enable)

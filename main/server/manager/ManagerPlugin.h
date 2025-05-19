@@ -54,7 +54,7 @@ public slots:
 private:
     struct PluginData {
         QPluginLoader* loader{nullptr};
-        IPluginDevice* interface{ nullptr };
+        IPluginDevice* self{ nullptr };
         QJsonObject json;
     };
 
