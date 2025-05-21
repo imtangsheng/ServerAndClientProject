@@ -29,16 +29,16 @@ int main(int argc, char* argv[])
 	QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
 	qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
 	qDebug() << "Sortware version:" << __DATE__ << " " << __TIME__ << "Qt version : " << QT_VERSION_STR << "C++ version : " << __cplusplus;
-    gSouth.InitConfigSettings(appDir.absolutePath(), "server");//初始化配置文件路径,名称
-    gSouth.sessiontype_ = int(SessionType::Server);
+    gShare.InitConfigSettings(appDir.absolutePath(), "server");//初始化配置文件路径,名称
+    gShare.sessiontype_ = int(SessionType::Server);
     // 设置语言
 	QString language = gSettings->value("language").toString();
 	if (language.isEmpty()) {
 		QString locale = QLocale::system().name();
 		language = QLocale(locale).name();
 	}
-    gSouth.language = language;
-	QObject::connect(&gSouth, &south::Shared::signal_translator_load, &app, [&app](QTranslator& translator,bool isLoad) {
+    gShare.language = language;
+	QObject::connect(&gShare, &share::Shared::signal_translator_load, &app, [&app](QTranslator& translator,bool isLoad) {
 		if (isLoad) {
 			app.installTranslator(&translator);
 		} else {

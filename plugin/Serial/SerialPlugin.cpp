@@ -71,7 +71,7 @@ void SerialPlugin::SetSpeedMultiplier(const Session& session) {
         if (ok) {
             speed_multiplier = num;
         } else {
-            gSouth.on_send(Result::Failure(tr("you enter a type that is not double, it is invalid")), session);
+            gShare.on_send(Result::Failure(tr("you enter a type that is not double, it is invalid")), session);
         }
     }
     {//对配置加锁
@@ -81,7 +81,7 @@ void SerialPlugin::SetSpeedMultiplier(const Session& session) {
         config_["general"] = general;
     }
     Result result = WriteJsonFile(ConfigFilePath(), config_);
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 #endif // DEVICE_TYPE_CAR
 void SerialPlugin::initUi(const Session& session) {
@@ -100,7 +100,7 @@ void SerialPlugin::SaveConfig(const Session& session) {
     if (!result) {
         LOG_WARNING(tr("Save params error:%1").arg(result.message));
     }
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void SerialPlugin::execute(const QString& method) {
@@ -118,7 +118,7 @@ void SerialPlugin::open(const Session& session) {
         return;
     }
     Result result = gSerial->open(port);
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void SerialPlugin::start(const Session& session) {
@@ -143,7 +143,7 @@ void SerialPlugin::SetParamsByCode(const Session& session) {
         gSerial->WriteData(code, data);
         g_serial_session.addSession(code, session);
     } else {
-        gSouth.on_send(Result::Failure(tr("The key value \"code\" does not exist in the of JSON the Params")), session);
+        gShare.on_send(Result::Failure(tr("The key value \"code\" does not exist in the of JSON the Params")), session);
     }
 }
 
@@ -154,5 +154,5 @@ void SerialPlugin::onConfigChanged() const {
 void SerialPlugin::SetParams(const Session& session) {
     QJsonObject root = session.params.toObject();
     Result result = gSerial->SetConfig(root);
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }

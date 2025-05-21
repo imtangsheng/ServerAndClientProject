@@ -41,7 +41,7 @@ Q_ENUM_NS(SerialDeviceType)
 
 #pragma region serialport
 //固定的模块名称
-inline static const QString g_module_name = south::Shared::GetModuleName(south::ModuleName::serial);
+inline static const QString g_module_name = share::Shared::GetModuleName(share::ModuleName::serial);
 typedef char FunctionCodeType;
 #define Function_Code(name) def_##name(const QByteArray& data)
 #define DefineFunction(name) funtion##name(const QByteArray& data)

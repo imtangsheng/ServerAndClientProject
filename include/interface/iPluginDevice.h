@@ -46,21 +46,21 @@ public:
         if (!translator.load(":/" + name() + "/" + zh_CN)) {
             LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(zh_CN));
         }
-        if (gSouth.language == zh_CN) {
-            emit gSouth.signal_translator_load(translator, true);
+        if (gShare.language == zh_CN) {
+            emit gShare.signal_translator_load(translator, true);
         }
-        connect(&gSouth, &south::Shared::signal_language_changed, this, [this](const QString& language) {
+        connect(&gShare, &share::Shared::signal_language_changed, this, [this](const QString& language) {
             if (language == zh_CN) {
-                emit gSouth.signal_translator_load(translator, true);
+                emit gShare.signal_translator_load(translator, true);
             } else {
-                emit gSouth.signal_translator_load(translator, false);
+                emit gShare.signal_translator_load(translator, false);
             }
             });
 
         LoadConfigFromFile(ConfigFilePath());//加载配置文件到 params_
 
         //注册设备控制模块
-        gSouth.RegisterHandler(_module(), this);
+        gShare.RegisterHandler(_module(), this);
     }
 
     virtual Result disconnect() = 0; // 断开连接
@@ -115,13 +115,13 @@ protected:
 
     QTranslator translator;//成员变量,用于国际化 必须由qt主线程析构
     QString ConfigFilePath() const {
-        static QString filePath = gSouth.appDirPath + "/config/" + name() + ".json";
+        static QString filePath = gShare.appPath + "/config/" + name() + ".json";
         return filePath;
     }
     Result LoadConfigFromFile(const QString& jsonFilePath) {
         Result result;
         QString absolutePath;
-        result = gSouth.FindFilePath(jsonFilePath, absolutePath);
+        result = gShare.FindFilePath(jsonFilePath, absolutePath);
         if (!result || absolutePath.isEmpty()) {
             LOG_WARNING(result.message);
             return result;

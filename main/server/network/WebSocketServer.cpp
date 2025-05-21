@@ -34,8 +34,8 @@ WebSocketServer::~WebSocketServer()
 void WebSocketServer::initialize()
 {
 	// 通过信号槽在不同线程之间传递消息 使用const不可以使用this的对象,因为父子对象的不是const的
-    connect(&gSouth, &south::Shared::sigSent, this, &WebSocketServer::handleMessageSent);
-	connect(&gSouth, &south::Shared::sigSentBinary, this, &WebSocketServer::handleBinarySent);
+    connect(&gShare, &share::Shared::sigSent, this, &WebSocketServer::handleMessageSent);
+	connect(&gShare, &share::Shared::sigSentBinary, this, &WebSocketServer::handleBinarySent);
 	connect(&gLog, &Logger::new_message, this, &WebSocketServer::handleLogMessageSent);
 }
 
@@ -154,7 +154,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 	connect(newSocket, &QWebSocket::textMessageReceived, this, &WebSocketServer::handle_text_message);
 	//返回消息,验证设备版本号是否一致
 	//handleMessageSent()
-	QJsonArray array{ double(deviceType),gSouth.GetVersion()};
+	QJsonArray array{ double(deviceType),gShare.GetVersion()};
 	newSocket->sendTextMessage(Session::RequestString(1, sModuleUser, "login_verify", array));
 }
 
@@ -171,7 +171,7 @@ void WebSocketServer::handle_text_message(const QString& message)
 		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("Invalid JOSN Data:%1").arg(message.size())));
 	}
 	//Result result = gController.invoke(jsonDoc.object(), pClient);
-	Result result = south::Shared::instance().invoke(jsonDoc.object(), sender());
+	Result result = share::Shared::instance().invoke(jsonDoc.object(), sender());
     if (!result) {
 		qWarning() << "消息处理失败:" << QThread::currentThread() << "[message]" << message;
 		pClient->sendTextMessage(result.message);
@@ -196,7 +196,7 @@ void WebSocketServer::handle_binary_message(const QByteArray& message)
 	QByteArray data;
 	in >> data;
 	qDebug() << "invoke:" << invoke << "size:" << data.size();
-	gSouth.handlerBinarySession[south::ModuleName(invoke)](data);
+	gShare.handlerBinarySession[share::ModuleName(invoke)](data);
 }
 
 void WebSocketServer::on_socket_disconnected()

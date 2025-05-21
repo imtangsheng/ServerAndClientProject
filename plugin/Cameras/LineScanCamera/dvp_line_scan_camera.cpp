@@ -107,11 +107,11 @@ INT struCameraInfo::AcquiringImage(dvpFrame* pFrame, void* pBuffer) const {
     //imageInfo["format"] = format;
     //imageInfo["data"] = base64Data;//图片原始数据,需要压缩后传输
     //Todo 发送图片数据
-    //emit gSouth.sigSent(Session::RequestString(11, "camera", "onImageInfoChanged", imageInfo));
+    //emit gShare.sigSent(Session::RequestString(11, "camera", "onImageInfoChanged", imageInfo));
 
 
     //二进制数据 发送
-    quint8 invoke = south::ModuleName::camera;
+    quint8 invoke = share::ModuleName::camera;
     quint8 userID = QString(info.UserID).toInt();
     quint32  triggerID = pFrame->uTriggerId;
     QByteArray bytes;
@@ -124,7 +124,7 @@ INT struCameraInfo::AcquiringImage(dvpFrame* pFrame, void* pBuffer) const {
     //out.writeRawData(reinterpret_cast<const char*>(thumbnail.bits()), thumbnail.sizeInBytes());
     out << byteArray;
     qDebug() << "data.size" << bytes.size();
-    emit gSouth.sigSentBinary(bytes);
+    emit gShare.sigSentBinary(bytes);
     return 0;
 }
 
@@ -156,7 +156,7 @@ bool DvpLineScanCamera::initialize() {
     qDebug() << "#DvpLineScanCamera: initialize";
     has_image_format = "bmp,jpeg,jpg,png,tiff,tif,gif,dat";//支持的图片格式
     gAnotherSerial = new LeiShenLidarN10Plus();
-    //another = new LeiShenLidarN10Plus(nullptr,gSouth.RegisterSettings->value(KEY_LIDAR_PORTNAME).toString());
+    //another = new LeiShenLidarN10Plus(nullptr,gShare.RegisterSettings->value(KEY_LIDAR_PORTNAME).toString());
     return scan();
 }
 
@@ -192,7 +192,7 @@ Result DvpLineScanCamera::SetCameraConfig(const QJsonObject& config) {
             device.path = taskParams[device.info.UserID].toObject()["path"].toString();
         }
         //相机默认存储路径
-        if (device.path.isEmpty()) device.path = gSouth.appDirPath + "/CAM" + device.info.UserID + "/";
+        if (device.path.isEmpty()) device.path = gShare.appPath + "/CAM" + device.info.UserID + "/";
         QDir dir(device.path);
         if (!dir.exists()) {
             if (!dir.mkpath(device.path)) {
@@ -330,7 +330,7 @@ Result DvpLineScanCamera::open() {
         }
     }
 
-    if (!gAnotherSerial->open(gSouth.RegisterSettings->value(CAMERA_KEY_PORTNAME).toString())) {
+    if (!gAnotherSerial->open(gShare.RegisterSettings->value(CAMERA_KEY_PORTNAME).toString())) {
         return Result::Failure("打开雷达串口失败");
     };
     return Result(0, ("打开相机成功"));
@@ -428,12 +428,12 @@ Result DvpLineScanCamera::triggerFire() {
 }
 
 void DvpLineScanCamera::start(const Session& session) {
-    gSouth.on_send(start(), session);
+    gShare.on_send(start(), session);
 
 }
 
 void DvpLineScanCamera::stop(const Session& session) {
-    gSouth.on_send(stop(), session);
+    gShare.on_send(stop(), session);
 }
 
 Result DvpLineScanCamera::OnStarted(CallbackResult callback) {

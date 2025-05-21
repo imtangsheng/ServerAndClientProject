@@ -7,7 +7,7 @@
 */
 #pragma once
 
-//#include "WorkHandler.h"
+//#include "TaskManager.h"
 // 定义雷达数据帧结构
 constexpr quint8 LIDAR_DATA_FRAME_SIZE = 108;
 static inline const QByteArray LIDAR_DATA_FRAME_HEADER = QByteArrayLiteral("\xA5\x5A");
@@ -47,8 +47,8 @@ static void RecvRadarFrameData(const RadarFrame& data) {
     static quint8 data_len = sizeof(RadarFrame);
     //雷达数据
     if (gTaskState == TaskState_Running && radar_frame_file.initialize()) {
-        //雷达数据
-        radar_frame_file.WriteAndFlush(reinterpret_cast<const char*>(&data), data_len);
+        //雷达数据 数据量很大,基本都会粘包
+        radar_frame_file.Write(reinterpret_cast<const char*>(&data), data_len);
     }
 }
 

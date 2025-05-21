@@ -65,7 +65,7 @@ public:
         // 处理会话    
         //if (sessionMap.contains(code)) {
         //    for (const Session& session : sessionMap[code]) {
-        //        //gSouth.on_send(true, session);
+        //        //gShare.on_send(true, session);
         //        emit gSigSent(session.ResponseString(result, message), session.socket);
         //    }
         //    sessionMap.remove(code);

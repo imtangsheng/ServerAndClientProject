@@ -11,9 +11,9 @@
 #include <QTranslator>
 #include "global.h"
 //定义快捷方式
-#define gSouth south::Shared::instance()
-#define gSigSent south::Shared::instance().sigSent
-#define gSettings south::Shared::GetConfigSettings()
+#define gShare share::Shared::instance()
+#define gSigSent share::Shared::instance().sigSent
+#define gSettings share::Shared::GetConfigSettings()
 
 //定义模块名称 对非的插件类适用
 constexpr auto sModuleScanner = "scanner";
@@ -23,110 +23,15 @@ constexpr auto sModuleSerial = "serial";
 constexpr auto sModuleOther = "other";
 constexpr auto sModuleUser = "user";
 
-
 /*@brief 定义注册表的键值*/
 constexpr auto CAMERA_KEY_PORTNAME = "CameraPortName" ;
-
+constexpr auto TASK_KEY_DATAPAHT = "TaskDataPath";
 
 /*本地变量保存类型*/
 static const QString zh_CN = "zh_CN";
 static const QString en_US = "en_US";
 
-
-#include <QFile>
-#include <QDir>
-#include <QFileInfo>
-#include <QLockFile>
-
-inline static Result ReadJsonFile(const QString& filePath, QJsonObject& json) {
-    QFile configFile(filePath);
-    // 尝试打开文件
-    if (!configFile.open(QIODevice::ReadOnly)) {
-        return Result::Failure(QObject::tr("Failed to open file: %1").arg(filePath));
-    }
-    // 读取JSON文件内容
-    QByteArray data = configFile.readAll();
-    configFile.close();
-    // 读取并解析JSON数据
-    QJsonParseError parseError;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(data, &parseError);
-    if (parseError.error != QJsonParseError::NoError) {
-        return Result::Failure(QObject::tr("JSON file parse error:%2").arg(filePath).arg(parseError.errorString()));
-    }
-
-    if (jsonDoc.isNull() || !jsonDoc.isObject()) {
-        return Result::Failure(QObject::tr("file is not a valid JSON object: %1").arg(filePath));
-    }
-    json = jsonDoc.object();
-    return true;
-}
-
-inline static Result WriteJsonFile(const QString& filePath, const QJsonObject& json) {
-    // 检查并创建目录
-    QFileInfo fileInfo(filePath);
-    QString dirPath = fileInfo.path();
-    QDir dir(dirPath);
-    if (!dir.exists()) {
-        if (!dir.mkpath(dirPath)) {
-            return Result::Failure(QObject::tr("Failed to create directory: %1").arg(dirPath));
-        }
-    }
-    // 创建JSON文档
-    QJsonDocument doc(json);
-    QByteArray jsonData = doc.toJson(QJsonDocument::Indented);
-
-    // 写入文件（使用QLockFile确保文件写入的互斥性）
-    QLockFile lockFile(filePath + ".lock");
-    if (!lockFile.lock()) {
-        return Result::Failure(QObject::tr("Failed to lock file: %1").arg(filePath + ".lock"));
-    }
-    // 写入文件,使用绝对路径,如果目录不存在会无法写入
-    QFile file(filePath);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        lockFile.unlock();
-        QString errorMsg = QObject::tr("Failed to open file: %1 error:%2").arg(filePath).arg(file.errorString());
-        file.close();
-        return Result::Failure(errorMsg);
-    }
-    qint64 bytesWritten = file.write(jsonData);
-    file.close();
-    lockFile.unlock();
-    if (bytesWritten == -1) {
-        QString errorMsg = QObject::tr("Failed to write file: %1 error:%2").arg(filePath).arg(file.errorString());
-        return Result::Failure(errorMsg);
-    }
-    return true;
-}
-
-// 6.9 版本的文件中读取json值
-inline static Result GetJsonValue(const QString& path, QJsonValue& value) {
-    QFile file(path);// 1. 打开 JSON 文件
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return Result::Failure(QObject::tr("Failed to open file:%1 Error is:%2").arg(path, file.errorString()));
-    }
-    QByteArray jsonData = file.readAll();// 2. 读取文件内容
-    file.close();
-    QJsonParseError parseError;// 3. 使用 QJsonValue::fromJson 解析
-    value = QJsonValue::fromJson(jsonData, &parseError);
-    if (parseError.error != QJsonParseError::NoError) {// 4. 检查解析错误
-        return Result::Failure(QObject::tr("JSON parsing failed:%1 Error is:%2 At offset:%3").arg(path, parseError.errorString()).arg(parseError.offset));
-    }
-    return true;
-}
-
-inline static Result GetJsonValue(const QString& path, QJsonObject& obj) {
-    QJsonValue value;
-    Result result = GetJsonValue(path, value);
-    if (!result) return result;
-    if (value.isObject()) {
-        obj = value.toObject();
-        return true;
-    } else {
-        return Result::Failure(QObject::tr("JSON parsing is %1 Not Object:%2").arg(value.type(), QJsonValue::Object));
-    }
-}
-
-namespace south {
+namespace share {
     Q_NAMESPACE
         enum ModuleName {
         serial,
@@ -168,11 +73,11 @@ public:
     QString GetVersion ();//项目版本信息 宏定义
     QString language;//记录当前显示语言
 
-    QString appDirPath{ "../" };
+    QString appPath{ "../" };
     QSharedPointer<QSettings> RegisterSettings;//注册表设置,使用invokeMethod方法调用函数
     QMap<ModuleName, BinarySessionHandler> handlerBinarySession;
-    void InitConfigSettings(const QString& appPath, const QString& appName) {
-        appDirPath = appPath;
+    void InitConfigSettings(const QString& path, const QString& appName) {
+        appPath = path;
         RegisterSettings.reset(new QSettings("South_Software", appName));
         GetConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath).arg(appName), QSettings::IniFormat));
     }
@@ -198,127 +103,8 @@ public:
         session.socket = client; //Q_INVOKABLE 使方法可以通过信号与槽机制、或者通过 QMetaObject::invokeMethod 等方式动态调用
         return invoke(session);
     }
-    /**
-		* @param Session 消息内容的结构体,接收消息结构体
-		*/
-    Result invoke(const Session& session) {
-        // 获取目标模块的对象
-        QObject* targetObject = handlers[session.module];
-        QByteArray utf8Data = session.method.toUtf8();//toUtf8()返回的临时QByteArray对象在语句执行完毕后被销毁，导致指向无效字符的指针。
-        const char* method = utf8Data.constData();//method指针指向utf8Data对象,仍然有效。
-        bool success{ false };// 调用方法目标模块的对象返回
-        /// 1.使用可变参数模板调用 std::apply(func, std::tuple);需要确定参数个数,std::make_index_sequence<>常量类型故不使用
-        /// 2.使用模板递归的方法,需要引用常量类型,不支持动态参数
-        if (session.params.isArray()) {// 判断是否为数组
-            QJsonArray array = session.params.toArray();
-            int paramCount = array.size();
-            if (paramCount > 10) { // QMetaObject::invokeMethod 最多支持 10 个参数
-                qWarning() << "Too many parameters for invokeMethod!";
-                return Result(false, session.ErrorString(-2, tr("最多支持 10 个参数")));
-            }
-            QGenericArgument* argv = new QGenericArgument[paramCount];  // 动态分配参数数组
-            QList<QVariant> tempStorage;  // 用来临时存储数据，避免悬空指针,字符传入失败
-            // 遍历请求的参数，并根据类型转换为 QGenericArgument
-            for (int i = 0; i < paramCount; ++i) {
-                QJsonValue param = array[i];
-                if (param.isString()) {
-                    tempStorage.append(param.toString());  // 确保 QString 存活,不然会被释放,其他类型不会
-                    //argv[i] = QGenericArgument("QString", reinterpret_cast<const void*>(&tempStorage.last()));
-                    argv[i] = QGenericArgument("QString", &tempStorage.last());
-                    //argv[i] = Q_ARG(QString, &tempStorage.last().toString());//不可用
-                }
-                else if (param.isBool()) {
-                    tempStorage.append(param.toBool()); argv[i] = QGenericArgument("bool", reinterpret_cast<const void*>(&tempStorage.last()));
-                }
-                else if (param.isDouble()) {
-                    tempStorage.append(param.toDouble()); argv[i] = QGenericArgument("double", &tempStorage.last());
-                }
-                else if (param.isObject()) {
-                    tempStorage.append(param.toObject()); argv[i] = QGenericArgument("QJsonObject", reinterpret_cast<const void*>(&tempStorage.last()));
-                }
-                else {
-                    delete[] argv;  // 释放内存
-                    return Result(false, session.ErrorString(-2, tr("发送的参数类型是不支持的参数类型")));
-                }
-            }
-            switch (paramCount) {
-            case 0:success = QMetaObject::invokeMethod(targetObject, method); break;
-            case 1:success = QMetaObject::invokeMethod(targetObject, method, argv[0]); break;
-            case 2:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1]); break;
-            case 3:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2]); break;
-            case 4:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2], argv[3]); break;
-            case 5:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2], argv[3], argv[4]); break;
-            case 6:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]); break;
-            case 7:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]); break;
-            case 8:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]); break;
-            case 9:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]); break;
-            case 10:success = QMetaObject::invokeMethod(targetObject, method, argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8], argv[9]); break;
-            default:
-                qFatal() << "Qt is support 10 params,Unsupported number of arguments!";
-                break;
-            }
-            delete[] argv;
-        }
-        else
-        {
-            // 默认使用请求对象作为参数 isNull()是否无效或者未定义值 其他参数调用默认 备注:空的""为字符串类型,会判断为有效值
-            success = QMetaObject::invokeMethod(targetObject, method, Q_ARG(const Session&, session));
-        }
-        if (!success)//如果未找到调用的方法,返回失败,支持函数重载
-        {
-            return Result(false, session.ErrorString(-3, tr("方法调用失败,请检测模块%1的方法:%2使用的参数是否正确").arg(session.module).arg(session.method)));
-        }
-        return true;
-    }
-    /** 调用异步函数
-			// 调用异步方法
-			QFuture<QJsonObject> future = invokeHandlerAsync("module1", "method1", data);
-			// 方式1: 使用 then() 处理结果
-			future.then([](const QJsonObject& result) {
-				// 处理成功的结果
-			}).onFailed([](const QException& error) {
-				// 处理错误
-			});
-			// 方式2: 等待结果
-			try {
-				QJsonObject result = future.result();
-				// 处理结果
-			} catch (const QException& e) {
-				// 处理错误
-			}
-		**/
-    QFuture<Result> invoke_async(const Session& session) {
-        // 1. 创建Promise和Future
-        // 使用 std::make_shared 来存储 promise
-        // 使用 QSharedPointer 创建 promise
-        auto promise = QSharedPointer<QPromise<Result>>(new QPromise<Result>());
-        QFuture<Result> future = promise->future();
-        // 2. 使用QMetaObject::invokeMethod在事件循环中执行操作
-        QMetaObject::invokeMethod(this, [this, session, promise]() mutable {
-            try {
-                // 3. 执行实际操作
-                Result success = invoke(session);
-                // 4. 设置结果
-                if (success) {
-                    promise->addResult(Result(true, "成功"));// 成功时返回结果
-                }
-                else {
-                    emit sigSent(session.ErrorString(-2, tr("调用失败")), session.socket);
-                    qWarning() << "Failed to invoke handler" << session.module;
-                    promise->addResult(Result(false, "调用失败"));// 成功时返回结果
-                }
-            }
-            catch (const std::exception& e) {
-                emit sigSent(session.ErrorString(-2, e.what()), session.socket);
-                qWarning() << "Failed to invoke handler" << e.what();
-                promise->addResult(Result(false, e.what()));// 成功时返回结果
-            }
-            // 完成 promise
-            promise->finish();
-        }, Qt::QueuedConnection);// 指定使用队列连接方式
-        // 5. 立即返回future对象
-        return future;
-    }
+    Result invoke(const Session& session);
+    QFuture<Result> invoke_async(const Session& session);
 #pragma endregion
 
     static QSharedPointer<QSettings>& GetConfigSettings() {
@@ -353,5 +139,5 @@ signals:
 };
 
 
-}//end namespace south
+}//end namespace share
 #endif

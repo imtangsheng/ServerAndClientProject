@@ -1,6 +1,5 @@
 #include "ActiveSerial.h"
 
-#include "WorkHandler.h"
 //定义上传数据处理函数
 #pragma region FunctionCodeUploadDataHandler//上传数据处理函数
 #ifdef DEVICE_TYPE_CAR
@@ -154,7 +153,7 @@ void ActiveSerial::start(const Session& session) {
     gSerial->WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00：启动小车 01：启动并清除里程
     g_serial_session.addSession(CAR_STARTUP, session);
 #else
-    gSouth.on_send(Result::Failure(tr("The device type is not defined")), session);
+    gShare.on_send(Result::Failure(tr("The device type is not defined")), session);
 #endif // DEVICE_TYPE_CAR
 }
 
@@ -178,7 +177,7 @@ void ActiveSerial::stop(const Session& session) {
     WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x00)));
     g_serial_session.addSession(CAMERA_START_STOP, session);
 #else
-    gSouth.on_send(Result::Failure(tr("The device type is not defined")), session);
+    gShare.on_send(Result::Failure(tr("The device type is not defined")), session);
 #endif // DEVICE_TYPE_CAR
 }
 
@@ -490,7 +489,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
             LOG_ERROR(tr("The device type that is currently set is inconsistent with the device type that is currently supported!"));
         }
         //kSupportedSerialDevices = type;
-        gSouth.RegisterSettings->setValue("type", type);//注册表类型设置
+        gShare.RegisterSettings->setValue("type", type);//注册表类型设置
     }break;
     default:
         return SerialPortTemplate::HandleProtocol(code, data);

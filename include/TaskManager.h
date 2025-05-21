@@ -1,5 +1,5 @@
 /**
- * @file WorkHandler.h
+ * @file TaskManager.h
  * @brief 工作任务处理流程信息和控制类方法集合
  *
  * 显示任务数据文件结构示例图
@@ -34,7 +34,7 @@
 
 #ifndef _WORK_H_
 #define _WORK_H_
-
+#include "file_read_and_save.h"
 //声明友元类的json数据名称,用于处理端交互固定的名称
 #define FRIEND_PROJECT_NAME		"ProjectName"
 #define FRIEND_PROJECT_CONTENT	"ProjectContent"
@@ -51,178 +51,149 @@
 #define FRIEND_CAMERA_POSITION	"CameraPostion"
 #define FRIEND_IMAGE_ACCURACY		"Accuracy"
 
-static inline constexpr std::string_view kProjectNameSuffix = ".nfproj";//项目文件名后缀
+static inline const QString kProjectNameSuffix = ".nfproj";//项目文件名后缀
 static inline constexpr const char* kProjectInfoFileName = "project_info.json";////项目文件信息json数据
 static inline constexpr const char* kTaskInfoFileName = "task_info.json";//任务文件信息json数据
 static inline constexpr const char* kTaskDirCarName = "Task";//任务数据存储文件夹
 static inline constexpr const char* kTaskDirCameraName = "Pics";//相机数据存储文件夹
 static inline constexpr const char* kTaskDirPointCloudName = "PointCloud";//扫描仪数据存储文件夹
 
-#include <QSet>
+inline static const QString cKeyName{ "name" };
+inline static const QString cKeyPath{ "path" };
+inline static const QString cKeyData{ "data" };
+//上下文信息,包含对应list的数据,列如项目中包含任务信息的json数据
+inline static const QString cKeyContent{ "content" };
 
-struct TaskInfo //The current task tunnel
+struct TaskInfo
 {
-    QString path;
-    QJsonObject obj;//任务信息记录json数据
-    TaskInfo(const QString& absilutePath = QString()) :path(absilutePath) {}
-    // 任务信息记录json数据
-    // 添加比较运算符
-    bool operator<(const TaskInfo& other) const {
-        return path < other.path;
-    }
-    // 添加相等运算符
-    bool operator==(const TaskInfo& other) const {
-        return path == other.path;
-    }
+    QString name; //名称 对应key cKeyName
+    QString path; //绝对路径 对应key cKeyPath
+    QJsonObject data;
 };
-inline static size_t qHash(const TaskInfo& info, size_t seed = 0) noexcept {
-    return qHash(info.path, seed);
-}
-
-struct ProjectInfo
-{
-    QString path;
-    QJsonObject obj;//项目信息记录json
-    QSet <TaskInfo> tasks;//使用QSet存储任务信息,避免重复添加相同的任务
-    ProjectInfo(const QString& absilutePath = QString()) :path(absilutePath) {}
-
-    Result AddTask(const TaskInfo& task) {
-        if (tasks.contains(task)) {
-            return Result::Failure(QObject::tr("#AddTask:Task already exists:%1").arg(task.path));
-        }
-        tasks.insert(task);
-        //写入json配置到文件中
-        if (!WriteJsonFile(task.path + "/" + kTaskInfoFileName, task.obj)) {
-            return Result::Failure(QObject::tr("#AddTask:Task file write failed:%1").arg(task.path));
-        }
-        return Result::Success();
-    }
-    Result DeleteTask(const TaskInfo& task) {
-        if (!tasks.contains(task)) {
-            return Result::Failure(QObject::tr("#DeleteTask:Task does not exist:%1").arg(task.path));
-        }
-        tasks.remove(task);
-        //删除任务文件夹
-        QDir dir(task.path);
-        if (dir.exists()) {
-            if (!dir.removeRecursively()) {//永久删除,如果无法删除文件或目录，则会继续运行并尝试删除尽可能多的文件和子目录，然后返回 false
-                return Result::Failure(QObject::tr("#DeleteTask:Task folder removed failed:%1").arg(task.path));
-            }
-        }
-        return Result::Success();
-    }
-    // 添加比较运算符
-    bool operator<(const ProjectInfo& other) const {
-        return path < other.path;
-    }
-    // 添加相等运算符
-    bool operator==(const ProjectInfo& other) const {
-        return path == other.path;
-    }
-};
-
-inline static size_t qHash(const ProjectInfo& info, size_t seed = 0) noexcept {
-    return qHash(info.path, seed);
-}
-
 //记录当前的项目和执行的任务信息
-extern SHAREDLIB_EXPORT ProjectInfo* gProject;//当前正在执行的项目信息
 extern SHAREDLIB_EXPORT TaskInfo* gTask;//当前正在执行的任务信息
 inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
 
-#define gWorkHandler WorkHandler::instance()
-class SHAREDLIB_EXPORT WorkHandler : public QObject
+#define gTaskManager TaskManager::instance()
+class SHAREDLIB_EXPORT TaskManager : public QObject
 {
     Q_OBJECT
 public:
-    static WorkHandler& instance() {//使用引用,返回其静态变量,不进行拷贝数据
-        static WorkHandler instance;
+    static TaskManager& instance() {//使用引用,返回其静态变量,不进行拷贝数据
+        static TaskManager instance;
         return instance;
     }
+    QJsonObject data;//工作目录下的json执行的任务信息数据,方便传输和交换
 
-    QSet<ProjectInfo> projects;
-
-    Result initialize(const QString& path) {
-        QDir dir(path);
-        if (!dir.exists() && !dir.mkpath(".")) {// QDIR.mkpath(".") 时,它会尝试在当前目录下创建一个新的目录。如果目录已经存在,它不会做任何操作
-            return Result::Failure(tr("#WorkHandler:Directory creation failed:%1").arg(path));
+    Result AddProject(const QJsonObject& project) {
+        QJsonObject projects = data[cKeyContent].toObject();
+        QString name = project.value(cKeyName).toString();
+        if (name.isEmpty() || projects.contains(name)) {
+            return Result::Failure(tr("AddProject is Failed,The project name is empty or the project to be added already exists."));
         }
-        //获得只返回当前目录下的所有子目录(不包括 . 和 ..) 的效果
-        QStringList projectNameList = dir.entryList(QStringList() << QString("*%1").arg(kProjectNameSuffix), QDir::Dirs | QDir::NoDotAndDotDot);
-        // Read project data
-        projects.clear();
-        for (auto& projectDir : projectNameList) {
-            //添加项目
-            QString absiluteProjectPath = dir.absoluteFilePath(projectDir);//获取项目绝对路径
-            QString projectFilePath = absiluteProjectPath + "/" + kProjectInfoFileName;
-            ProjectInfo project(absiluteProjectPath);//路径名称唯一值
-            if (!GetJsonValue(projectFilePath, project.obj)) {
-                continue;//读取或者解析json失败
-            }
-            projects.insert(project);
-            //项目任务处理
-            QDir dirTask(absiluteProjectPath);
-            QStringList taskNameList = dirTask.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
-            for (auto& taskDir : taskNameList) {
-                //添加任务
-                QString absiluteTaskPath = dirTask.absoluteFilePath(taskDir);//获取任务绝对路径
-                QString taskFilePath = absiluteTaskPath + "/" + kTaskInfoFileName;
-                TaskInfo task(absiluteTaskPath);
-                if (!GetJsonValue(taskFilePath, task.obj)) {
-                    continue;
-                }
-                //添加任务
-                project.AddTask(task);
-            }
-        }
-        return true;
-    };
-
-    Result AddProject(const ProjectInfo& project) {
-        if (projects.contains(project)) {
-            return Result::Failure(tr("AddProject is Failed,The project added already exists."));
-        }
-        projects.insert(project);
         //写入json配置到文件中
-        if (!WriteJsonFile(project.path + "/" + kProjectInfoFileName, project.obj)) {
+        if (!WriteJsonFile(project.value(cKeyPath).toString() + "/" + kProjectInfoFileName, project.value(cKeyData).toObject())) {
             return Result::Failure(tr("AddProject is Failed,The project file write failed."));
         }
+        projects[name] = project;
+        data[cKeyContent] = projects;
         return true;
     }
 
-    Result DeleteProject(const ProjectInfo& project) {
-        if (!projects.contains(project)) {
+    Result DeleteProject(const QJsonObject& project) {
+        QJsonObject projects = data[cKeyContent].toObject();
+        QString name = project.value(cKeyName).toString();
+        if (!projects.contains(name)) {
             return Result::Failure(tr("DeleteProject is Failed, The project removed does not exist."));
         }
-        projects.remove(project);
         //删除项目文件夹
-        QDir dir(project.path);
+        QDir dir(project.value(cKeyPath).toString());
         if (dir.exists()) {
             if (!dir.removeRecursively()) {//永久删除,如果无法删除文件或目录，则会继续运行并尝试删除尽可能多的文件和子目录，然后返回 false
                 return Result::Failure(tr("DeleteProject is Failed, The project folder removed failed."));
             }
         }
+        projects.remove(name);
+        data[cKeyContent] = projects;
         return true;
     }
 
+    Result AddTask(const QJsonObject& task) {
+        //获取任务目录的上一级目录名称就是项目名称
+        QDir dir(task.value(cKeyPath).toString());
+        if (!dir.cdUp()) {
+            return Result::Failure(tr("AddTask is Failed, No parent directory for %1.").arg(dir.absolutePath()));
+        }
+        QString projectName = dir.dirName();
+        QJsonObject projects = data[cKeyContent].toObject();
+        if(projectName.isEmpty() || !projects.contains(projectName)){
+            return Result::Failure(tr("AddTask is Failed, The project does not exist: %1.").arg(projectName));
+        }
+        QJsonObject project = projects.value(projectName).toObject();
+        QString name = task.value(cKeyName).toString();
+        QJsonObject tasks = project.value(cKeyContent).toObject();
+        if (name.isEmpty() || tasks.contains(name)) {
+            return Result::Failure(tr("AddTask is Failed, The task name is empty or the task to be added already exists: %1.").arg(name));
+        }
+
+        //写入json配置到文件中
+        if (!WriteJsonFile(task.value(cKeyPath).toString() + "/" + kTaskInfoFileName, task.value(cKeyData).toObject())) {
+            return Result::Failure(tr("AddTask is Failed, The task file write failed."));
+        }
+        tasks[name] = task; //更新任务
+        project[cKeyContent] = tasks;//保存任务
+        projects[projectName] = project;//更新项目
+        data[cKeyContent] = projects;//保存项目
+        return true;
+    }
+    Result DeleteTask(const QJsonObject& task) {
+        //获取任务目录的上一级目录名称就是项目名称
+        QDir dir(task.value(cKeyPath).toString());
+        if (!dir.cdUp()) {
+            return Result::Failure(tr("DeleteTask is Failed, No parent directory for %1.").arg(dir.absolutePath()));
+        }
+        QString projectName = dir.dirName();
+        QJsonObject projects = data[cKeyContent].toObject();
+        if(projectName.isEmpty() || !projects.contains(projectName)){
+            return Result::Failure(tr("DeleteTask is Failed, The project does not exist: %1.").arg(projectName));
+        }
+        QJsonObject project = projects.value(projectName).toObject();
+        QJsonObject tasks = project.value(cKeyContent).toObject();
+        QString name = task.value(cKeyName).toString();
+        if (!tasks.contains(name)) {
+            return Result::Failure(tr("DeleteTask is Failed, The task removed does not exist."));
+        }
+        //删除任务文件夹
+        QDir dirTask(task.value(cKeyPath).toString());
+        if (dirTask.exists()) {
+            if (!dir.removeRecursively()) {
+                return Result::Failure(tr("DeleteTask is Failed, The task folder removed failed."));
+            }
+        }
+        tasks.remove(name);
+        project[cKeyContent] = tasks;
+        projects[projectName] = project;
+        data[cKeyContent] = projects;
+        return true;
+    }
 protected:
     // 保护构造函数,只能继承使用
-    explicit WorkHandler(QObject* parent = nullptr) : QObject(parent) {
-        qDebug() << ("WorkHandler - Current thread:") << QThread::currentThread();
+    explicit TaskManager(QObject* parent = nullptr) : QObject(parent) {
+        qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
     }
-    ~WorkHandler();
+    ~TaskManager();
 signals:
     void started();
-    void completed();
+    void finished();
 };
 
 class SHAREDLIB_EXPORT SavaDataFile : public QObject
 {
     Q_OBJECT
 public:
-    SavaDataFile(const QString& filename, const QString& firstline) :filename(filename), firstline(firstline), file(nullptr), QObject(&gWorkHandler) {
-        connect(&gWorkHandler, &WorkHandler::started, this, &SavaDataFile::initialize);
-        connect(&gWorkHandler, &WorkHandler::completed, this, &SavaDataFile::close);
+    SavaDataFile(const QString& filename, const QString& firstline) :filename(filename), firstline(firstline), file(nullptr), QObject(&gTaskManager) {
+        connect(&gTaskManager, &TaskManager::started, this, &SavaDataFile::initialize);
+        connect(&gTaskManager, &TaskManager::finished, this, &SavaDataFile::close);
     }
     ~SavaDataFile() {
         close();
@@ -283,9 +254,9 @@ class SHAREDLIB_EXPORT SavaRawData : public QObject
 {
     Q_OBJECT
 public:
-    explicit SavaRawData(const QString& filename) :filename(filename),file(nullptr), QObject(&gWorkHandler) {
-        connect(&gWorkHandler, &WorkHandler::started, this, &SavaRawData::initialize);
-        connect(&gWorkHandler, &WorkHandler::completed, this, &SavaRawData::close);
+    explicit SavaRawData(const QString& filename) :filename(filename),file(nullptr), QObject(&gTaskManager) {
+        connect(&gTaskManager, &TaskManager::started, this, &SavaRawData::initialize);
+        connect(&gTaskManager, &TaskManager::finished, this, &SavaRawData::close);
     }
     ~SavaRawData() {
         close();

@@ -241,7 +241,7 @@ static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX
     qDebug() << "compressedData.size" << compressedData.size() << "quality" << quality;
     QByteArray& byteArray = compressedData;
     //二进制数据 发送
-    quint8 invoke = south::ModuleName::camera;
+    quint8 invoke = share::ModuleName::camera;
     quint8 userID = QString(device->id).toInt();
     quint32  triggerID = pFrameInfo->nFrameNum;
     QByteArray bytes;
@@ -251,7 +251,7 @@ static void __stdcall ImageCallBackEx(unsigned char* pData, MV_FRAME_OUT_INFO_EX
     out << triggerID;
     out << byteArray;
     qDebug() << "data.size" << bytes.size();
-    emit gSouth.sigSentBinary(bytes);
+    emit gShare.sigSentBinary(bytes);
 
     int elapsed = startTime.msecsTo(QDateTime::currentDateTime());
     qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") << "回调函数执行时间:" << elapsed << "毫秒";
@@ -315,7 +315,7 @@ Result HiKvisionCamera::SetCameraConfig(const QJsonObject& config) {
             device->path = taskParams[device->id].toObject()["path"].toString();
         }
         //相机默认存储路径
-        if (device->path.isEmpty()) device->path = gSouth.appDirPath + "/CAM" + device->id + "/";
+        if (device->path.isEmpty()) device->path = gShare.appPath + "/CAM" + device->id + "/";
         //创建存储路径
         QDir dir(device->path);
         if (!dir.exists()) {
@@ -394,7 +394,7 @@ Result HiKvisionCamera::open() {
             continue;
         }
     }
-    //if (!another->open(gSouth.RegisterSettings->value(CAMERA_KEY_PORTNAME).toString())) {
+    //if (!another->open(gShare.RegisterSettings->value(CAMERA_KEY_PORTNAME).toString())) {
     //    return Result::Failure("打开相机串口失败");
     //};
     return Result();

@@ -39,6 +39,9 @@ public slots:
     //设置注册表参数 配置
     void SetRegisterSettings(const Session& session);
     // 任务执行方法
+    void GetTaskData(const Session& session);// 获取所有的任务数据信息
+    void SetCurrentTask(const Session& session);// 设置当前任务
+
     void acquisition_begins(const Session& session);
     void acquisition_end(const Session& session);
 

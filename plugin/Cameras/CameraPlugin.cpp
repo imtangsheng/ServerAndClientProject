@@ -15,7 +15,7 @@ static ICameraBase* gCameraSDK = new DvpLineScanCamera();
 //qFatal(tr("No camera type defined").toUtf8().constData());
 #endif
 
-static QString g_plugin_module_name = south::Shared::GetModuleName(south::ModuleName::camera);
+static QString g_plugin_module_name = share::Shared::GetModuleName(share::ModuleName::camera);
 
 CameraPlugin::CameraPlugin() {
 //#ifdef CAMERA_TYPE_HiKvision
@@ -78,7 +78,7 @@ void CameraPlugin::SaveConfig(const Session& session) {
     if (!result) {
         LOG_WARNING(result.message);
     }
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void CameraPlugin::execute(const QString& method) {
@@ -97,7 +97,7 @@ void CameraPlugin::SetImageFormat(const Session& session) {
         config_["general"] = general;
     }
     Result result = WriteJsonFile(ConfigFilePath(), config_);
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void CameraPlugin::scan(const Session& session) {
@@ -111,7 +111,7 @@ void CameraPlugin::scan(const Session& session) {
 
 void CameraPlugin::open(const Session& session) {
     Result result = gCameraSDK->open();
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void CameraPlugin::start(const Session& session) {
@@ -120,12 +120,12 @@ void CameraPlugin::start(const Session& session) {
 
 void CameraPlugin::stop(const Session& session) {
     Result result = gCameraSDK->stop();
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void CameraPlugin::trigger(const Session& session) {
     Result result = gCameraSDK->triggerFire();
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void CameraPlugin::onConfigChanged() {
@@ -135,18 +135,18 @@ void CameraPlugin::onConfigChanged() {
 void CameraPlugin::GetUpdateFrameInfo(const Session& session) {
     //Result result = gCameraSDK->slotDispRate();
     Result result(1, "TODO");
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 //保存相机参数 有设备参数 和 任务参数
 void CameraPlugin::SetCamerasParams(const Session& session) {
     QJsonObject root = session.params.toObject();
     Result result = gCameraSDK->SetCameraConfig(root);
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }
 
 void CameraPlugin::show(const Session& session) {
     //Result result = gCameraSDK->Property();
     Result result(1, "TODO");
-    gSouth.on_send(result, session);
+    gShare.on_send(result, session);
 }

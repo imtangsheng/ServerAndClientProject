@@ -12,7 +12,7 @@ file(GLOB_RECURSE PROJECT_SOURCES
 #需要包含头文件 继承QObject的类
 add_library(${SHARE_NAME} SHARED
     stdafx.h
-    ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h ${INCLUDE_DIR}WorkHandler.h
+    ${INCLUDE_DIR}shared.h ${INCLUDE_DIR}Logger.h ${INCLUDE_DIR}TaskManager.h
     #${INCLUDE_DIR}common/FileReadAndSave.ixx
     ${PROJECT_SOURCES}
 )
