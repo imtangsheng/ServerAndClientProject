@@ -32,11 +32,15 @@ Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {
     return true;
 }
 
+void Shared::on_session(const QString& message, QObject* client) {
+    emit sigSent(message, client);
+};
+
 void Shared::on_send(const Result& result, const Session& session) {
     if (result) {
-        emit sigSent(session.ResponseString(result.code, result.message), session.socket);
+        on_session(session.ResponseString(result.code, result.message), session.socket);
     } else {
-        emit sigSent(session.ErrorString(result.code, result.message), session.socket);
+        on_session(session.ErrorString(result.code, result.message), session.socket);
     }
 }
 

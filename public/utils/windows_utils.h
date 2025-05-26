@@ -92,4 +92,11 @@ inline bool MoveToRecycleBin(const QString& path) {
     return (ret == 0);
     return false;
 }
+
+inline static bool IsValidName(const QString& name) {
+    LPCWSTR fileName = reinterpret_cast<LPCWSTR>(name.utf16());
+    DWORD result = GetFileAttributesW(fileName);
+    return (result == INVALID_FILE_ATTRIBUTES &&
+        GetLastError() == ERROR_FILE_NOT_FOUND);
+}
 #endif // WINDOWS_UTILS_H

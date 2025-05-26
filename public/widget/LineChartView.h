@@ -1,6 +1,7 @@
 #ifndef LINECHARTVIEW_H
 #define LINECHARTVIEW_H
 
+/*QtCharts 模块依赖于 QtCore 和 QtGui。确保你的代码中显式或隐式包含了这些模块*/
 #include <QtCore>
 #include <QtGui> // ✅ 正确引入 QtCharts 中的类
 #include <QChartView>

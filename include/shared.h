@@ -113,8 +113,9 @@ public:
     }
 
     Result FindFilePath(const QString& fileName, QString& validConfigPath);
-
+    inline void on_session(const QString& message, QObject* client = nullptr);//连接到发送信号接口的函数
 public slots:
+    
     void on_send(const Result& result, const Session& session);
 protected:
     // 保护构造函数,只能继承使用

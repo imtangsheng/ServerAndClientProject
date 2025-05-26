@@ -36,8 +36,11 @@
 #define _WORK_H_
 #include "file_read_and_save.h"
 //声明友元类的json数据名称,用于处理端交互固定的名称
+// project_info.json 第一级key
+#define FRIEND_PROJECT_VERSION	"Version"
 #define FRIEND_PROJECT_NAME		"ProjectName"
 #define FRIEND_PROJECT_CONTENT	"ProjectContent"
+// ProjectContent 第二级key
 
 #define FRIEND_MISSION_CONTENT	"MissionContent"
 #define FRIEND_BETWEEN_NAME		"BetweenName"
@@ -51,7 +54,7 @@
 #define FRIEND_CAMERA_POSITION	"CameraPostion"
 #define FRIEND_IMAGE_ACCURACY		"Accuracy"
 
-static inline const QString kProjectNameSuffix = ".nfproj";//项目文件名后缀
+static inline const QString cProjectNameSuffix = ".nfproj";//项目文件名后缀
 static inline constexpr const char* kProjectInfoFileName = "project_info.json";////项目文件信息json数据
 static inline constexpr const char* kTaskInfoFileName = "task_info.json";//任务文件信息json数据
 static inline constexpr const char* kTaskDirCarName = "Task";//任务数据存储文件夹
@@ -64,17 +67,35 @@ inline static const QString cKeyData{ "data" };
 //上下文信息,包含对应list的数据,列如项目中包含任务信息的json数据
 inline static const QString cKeyContent{ "content" };
 
-struct TaskInfo
+struct FileInfoDetails
 {
     QString name; //名称 对应key cKeyName
     QString path; //绝对路径 对应key cKeyPath
     QJsonObject data;
+
+    QJsonObject ToJsonObject() const {
+        QJsonObject obj;
+        obj[cKeyName] = name;
+        obj[cKeyPath] = path;
+        obj[cKeyData] = data;
+        return obj;
+    }
+    bool FromJsonObject(const QJsonObject& obj) {
+        name = obj[cKeyName].toString();
+        path = obj[cKeyPath].toString();
+        data = obj[cKeyData].toObject();
+        return true;
+    }
 };
-//记录当前的项目和执行的任务信息
-extern SHAREDLIB_EXPORT TaskInfo* gTask;//当前正在执行的任务信息
-inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
 
 #define gTaskManager TaskManager::instance()
+
+//记录当前的项目和执行的任务信息
+extern SHAREDLIB_EXPORT FileInfoDetails* gProjectFileInfo;//当前正在执行的项目信息(客户端使用)
+extern SHAREDLIB_EXPORT FileInfoDetails* gTaskFileInfo;//当前正在执行的任务信息
+inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
+
+
 class SHAREDLIB_EXPORT TaskManager : public QObject
 {
     Q_OBJECT
@@ -85,97 +106,6 @@ public:
     }
     QJsonObject data;//工作目录下的json执行的任务信息数据,方便传输和交换
 
-    Result AddProject(const QJsonObject& project) {
-        QJsonObject projects = data[cKeyContent].toObject();
-        QString name = project.value(cKeyName).toString();
-        if (name.isEmpty() || projects.contains(name)) {
-            return Result::Failure(tr("AddProject is Failed,The project name is empty or the project to be added already exists."));
-        }
-        //写入json配置到文件中
-        if (!WriteJsonFile(project.value(cKeyPath).toString() + "/" + kProjectInfoFileName, project.value(cKeyData).toObject())) {
-            return Result::Failure(tr("AddProject is Failed,The project file write failed."));
-        }
-        projects[name] = project;
-        data[cKeyContent] = projects;
-        return true;
-    }
-
-    Result DeleteProject(const QJsonObject& project) {
-        QJsonObject projects = data[cKeyContent].toObject();
-        QString name = project.value(cKeyName).toString();
-        if (!projects.contains(name)) {
-            return Result::Failure(tr("DeleteProject is Failed, The project removed does not exist."));
-        }
-        //删除项目文件夹
-        QDir dir(project.value(cKeyPath).toString());
-        if (dir.exists()) {
-            if (!dir.removeRecursively()) {//永久删除,如果无法删除文件或目录，则会继续运行并尝试删除尽可能多的文件和子目录，然后返回 false
-                return Result::Failure(tr("DeleteProject is Failed, The project folder removed failed."));
-            }
-        }
-        projects.remove(name);
-        data[cKeyContent] = projects;
-        return true;
-    }
-
-    Result AddTask(const QJsonObject& task) {
-        //获取任务目录的上一级目录名称就是项目名称
-        QDir dir(task.value(cKeyPath).toString());
-        if (!dir.cdUp()) {
-            return Result::Failure(tr("AddTask is Failed, No parent directory for %1.").arg(dir.absolutePath()));
-        }
-        QString projectName = dir.dirName();
-        QJsonObject projects = data[cKeyContent].toObject();
-        if(projectName.isEmpty() || !projects.contains(projectName)){
-            return Result::Failure(tr("AddTask is Failed, The project does not exist: %1.").arg(projectName));
-        }
-        QJsonObject project = projects.value(projectName).toObject();
-        QString name = task.value(cKeyName).toString();
-        QJsonObject tasks = project.value(cKeyContent).toObject();
-        if (name.isEmpty() || tasks.contains(name)) {
-            return Result::Failure(tr("AddTask is Failed, The task name is empty or the task to be added already exists: %1.").arg(name));
-        }
-
-        //写入json配置到文件中
-        if (!WriteJsonFile(task.value(cKeyPath).toString() + "/" + kTaskInfoFileName, task.value(cKeyData).toObject())) {
-            return Result::Failure(tr("AddTask is Failed, The task file write failed."));
-        }
-        tasks[name] = task; //更新任务
-        project[cKeyContent] = tasks;//保存任务
-        projects[projectName] = project;//更新项目
-        data[cKeyContent] = projects;//保存项目
-        return true;
-    }
-    Result DeleteTask(const QJsonObject& task) {
-        //获取任务目录的上一级目录名称就是项目名称
-        QDir dir(task.value(cKeyPath).toString());
-        if (!dir.cdUp()) {
-            return Result::Failure(tr("DeleteTask is Failed, No parent directory for %1.").arg(dir.absolutePath()));
-        }
-        QString projectName = dir.dirName();
-        QJsonObject projects = data[cKeyContent].toObject();
-        if(projectName.isEmpty() || !projects.contains(projectName)){
-            return Result::Failure(tr("DeleteTask is Failed, The project does not exist: %1.").arg(projectName));
-        }
-        QJsonObject project = projects.value(projectName).toObject();
-        QJsonObject tasks = project.value(cKeyContent).toObject();
-        QString name = task.value(cKeyName).toString();
-        if (!tasks.contains(name)) {
-            return Result::Failure(tr("DeleteTask is Failed, The task removed does not exist."));
-        }
-        //删除任务文件夹
-        QDir dirTask(task.value(cKeyPath).toString());
-        if (dirTask.exists()) {
-            if (!dir.removeRecursively()) {
-                return Result::Failure(tr("DeleteTask is Failed, The task folder removed failed."));
-            }
-        }
-        tasks.remove(name);
-        project[cKeyContent] = tasks;
-        projects[projectName] = project;
-        data[cKeyContent] = projects;
-        return true;
-    }
 protected:
     // 保护构造函数,只能继承使用
     explicit TaskManager(QObject* parent = nullptr) : QObject(parent) {
@@ -186,6 +116,24 @@ signals:
     void started();
     void finished();
 };
+
+inline static QString GetProjectName(const QString& name) {
+    return name + cProjectNameSuffix;
+}
+
+inline static QString GetProjectPath(const QString& name) {
+    return gTaskManager.data[cKeyPath].toString() + "/" + name;
+}
+inline static bool GetProjectName(const QString& path, QString& name) {
+    name = QFileInfo(path).baseName();
+    int suffixIndex = name.lastIndexOf(cProjectNameSuffix);
+    if (suffixIndex != -1) {
+        name = name.left(suffixIndex);
+        return true;
+    }
+    return false;
+}
+
 
 class SHAREDLIB_EXPORT SavaDataFile : public QObject
 {
@@ -202,10 +150,10 @@ public:
     bool isInitialized{ false };
     Result initialize() {
         if (isInitialized) return true;
-        if (gTask == nullptr) { //确保任务对象存在
+        if (gTaskFileInfo == nullptr) { //确保任务对象存在
             return Result::Failure(tr("Task is not initialized."));
         }
-        QString filepath = gTask->path + "/" + filename;
+        QString filepath = gTaskFileInfo->path + "/" + filename;
         // 确保目录存在
         QFileInfo fileInfo(filepath);
         QDir dir = fileInfo.dir();
@@ -265,10 +213,10 @@ public:
     bool isInitialized{ false };
     Result initialize() {
         if (isInitialized) return true;
-        if (gTask == nullptr) { //确保任务对象存在
+        if (gTaskFileInfo == nullptr) { //确保任务对象存在
             return Result::Failure(tr("Task is not initialized."));
         }
-        QString filepath = gTask->path + "/" + filename;
+        QString filepath = gTaskFileInfo->path + "/" + filename;
         // 确保目录存在
         QFileInfo fileInfo(filepath);
         QDir dir = fileInfo.dir();

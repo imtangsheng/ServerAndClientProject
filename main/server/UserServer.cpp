@@ -17,7 +17,7 @@ static Result UpdateProjectDir(const QString& path_project, QJsonObject& data) {
         return Result::Failure(msg);
     }
     //获得只返回当前目录下的所有子目录(不包括 . 和 ..) 的效果
-    QStringList projectNameList = dir.entryList(QStringList() << kProjectNameSuffix, QDir::Dirs | QDir::NoDotAndDotDot);
+    QStringList projectNameList = dir.entryList(QStringList() << cProjectNameSuffix, QDir::Dirs | QDir::NoDotAndDotDot);
     //更新工作目录 信息
     data[cKeyPath] = path_project;
     QJsonObject objProjects;
@@ -111,7 +111,7 @@ void UserServer::onDeviceStateChanged(Session session) {
     for (auto& plugin : gManagerPlugin->m_plugins) {
         session.module = plugin.self->_module();
         session.params = QJsonArray{ {plugin.self->state_,"state"} };//double 类型传输值 message用于显示信息
-        emit gSigSent(session.GetRequest(), session.socket);
+        gShare.on_session(session.GetRequest(), session.socket);
     }
 }
 
@@ -138,17 +138,155 @@ void UserServer::SetRegisterSettings(const Session& session) {
 }
 
 void UserServer::GetTaskData(const Session& session) {
-    emit gSigSent(session.ResponseString(gTaskManager.data, tr("succeed")), session.socket);
+    gShare.on_session(session.ResponseString(gTaskManager.data, tr("succeed")), session.socket);
 }
 
-void UserServer::SetCurrentTask(const Session& session) {
-    QJsonObject task = session.params.toObject();
-    gTask->name = task[cKeyName].toString();
-    gTask->path = task[cKeyPath].toString();
-    gTask->data = task[cKeyData].toObject();
+enum SessionErrorCode : int
+{
+    SessionErrorNone = 0, //没有错误
+    SessionErrorInvalid = 1,//发送了无效的数据
+    SessionErrorWorkflow =2, //操作有重复或者顺序错误
+};
+void UserServer::AddNewProject(const Session& session) {
+    QJsonObject obj = session.params.toObject();
+    if (obj.isEmpty()) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid params data")), session.socket);
+    }
+    FileInfoDetails project;
+    if (!project.FromJsonObject(obj)) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid project json data")), session.socket);
+    };
+    //判断文件夹是否存在
+    QDir dir(project.path);
+    if (dir.exists()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("Directory is exist")), session.socket);
+    }
+    //判断是否存在同名项目
+    QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
+    if (projects.contains(project.name)) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("The project to be added already exists.")),session.socket);
+    }
+    //写入json配置到文件中
+    if (!WriteJsonFile(project.path + "/" + kProjectInfoFileName, project.data)) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("Failed to write project data to file")), session.socket);
+    }
 
-    //可移动到开始任务信息那里
-    gShare.on_send(gTaskManager.AddTask(task), session);
+    projects[project.name] = project.ToJsonObject();
+    gTaskManager.data[cKeyContent] = projects;
+
+    return gShare.on_session(session.ResponseString(SessionErrorNone,tr("Add project succeed")), session.socket);
+}
+
+void UserServer::DeleteProject(const Session& session) {
+    QJsonObject obj = session.params.toObject();
+    if (obj.isEmpty()) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid params data")), session.socket);
+    }
+    FileInfoDetails project;
+    if (!project.FromJsonObject(obj)) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid project json data")), session.socket);
+    };
+    //判断文件夹是否存在
+    QDir dir(project.path);
+    if (!dir.exists()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("Directory is not exist")), session.socket);
+    }
+    //判断是否存在同名项目
+    QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
+    if (!projects.contains(project.name)) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("The project to be deleted does not exist.")), session.socket);
+    }
+    //删除文件夹
+    if (!dir.removeRecursively()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("Failed to delete directory")), session.socket);
+    }
+    //删除json配置到文件中
+    projects.remove(project.name);
+    gTaskManager.data[cKeyContent] = projects;
+
+    return gShare.on_session(session.ResponseString(SessionErrorNone, tr("Delete project succeed")), session.socket);
+}
+
+void UserServer::AddTaskAsCurrent(const Session& session) {
+    QJsonObject obj = session.params.toObject();
+    if (obj.isEmpty()) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid params data")), session.socket);
+    }
+    FileInfoDetails task;
+    if (!task.FromJsonObject(obj)) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid project json data")), session.socket);
+    };
+     //判断文件夹是否存在
+    QDir dir(task.path);
+    if (dir.exists()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("Directory is exist")), session.socket);
+    }
+    //获取任务目录的上一级目录名称就是项目名称
+    if (!dir.cdUp()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow,tr("Task Path No parent directory for %1.").arg(dir.absolutePath())));
+    }
+    QString projectName = dir.dirName();
+    QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
+    if (projectName.isEmpty() || !projects.contains(projectName)) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow,tr("The project does not exist: %1.").arg(projectName)));
+    }
+    QJsonObject project = projects.value(projectName).toObject();
+    QJsonObject tasks = project.value(cKeyContent).toObject();
+    if (task.name.isEmpty() || tasks.contains(task.name)) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("The task name is empty or the task to be added already exists: %1.").arg(task.name)));
+    }
+
+    //写入json配置到文件中
+    Result fileResult = WriteJsonFile(task.path + "/" + kTaskInfoFileName, task.ToJsonObject());
+    if(fileResult) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, fileResult.message));
+    }
+    *gTaskFileInfo = task;//设置当前任务
+    tasks[task.name] = task.ToJsonObject(); //更新任务
+    project[cKeyContent] = tasks;//保存任务
+    projects[projectName] = project;//更新项目
+    gTaskManager.data[cKeyContent] = projects;//保存项目
+    return gShare.on_session(session.ResponseString(SessionErrorNone, tr("add task succeed")), session.socket);
+}
+
+void UserServer::DeleteTask(const Session& session) {
+    QJsonObject obj = session.params.toObject();
+    if (obj.isEmpty()) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid params data")), session.socket);
+    }
+    FileInfoDetails task;
+    if (!task.FromJsonObject(obj)) {
+        return gShare.on_session(session.ErrorString(SessionErrorInvalid, tr("Invalid project json data")), session.socket);
+    };
+    //判断文件夹是否存在
+    QDir dir(task.path);
+    if (!dir.exists()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("Directory is not exist")), session.socket);
+    }
+    //获取任务目录的上一级目录名称就是项目名称
+    if (!dir.cdUp()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("Task Path No parent directory for %1.").arg(dir.absolutePath())));
+    }
+    QString projectName = dir.dirName();
+    QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
+    if (projectName.isEmpty() || !projects.contains(projectName)) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("The project does not exist: %1.").arg(projectName)));
+    }
+    QJsonObject project = projects.value(projectName).toObject();
+    QJsonObject tasks = project.value(cKeyContent).toObject();
+    if (task.name.isEmpty() || tasks.contains(task.name)) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("The task name is empty or the task to be added already exists: %1.").arg(task.name)));
+    }
+    //删除任务文件夹
+    QDir dirTask(task.path);
+    if (!dirTask.removeRecursively()) {
+        return gShare.on_session(session.ErrorString(SessionErrorWorkflow, tr("DeleteTask is Failed, The task folder removed failed.")));
+    }
+    tasks.remove(task.name);
+    project[cKeyContent] = tasks;
+    projects[projectName] = project;//更新项目
+    gTaskManager.data[cKeyContent] = projects;//保存项目
+    return gShare.on_session(session.ResponseString(SessionErrorNone, tr("delete task succeed")), session.socket);
 }
 
 
