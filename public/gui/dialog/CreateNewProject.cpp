@@ -1,6 +1,6 @@
 #include "CreateNewProject.h"
 #include "ui_CreateNewProject.h"
-
+// #include <QGraphicsDropShadowEffect>
 CreateNewProject::CreateNewProject(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::CreateNewProject)
@@ -8,10 +8,12 @@ CreateNewProject::CreateNewProject(QWidget *parent)
     ui->setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
     setAttribute(Qt::WA_TranslucentBackground);
-    // 然后单独设置 placeholder 颜色
-    QPalette palette = ui->lineEdit_project_name->palette();
-    palette.setColor(QPalette::Normal,QPalette::PlaceholderText, Qt::red);
-    ui->lineEdit_project_name->setPalette(palette);
+    // 添加阴影效果
+    // QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect;
+    // shadow->setBlurRadius(40);
+    // shadow->setColor(QColor(0, 0, 0, 64));
+    // this->setGraphicsEffect(shadow);
+
 }
 
 CreateNewProject::~CreateNewProject()
@@ -32,8 +34,19 @@ void CreateNewProject::on_pushButton_Accepted_clicked() {
     project.name = GetProjectName(ui->lineEdit_project_name->text());
     project.path = GetProjectPath(project.name);
 
-    project.data[FRIEND_DEVICE_TYPE] = "201";
-    project.data[FRIEND_AUTHOR] = ui->lineEdit_creator->text();
+
+    project.data[FRIEND_PROJECT_NAME] = name;
+    project.data[FRIEND_PROJECT_VERSION] = share::Shared::GetVersion();
+
+    QJsonObject content;
+    content[FRIEND_DEVICE_TYPE] = "201";
+    content[FRIEND_AUTHOR] = ui->lineEdit_creator->text();
+    content[FRIEND_LINE_NAME] = ui->lineEdit_project_route->text();
+
+    content[FRIEND_CREATE_TIME] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    content[FRIEND_NOTE] = ui->textEdit_remark->toPlainText();
+
+    project.data[FRIEND_PROJECT_CONTENT] = content;
 
     Session session({ {"id", Session::NextId()}, {"module", sModuleUser}, {"method", "AppNewProject"}, {"params", project.ToJsonObject()}});
     session.socket = &gClient;

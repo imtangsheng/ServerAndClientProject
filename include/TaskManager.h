@@ -54,6 +54,10 @@
 #define FRIEND_CAMERA_POSITION	"CameraPostion"
 #define FRIEND_IMAGE_ACCURACY		"Accuracy"
 
+//其他显示信息,非相关
+#define FRIEND_CREATE_TIME		"CreateTime"
+#define FRIEND_NOTE				"Note"
+
 static inline const QString cProjectNameSuffix = ".nfproj";//项目文件名后缀
 static inline constexpr const char* kProjectInfoFileName = "project_info.json";////项目文件信息json数据
 static inline constexpr const char* kTaskInfoFileName = "task_info.json";//任务文件信息json数据

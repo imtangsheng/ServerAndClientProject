@@ -8,45 +8,40 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Charts Lingu
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 # 按类别组织源文件
-set(PathPublic  ${PROJECT_SOURCE_DIR}/public)
+set(PathPublic  ${PROJECT_SOURCE_DIR}/public/gui)
 include_directories(${PathPublic})
 #Custom drawing自定义的绘制控件
 # 使用file命令自动查找所有源文件
-file(GLOB_RECURSE Files_Widget
-    ${PathPublic}/widget/*.h ${PathPublic}/widget/*.cpp ${PathPublic}/widget/*.ui
+file(GLOB_RECURSE UI_FILES
+    ${PathPublic}/*/*.h ${PathPublic}/*/*.cpp ${PathPublic}/*/*.ui
 )
-file(GLOB_RECURSE Files_Dialog
-    ${PathPublic}/dialog/*.h ${PathPublic}/dialog/*.cpp ${PathPublic}/dialog/*.ui
-)
-file(GLOB_RECURSE Files_Button
-    ${PathPublic}/button/*.h ${PathPublic}/button/*.cpp ${PathPublic}/button/*.ui
-)
+
 # 设置翻译文件
 set(TS_FILES_
     ${PROJECT_SOURCE_DIR}/assets/translations/${APP_NAME}_zh_CN.ts
 )
 
-set(CONTROLLER_FILES
-    ui/WebSocketWidget.h ui/WebSocketWidget.cpp ui/WebSocketWidget.ui
+set(DEVICE_FILES
+    ${PathPublic}/ChildWindow/ChildWindow.h
+    ${PathPublic}/ChildWindow/TrolleyWidget.h ${PathPublic}/ChildWindow/TrolleyWidget.cpp ${PathPublic}/ChildWindow/TrolleyWidget.ui
+    ${PathPublic}/ChildWindow/ScannerWidget.h ${PathPublic}/ChildWindow/ScannerWidget.cpp ${PathPublic}/ChildWindow/ScannerWidget.ui
+    ${PathPublic}/ChildWindow/CameraWidget.h ${PathPublic}/ChildWindow/CameraWidget.cpp ${PathPublic}/ChildWindow/CameraWidget.ui
 )
-
 
 set(CORE_FILES
-    MainControl.h MainControl.cpp
+    core/application.h core/application.cpp
+    core/ChildWidget.cpp
 )
-#Custom drawing自定义的绘制控件
-
 
 # 设置翻译文件
 set(TS_FILES_
     assets/i18n/en_US.ts
 )
 
-
 # 创建文件夹结构以便在IDE中组织文件
 source_group("Core" FILES ${CORE_FILES})
-source_group("CustomUI" FILES ${Files_Widget} ${Files_Dialog} ${Files_Button})
-
+source_group("CustomUI" FILES ${UI_FILES})
+source_group("DeviceUI" FILES ${DEVICE_FILES})
 # 使用file命令自动查找所有源文件
 file(GLOB_RECURSE PROJECT_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
@@ -60,7 +55,7 @@ add_executable(${APP_NAME}
     ${PROJECT_SOURCES}
     ${CORE_FILES}
     ${TS_FILES_}
-    ${Files_Widget} ${Files_Dialog} ${Files_Button}
+    ${UI_FILES}
 )
 # 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。
 target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)

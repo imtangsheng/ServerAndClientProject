@@ -1,19 +1,19 @@
-#ifndef MS301WINDOW_H
-#define MS301WINDOW_H
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
 #include <QApplication>
 #include <QTranslator>
 inline QString g_language;
 inline QTranslator g_translator;//qt的国际化
 
-#include "ui_MS301Window.h"
+#include "ui_MainWindow.h"
 
-class MS301Window : public QMainWindow
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MS301Window(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
     FileInfoDetails currentProjectItem{};
 
     void AddProject(QJsonObject project);
@@ -21,6 +21,7 @@ public:
 
 public slots:
     void GotoHomePage();
+    void onEnterProjectClicked(QJsonObject project);
 private slots:
     void on_actionReturnPageHome_triggered();
 
@@ -41,7 +42,12 @@ private slots:
     void on_toolButton_add_project_clicked();
 
 private:
-    Ui::MS301Window ui;
+    friend class IWidget;
+    Ui::MainWindow ui;
+    void retranslate();//更新文本翻译
+
+signals:
+    void languageChanged();
 };
 
-#endif // MS301WINDOW_H
+#endif
