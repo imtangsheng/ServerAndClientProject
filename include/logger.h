@@ -23,17 +23,20 @@
 #define LOG_FATAL(msg) gLog.log(msg, LogLevel::Fatal,__FUNCTION__, __LINE__, Q_FUNC_INFO)
 
 /**
- * @brief 日志级别枚举
+ * @brief 日志级别枚举 大于某个范围判断
  */
-enum class LogLevel {
+enum class LogLevel:int {
+	All = 0x0000,
 	Debug = 0x0001,
 	Info = 0x0002,
 	Warning = 0x0004,
 	Error = 0x0008,
 	Fatal = 0x0010,
-	All = Debug | Info | Warning | Error | Fatal // 0x001F
+	//All = Debug | Info | Warning | Error | Fatal,// 0x001F
 };
-
+constexpr int operator+(LogLevel level) {
+	return static_cast<int>(level);
+}
 /**
  * @brief 日志消息结构体
  */
@@ -131,7 +134,7 @@ private slots:
 	 */
     void check_log_file_date();
 
-    void log_a_file(const QString& message, LogLevel level);
+    void log_a_file(const QString& message);
 };
 
 

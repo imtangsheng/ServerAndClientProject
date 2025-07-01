@@ -13,7 +13,7 @@ include_directories(${PathPublic})
 #Custom drawing自定义的绘制控件
 # 使用file命令自动查找所有源文件
 file(GLOB_RECURSE UI_FILES
-    ${PathPublic}/*/*.h ${PathPublic}/*/*.cpp ${PathPublic}/*/*.ui
+    ${PathPublic}/*/*.h ${PathPublic}/*/*.cpp ${PathPublic}/*/*.ui ${PathPublic}/ui.qrc
 )
 
 # 设置翻译文件
@@ -29,7 +29,7 @@ set(DEVICE_FILES
 )
 
 set(CORE_FILES
-    core/application.h core/application.cpp
+    core/core_control.h core/core_control.cpp
     core/ChildWidget.cpp
 )
 
@@ -57,11 +57,11 @@ add_executable(${APP_NAME}
     ${TS_FILES_}
     ${UI_FILES}
 )
-# 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。
+# 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。预编译头文件自动包含到所有源文件中,相当于在每个 .cpp 文件的开头隐式添加了 #include "stdafx.h"
 target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
 
 # CMakeLists.txt 中添加
-qt_add_resources(${APP_NAME} "resources.qrc")
+qt_add_resources(${APP_NAME} "resources.qrc" ${PathPublic}/ui.qrc)
 #自动生成翻译文本
 if(0)
 qt_add_lupdate(${APP_NAME}

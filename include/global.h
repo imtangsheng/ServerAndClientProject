@@ -134,6 +134,10 @@ struct Session {
         if (json.contains("message")) message = json["message"].toString("");
         if (json.contains("context")) context = json["context"].toVariant();
     }
+    //使用请求体参数构造函数
+    Session(const QString& module, const QString& method, const QJsonValue& params){
+        this->module = module;this->method = method;this->params = params; this->id = NextId();
+    }
     // 请求的Request发送
     static QString RequestString(const QString& module, const QString& method, const QJsonValue& params) {
         return JsonToString({ {"id", NextId()}, {"module", module}, {"method", method}, {"params", params} });
@@ -230,32 +234,8 @@ enum class SessionType : int {
     Other
 };
 
-Q_NAMESPACE
-enum PluginType {
-    _camera_hikvision_
-};
-Q_ENUM_NS(PluginType)
-
 //适用插件类型使用
 #include <QMetaEnum>
-static QString GetPluginType(PluginType name) {
-    // 获取枚举值对应的字符串
-    // 方法1：使用 QMetaEnum
-    static QMetaEnum metaEnum = QMetaEnum::fromType<PluginType>();
-    return metaEnum.valueToKey(name);
-    // 方法2：直接使用 QVariant
-    //return QVariant::fromValue(name).toString();
-}
-
-static PluginType GetPluginType(const QString& name) {
-    // 从字符串转换为枚举值
-    // 方法1：使用 QMetaEnum
-    static QMetaEnum metaEnum = QMetaEnum::fromType<PluginType>();
-    return static_cast<PluginType>(metaEnum.keyToValue(name.toStdString().c_str()));
-    // 方法2：直接使用 QVariant
-    //return QVariant(name).value<ModuleName>();
-}
-
 using TaskStateType = quint8;
 
 /*任务状态枚举*/

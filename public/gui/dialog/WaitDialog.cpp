@@ -1,12 +1,15 @@
 #include "WaitDialog.h"
 #include "ui_WaitDialog.h"
 
-WaitDialog::WaitDialog(QWidget *parent,Session* session, quint8 sTimeout)
-    : QDialog(parent),session(session),sMaxTimeout(sTimeout)
+WaitDialog::WaitDialog(Session* session,QWebSocket* client, quint8 sTimeout,QWidget *parent)
+    : QDialog(parent),session(session),pClient(client),sMaxTimeout(sTimeout)
     , ui(new Ui::WaitDialog)
 {
     ui->setupUi(this);
     // init();
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog); // 设置无边框
+    // setAttribute(Qt::WA_TranslucentBackground); // 设置背景透明
+    setAttribute(Qt::WA_DeleteOnClose);
 }
 
 WaitDialog::~WaitDialog()
@@ -21,14 +24,9 @@ WaitDialog::~WaitDialog()
 
 Result WaitDialog::init()
 {
-    QWebSocket* pCilent = qobject_cast<QWebSocket*>(this->session->socket);
-    if(!pCilent){
-        qWarning()<<"网络未连接";
-        pCilent = &gClient;
-    }
     // connect(pCilent,&QWebSocket::textMessageReceived,this,&WaitDialog::message_received);
     // gFilter.append(std::bind(&WaitDialog::HandleFilte, this, std::placeholders::_1));
-    pCilent->sendTextMessage(session->GetRequest());
+    pClient->sendTextMessage(session->GetRequest());
     qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<<" Dialog Send:"<<session->GetRequest();
     QTimer::singleShot(100, &loop, &QEventLoop::quit);
     loop.exec();

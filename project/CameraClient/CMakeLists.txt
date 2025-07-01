@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 设置输出目录
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # 可执行文件输出目录
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # 可执行文件输出目�?
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs)  # 动态库输出目录
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态库输出目录
 
@@ -23,7 +23,7 @@ set(SHARE_SOURCES
   ${ProjectPath}libs/share/share_lib.cpp ${ProjectPath}libs/share/log/logger.cpp
 )
 
-##客户端程序
+##客户端程�?
 set(client CameraClient)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Network WebSockets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network WebSockets LinguistTools)
@@ -31,7 +31,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network WebS
 set(PathClient "${ProjectPath}/main/client/")
 include_directories(${PathClient})
 set(CONTROLLER_FILES
-    ${PathClient}MainController.h ${PathClient}MainController.cpp
+    ${PathClient}MainControl.h ${PathClient}MainControl.cpp
     ${PathClient}ui/WebSocketWidget.h ${PathClient}ui/WebSocketWidget.cpp ${PathClient}ui/WebSocketWidget.ui
     ${PathClient}dialog/HttpDialog.h ${PathClient}dialog/HttpDialog.cpp ${PathClient}dialog/HttpDialog.ui
 )
@@ -61,11 +61,11 @@ target_link_libraries(${client} PRIVATE
     Qt${QT_VERSION_MAJOR}::WebSockets
 )
 
-# 添加更新翻译的目标
+# 添加更新翻译的目�?
 qt_add_lupdate(${client}
     TS_FILES ${TS_FILES}
     OPTIONS
-    -no-obsolete        # 删除过时的翻译
+    -no-obsolete        # 删除过时的翻�?
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)

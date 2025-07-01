@@ -3,7 +3,6 @@ QtMessageHandler Logger::previousMessageHandler = nullptr;
 Logger::Logger(QObject* parent)
 	: QObject(parent)
 {
-	connect(this, &Logger::new_message, this, &Logger::log_a_file);
 }
 
 void Logger::init(const QString& path, const QString& name,
@@ -38,7 +37,7 @@ void Logger::log(const QString& message, LogLevel level, const char* function, i
 	//记录发送到信号
 	emit new_message(message, level);
 	QString logMessage = FormatTheMessage(message, level, function, line, className);
-
+	log_a_file(logMessage);
 	// 同时输出到控制台
 #ifdef QT_DEBUG
 	 // 输出到控制台 out.setCodec("UTF-8");
@@ -196,11 +195,7 @@ void Logger::check_log_file_date()
 	}
 }
 
-void Logger::log_a_file(const QString& message, LogLevel level) {
-	// 检查日志级别
-	if (level < logLevel) {
-		return;
-	}
+void Logger::log_a_file(const QString& message) {
 	QMutexLocker locker(&writeMutex);
 	// 写入文件
 	if (logFile && logFile->isOpen()) {

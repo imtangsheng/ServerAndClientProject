@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.25) # 指定最低CMake版本要求
 # 如果支持，请为 MSVC 编译器启用热重载。
 if (POLICY CMP0141)
+    add_compile_options(/utf-8)
+    add_compile_definitions(_UNICODE UNICODE)
     message("MSVC 编译器启用热重载")
     cmake_policy(SET CMP0141 NEW)
     set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")

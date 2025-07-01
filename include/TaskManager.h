@@ -71,6 +71,7 @@ inline static const QString cKeyData{ "data" };
 //上下文信息,包含对应list的数据,列如项目中包含任务信息的json数据
 inline static const QString cKeyContent{ "content" };
 
+constexpr const char* kTimeFormat = "yyyy-MM-dd HH:mm:ss";//任务的时间格式
 struct FileInfoDetails
 {
     QString name; //名称 对应key cKeyName
@@ -90,6 +91,17 @@ struct FileInfoDetails
         data = obj[cKeyData].toObject();
         return true;
     }
+
+    FileInfoDetails() = default;
+    FileInfoDetails(QJsonObject obj){
+        name = obj[cKeyName].toString();
+        path = obj[cKeyPath].toString();
+        data = obj[cKeyData].toObject();
+    }
+    QDateTime getTime() const {
+        return QDateTime::fromString(data.value(FRIEND_CREATE_TIME).toString(),kTimeFormat);
+    }
+
 };
 
 #define gTaskManager TaskManager::instance()
@@ -113,7 +125,7 @@ public:
 protected:
     // 保护构造函数,只能继承使用
     explicit TaskManager(QObject* parent = nullptr) : QObject(parent) {
-        qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
+        // qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
     }
     ~TaskManager();
 signals:

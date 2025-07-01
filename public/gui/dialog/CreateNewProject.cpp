@@ -43,16 +43,13 @@ void CreateNewProject::on_pushButton_Accepted_clicked() {
     content[FRIEND_AUTHOR] = ui->lineEdit_creator->text();
     content[FRIEND_LINE_NAME] = ui->lineEdit_project_route->text();
 
-    content[FRIEND_CREATE_TIME] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    content[FRIEND_CREATE_TIME] = QDateTime::currentDateTime().toString(kTimeFormat);
     content[FRIEND_NOTE] = ui->textEdit_remark->toPlainText();
 
     project.data[FRIEND_PROJECT_CONTENT] = content;
 
     Session session({ {"id", Session::NextId()}, {"module", sModuleUser}, {"method", "AppNewProject"}, {"params", project.ToJsonObject()}});
-    session.socket = &gClient;
-    WaitDialog wait(this, &session, 30);// = new WaitDialog(this);
-    //100ms 以内防止弹窗显示
-    if (wait.init() || wait.exec() == QDialog::Accepted) {
+    if(gControl.SendAndWaitResult(session)) {
         accept();
     } else {
         qWarning() << session.result;

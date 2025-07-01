@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    gSouth.RegisterHandler(module_,this);
+    gShare.RegisterHandler(module_,this);
     /*模块 信号连接*/
     connect(&gClient, &QWebSocket::stateChanged, this, &MainWindow::onStateChanged);
 
@@ -32,12 +32,12 @@ MainWindow::~MainWindow()
 
 void MainWindow::login_verify(double type, const QString &version)
 {
-    if(int(type) != gSouth.sessiontype_){
-        show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gSouth.sessiontype_),LogLevel::Warning);
+    if(int(type) != gShare.sessiontype_){
+        show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gShare.sessiontype_),LogLevel::Warning);
     }
 
-    if(version != gSouth.version){
-        show_message(tr("the device version does not match and the server is %1 a client is %2").arg(version,gSouth.version),LogLevel::Warning);
+    if(version != gShare.version){
+        show_message(tr("the device version does not match and the server is %1 a client is %2").arg(version,gShare.version),LogLevel::Warning);
     }
     show_message(tr("the server connection is successful"),LogLevel::Info);
 

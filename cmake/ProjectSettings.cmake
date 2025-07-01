@@ -19,6 +19,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/include)
+
 # 通用包含目录
 set(COMMON_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include)
 # 获取/include目录及其子目录下的所有文件夹
@@ -34,4 +35,5 @@ endforeach()
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 add_subdirectory(libs/share)
 add_subdirectory(main/server)
-add_subdirectory(main/client)
+#add_subdirectory(main/client)
+add_subdirectory(main/MS301Client)

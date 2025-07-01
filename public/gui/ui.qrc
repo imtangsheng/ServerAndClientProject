@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>../../assets/icons/logo128.png</file>
+        <file>../../assets/png/tooltip.png</file>
+    </qresource>
+</RCC>

@@ -10,10 +10,18 @@ class ToolTip;
 class ToolTip : public QDialog
 {
     Q_OBJECT
-
 public:
+    enum TipType:quint8 {
+        Confirm,
+        Ok
+    };
+    // 基础构造函数
     explicit ToolTip(QWidget *parent = nullptr);
-    explicit ToolTip(const QString& title,const QString& message,int msecShowTime = -1,QWidget *parent = nullptr);
+    // 委托构造函数
+    explicit ToolTip(const QString& title, const QString& message, int msecShowTime = -1, QWidget *parent = nullptr)
+        : ToolTip(Ok, title, message, msecShowTime, parent) {}
+    // 主要构造函数
+    explicit ToolTip(TipType type,const QString& title,const QString& message,int msecShowTime = -1,QWidget *parent = nullptr);
     ~ToolTip();
 
     static void ShowText(const QString &text, int msecShowTime = 3000);
@@ -21,6 +29,7 @@ public:
 
 private:
     Ui::ToolTip *ui;
+    TipType _type;
 };
 
 #endif // TOOLTIP_H

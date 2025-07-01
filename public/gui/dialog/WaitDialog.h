@@ -5,7 +5,7 @@
 #include <QTimer>
 #include <QEventLoop>
 #include "global.h"
-
+#include <QtWebSockets/QWebSocket>
 namespace Ui {
 class WaitDialog;
 }
@@ -15,8 +15,9 @@ class WaitDialog : public QDialog,public SessionFilterable
     Q_OBJECT
 
 public:
-    explicit WaitDialog(QWidget *parent = nullptr,Session* session = nullptr,quint8 sTimeout = 30);
+    explicit WaitDialog(Session* session = nullptr,QWebSocket* client = nullptr,quint8 sTimeout = 30,QWidget *parent = nullptr);
     ~WaitDialog();
+
 
     Session* session;
     quint8 sMaxTimeout;
@@ -31,6 +32,7 @@ public slots:
     // virtual void showEvent(QShowEvent *) override;;//打开窗口时执行
 private:
     Ui::WaitDialog *ui;
+    QPointer<QWebSocket> pClient;
     QEventLoop loop;
 };
 

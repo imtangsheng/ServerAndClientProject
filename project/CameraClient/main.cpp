@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
 
     QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
     qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
-    // gSouth.InitConfigSettings(appDir.absolutePath(), "CameraClient");//初始化配置文件路径,名称
+    // gShare.InitConfigSettings(appDir.absolutePath(), "CameraClient");//初始化配置文件路径,名称
 
     g_language = LocalValueGet("language", "en_US");
     // g_language = gSettings->value("language").toString();
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
             app.installTranslator(&g_translator);
         }
     }
-    gSouth.sessiontype_ = int(SessionType::Other);
+    gShare.sessiontype_ = int(SessionType::Other);
     MainWindow w;
     w.show();
     return app.exec();

@@ -36,6 +36,10 @@ void Shared::on_session(const QString& message, QObject* client) {
     emit sigSent(message, client);
 };
 
+void Shared::on_success(const QString& msg, const Session& session) {
+    emit sigSent(session.ResponseString(0, msg), session.socket);
+}
+
 void Shared::on_send(const Result& result, const Session& session) {
     if (result) {
         on_session(session.ResponseString(result.code, result.message), session.socket);
