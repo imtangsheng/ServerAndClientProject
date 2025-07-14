@@ -9,7 +9,7 @@
 #include <QtWebSockets/QWebSocket>
 #include <QSet>
 
-inline QWidget *parentBackground;
+inline QWidget *MainBackgroundWidget;
 // #include "TaskManager.h"
 class FileInfoDetails; // Add this line
 // 为 QPointer<QWebSocket> 提供 qHash 函数
@@ -31,6 +31,7 @@ public:
     QSet<QPointer<QWebSocket>> sockets; // 自动去重
     void sendTextMessage(const QString &message);
     Result SendAndWaitResult(Session &session, quint8 sTimeout = 30);
+    void SetBackgroudAcrylicEffect(QDialog *dialog);
 private:
     CoreControl() = default;
 

@@ -1,60 +1,6 @@
+#include <QGraphicsBlurEffect>
 #include "ToolTip.h"
 #include "ui_ToolTip.h"
-
-#ifdef _WIN32
-// #include "public/utils/windows_utils.h"
-#include <Windows.h>
-#include <dwmapi.h>
-#pragma comment(lib, "dwmapi.lib")
-void SetupAcrylicEffect(QWidget *win) {
-    // 使用 Windows 10 Acrylic 效果
-    HWND hwnd = (HWND)win->winId();
-    struct ACCENTPOLICY {
-        int nAccentState;
-        int nFlags;
-        int nColor;
-        int nAnimationId;
-    };
-    struct WINCOMPATTRDATA {
-        int nAttribute;
-        PVOID pData;
-        ULONG ulDataSize;
-    };
-    ACCENTPOLICY policy = {3, 2, 0x800000, 0}; // ACCENT_ENABLE_ACRYLICBLURBEHIND
-    WINCOMPATTRDATA data = {19, &policy, sizeof(policy)}; // WCA_ACCENT_POLICY
-    using SetWindowCompositionAttributePtr = BOOL(WINAPI *)(HWND, WINCOMPATTRDATA*);
-    SetWindowCompositionAttributePtr setWindowCompositionAttribute =
-        (SetWindowCompositionAttributePtr)GetProcAddress(GetModuleHandleW(L"user32.dll"), "SetWindowCompositionAttribute");
-    if (setWindowCompositionAttribute) {
-        setWindowCompositionAttribute(hwnd, &data);
-    }
-}
-#else
-void SetupAcrylicEffect(QWidget *win) {
-    win->setStyleSheet("background: rgba(0, 0, 0, 0.9);");
-}
-
-#endif
-
-void SetBackground(QDialog* dialog,QWidget* background=parentBackground)
-{
-    // qDebug() << "&DialogSetCameraFocus::setBackground";
-    // auto blurBackground = new AcrylicFrostedGlassWindow();
-    auto blurBackground = new QWidget();
-    // 确保窗口关闭时自动删除
-    blurBackground->setAttribute(Qt::WA_DeleteOnClose);
-    blurBackground->setWindowFlags(Qt::FramelessWindowHint);
-    blurBackground->setAttribute(Qt::WA_TranslucentBackground);
-    blurBackground->resize(background->size());
-    // blurBackground->setStyleSheet("background: rgba(0, 0, 0, 0.9);");
-    blurBackground->move(background->mapToGlobal(QPoint(0, 0)));
-    SetupAcrylicEffect(blurBackground);
-    blurBackground->raise();
-    blurBackground->show();
-    // 自动关闭和清理
-    // QObject::connect(dialog, &QWidget::destroyed, blurBackground, &QWidget::deleteLater);
-    QObject::connect(dialog, &QDialog::finished, blurBackground, &QWidget::deleteLater);//信号的参数可以比槽函数的参数多,但不能少 当信号的参数比槽函数多时,多余的参数会被忽略
-}
 
 ToolTip::ToolTip(QWidget *parent): ToolTip(Ok, "", "", -1, parent)
 {
@@ -86,7 +32,7 @@ ToolTip::ToolTip(TipType type, const QString &title, const QString &message, int
         connect(&timer,&QTimer::timeout, this, &ToolTip::accept);
         timer.start(msecShowTime);
     }
-    SetBackground(this);
+    gControl.SetBackgroudAcrylicEffect(this);
 }
 
 ToolTip::~ToolTip()
@@ -110,6 +56,7 @@ void ToolTip::ShowText(const QString &title, const QString &message, int msecSho
  * 当函数结束时，局部变量会自动析构，导致二次删除，引发崩溃
  */
     // ToolTip *tooltip = new ToolTip(Ok, title, message, msecShowTime);
+    // tooltip->setAttribute(Qt::WA_DeleteOnClose);
     // tooltip->exec();
     ToolTip tooltip(title, message, msecShowTime);
     // tooltip.setAttribute(Qt::WA_DeleteOnClose, false); // 取消自动删除

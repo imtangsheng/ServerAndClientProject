@@ -1,3 +1,5 @@
+#include <QGraphicsBlurEffect>
+
 void CoreControl::sendTextMessage(const QString &message)
 {
     for (const auto& client : std::as_const(sockets)) {//标准 C++，避免容器分离
@@ -22,4 +24,13 @@ Result CoreControl::SendAndWaitResult(Session &session, quint8 sTimeout)
         }
     }
     return true;
+}
+
+void CoreControl::SetBackgroudAcrylicEffect(QDialog *dialog)
+{
+    // 创建模糊效果
+    QGraphicsBlurEffect *blurEffect = new QGraphicsBlurEffect(dialog);
+    // blurEffect->setBlurRadius(10);
+    MainBackgroundWidget->setGraphicsEffect(blurEffect);
+
 }
