@@ -8,6 +8,8 @@
 
 #include <QtWebSockets/QWebSocket>
 #include <QSet>
+
+inline QWidget *parentBackground;
 // #include "TaskManager.h"
 class FileInfoDetails; // Add this line
 // 为 QPointer<QWebSocket> 提供 qHash 函数

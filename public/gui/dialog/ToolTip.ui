@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>560</width>
+    <width>659</width>
     <height>360</height>
    </rect>
   </property>
@@ -28,7 +28,7 @@
   <property name="styleSheet">
    <string notr="true">QDialog {
 	border-radius: 20px;
-	background-color: rgba(61, 71, 112, 204);
+	background: transparent;
 	border: 1px solid rgba(255, 255, 255, 51);
 }
 QWidget {

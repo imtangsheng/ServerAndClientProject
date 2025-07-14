@@ -44,7 +44,7 @@ public:
     // 基本操作接口 默认设计的是首先要执行一次,执行初始化变量赋值等操作
     virtual void initialize() {
         if (!translator.load(":/" + name() + "/" + zh_CN)) {
-            LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(zh_CN));
+            LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(": / " + name() + " / " + zh_CN));
         }
         if (gShare.language == zh_CN) {
             emit gShare.signal_translator_load(translator, true);

@@ -2,6 +2,7 @@
 #define TOOLTIP_H
 
 #include <QDialog>
+#include <QTimer>
 
 namespace Ui {
 class ToolTip;
@@ -30,6 +31,7 @@ public:
 private:
     Ui::ToolTip *ui;
     TipType _type;
+    QTimer timer;
 };
 
 #endif // TOOLTIP_H

@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent) {
     ui.setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint);//无边框和标题栏
+    parentBackground = ui.MainStackedWidget;
     //连接翻译
     connect(this,&MainWindow::languageChanged,this,&MainWindow::_retranslate);
     //网络设置
