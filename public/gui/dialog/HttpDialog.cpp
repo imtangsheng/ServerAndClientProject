@@ -7,7 +7,7 @@ HttpDialog::HttpDialog(QWidget *parent,quint8 sTimeout)
 {
     ui->setupUi(this);
     // setModal(true); // 必须设置为模态 失去焦点还会显示
-    // setWindowFlags(windowFlags() | Qt::Dialog);
+    setWindowFlags(windowFlags() | Qt::Dialog);
 }
 
 HttpDialog::~HttpDialog()

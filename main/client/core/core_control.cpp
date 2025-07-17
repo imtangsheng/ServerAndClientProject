@@ -26,7 +26,7 @@ Result CoreControl::SendAndWaitResult(Session &session, quint8 sTimeout)
     return true;
 }
 
-void CoreControl::SetBackgroudAcrylicEffect(QDialog *dialog)
+void CoreControl::SetBackgroudAcrylicEffect(QWidget *dialog)
 {
     // 创建模糊效果
     QGraphicsBlurEffect *blurEffect = new QGraphicsBlurEffect(dialog);

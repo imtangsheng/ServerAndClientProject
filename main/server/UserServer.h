@@ -32,10 +32,12 @@ public:
     //}
     
     Q_INVOKABLE void onDeviceStateChanged(Session session);//不使用 const Session& Qt 的元对象系统（MOC）会将 Q_INVOKABLE 方法编译 都能被统一调用
+    Q_INVOKABLE void SetRealtimeParsing(Session session);
 public slots:
     void onLanguageChanged(QString language);
-    void onAutoStartedClicked(bool checked);
-
+    void onAutoStartedClicked(const Session& session);
+    void onCarWarningClicked(const Session& session);
+    void onLogLevelChanged(const Session& session);
     //设置注册表参数 配置
     void SetRegisterSettings(const Session& session);
     // 任务执行方法

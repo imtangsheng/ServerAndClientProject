@@ -10,6 +10,9 @@ QPointer<WebSocketWidget>gWebWidget;
 #include"ChildWindow/ScannerWidget.h"
 
 QPointer<TrolleyWidget>gTrolley;
+#define SAFE_TROLLEY_CALL(expr) \
+    ((gTrolley) ? (gTrolley->expr) : false)
+
 QPointer<CameraWidget>gCamera;
 QPointer<ScannerWidget>gScanner;
 
@@ -87,7 +90,9 @@ MainWindow::MainWindow(QWidget* parent)
     ui.ProjectsWidgetContents->setColumnStretch(2, 1);
 
     connect(&gControl, &CoreControl::onProjectClicked, this, &MainWindow::onEnterProjectClicked);
-
+#pragma endregion
+#pragma region PageTask任务页
+    UpdateCitySubwayInfo(":assets/docs/city");
 #pragma endregion
 }
 
@@ -154,6 +159,18 @@ void MainWindow::onEnterProjectClicked(const FileInfoDetails &project) {
     }
     ui.label_current_task_name->hide();
     ui.label_current_project_name->setText(tr("当前项目:%1").arg(project.name));
+    ui.lineEdit_task_param_content_name->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss"));
+
+    static bool needUpdateCameraFormat{true};
+    if(needUpdateCameraFormat){
+        Session session(sModuleCamera, "GetCameraFormat", "");
+        if(gControl.SendAndWaitResult(session)){
+            UpdateCameraFormat(session.result.toString());
+            needUpdateCameraFormat = false;
+        }else{
+            ToolTip::ShowText(tr("获取相机照片格式失败"),-1);
+        }
+    }
 }
 
 void MainWindow::onShowMessage(const QString& message, LogLevel level) {
@@ -233,6 +250,16 @@ void MainWindow::onSocketError(QAbstractSocket::SocketError error)
 
 void MainWindow::on_action_goto_home_triggered() {
     GotoHomePage();
+}
+
+void MainWindow::on_action_start_triggered()
+{
+    qDebug() << "#Window::on_action_start_triggered()";
+}
+
+void MainWindow::on_action_stop_triggered()
+{
+    qDebug() << "#Window::on_action_stop_triggered()";
 }
 
 
@@ -522,9 +549,161 @@ void MainWindow::on_pushButton_project_delete_cancel_clicked()
         if (button->isChecked()) button->SetChecked(false);
     }
 }
+/*任务参数页设置*/
+void MainWindow::on_comboBox_city_activated(int index)
+{
+    //0默认是自定义,清空选择
+    if(index ==0){
+        ui.comboBox_task_param_line_name->clear();
+        ui.comboBox_task_param_between_name_before->clear();
+        ui.comboBox_task_param_between_name_after->clear();
+
+        ui.comboBox_task_param_line_name->setEditable(true);
+        ui.comboBox_task_param_between_name_before->setEditable(true);
+        ui.comboBox_task_param_between_name_after->setEditable(true);
+        return;
+    } else {
+        ui.comboBox_task_param_line_name->setEditable(false);
+        ui.comboBox_task_param_between_name_before->setEditable(false);
+        ui.comboBox_task_param_between_name_after->setEditable(false);
+    }
+    QString city = ui.comboBox_city->currentText();
+    if(city.isEmpty()) return;
+    QJsonArray lines = citySubwayInfo.value(city).toArray();
+    ui.comboBox_task_param_line_name->clear();
+    for (const QJsonValue& value : lines) {
+        QJsonObject line = value.toObject();
+        ui.comboBox_task_param_line_name->addItem(line.value("ln").toString());
+    }
+    //默认第一个站
+    //on_comboBox_task_param_line_name_activated(index - 1);
+    QJsonObject line = lines[0].toObject();
+    //QString line_name = line.value("ln").toString();
+    QJsonArray stations = line.value("st").toArray();
+    ui.comboBox_task_param_between_name_before->clear();
+    ui.comboBox_task_param_between_name_after->clear();
+    // 方法1：直接遍历
+    for (const QJsonValue& value : stations) {
+        QString station = value.toString();
+        ui.comboBox_task_param_between_name_before->addItem(station);
+        ui.comboBox_task_param_between_name_after->addItem(station);
+    }
+}
+
+
+void MainWindow::on_comboBox_task_param_line_name_activated(int index)
+{
+    if(ui.comboBox_city->currentIndex() == 0) return;
+    QString city = ui.comboBox_city->currentText();
+    if (city.isEmpty()) return;
+    QJsonArray lines = citySubwayInfo.value(city).toArray();
+    QJsonObject line = lines[index].toObject();
+    //QString line_name = line.value("ln").toString();
+    QJsonArray stations = line.value("st").toArray();
+    ui.comboBox_task_param_between_name_before->clear();
+    ui.comboBox_task_param_between_name_after->clear();
+    // 方法1：直接遍历
+    for (const QJsonValue& value : stations) {
+        QString station = value.toString();
+        ui.comboBox_task_param_between_name_before->addItem(station);
+        ui.comboBox_task_param_between_name_after->addItem(station);
+    }
+}
+
+void MainWindow::on_pushButton_task_param_content_tunnel_diameter_sub_1_clicked()
+{
+    ui.doubleSpinBox_task_param_content_tunnel_diameter->stepBy(-10);
+}
+
+void MainWindow::on_pushButton_task_param_content_tunnel_diameter_add_1_clicked()
+{
+    ui.doubleSpinBox_task_param_content_tunnel_diameter->stepBy(10);
+}
+
+void MainWindow::on_pushButton_task_param_starting_ring_sub_50_clicked()
+{
+    ui.spinBox_task_param_starting_ring_number->stepBy(-50);
+}
+
+
+void MainWindow::on_pushButton_task_param_starting_ring_add_50_clicked()
+{
+    ui.spinBox_task_param_starting_ring_number->stepBy(50);
+}
+
+
+void MainWindow::on_pushButton_task_param_start_mileage_sub_50_clicked()
+{
+    ui.spinBox_task_param_start_mileage->stepBy(-50);
+}
+
+
+void MainWindow::on_pushButton_task_param_start_mileage_add_50_clicked()
+{
+    ui.spinBox_task_param_start_mileage->stepBy(50);
+}
+
+
+void MainWindow::on_pushButton_task_param_segment_width_sub_1_clicked()
+{
+    ui.doubleSpinBox_task_param_segment_width->stepBy(-10);
+}
+
+
+void MainWindow::on_pushButton_task_param_segment_width_add_1_clicked()
+{
+    ui.doubleSpinBox_task_param_segment_width->stepBy(10);
+}
 
 void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
+    QString name = ui.lineEdit_task_param_content_name->text().trimmed(); // 移除首尾空格
+    // 检查文件名是否为空
+    if(name.isEmpty()){
+        ToolTip::ShowText(tr("任务名称不能为空"));
+        return;
+    }
+    // 检查文件名合法性
+    static QRegularExpression regex("[\\\\/:*?\"<>|]"); // Windows文件名非法字符
+    if(name.contains(regex)){
+        ToolTip::ShowText(tr("任务名称包含非法字符（\\ / : * ? \" < > |）"));
+        return;
+    }
+
+    gTaskFileInfo->name = name;
+    gTaskFileInfo->data[JSON_TASK_NAME] = name;
+    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    content[JSON_DEVICE_TYPE] = __DEVICE_TYPE__;
+    content[JSON_DIAMETER] = ui.doubleSpinBox_task_param_content_tunnel_diameter->value();
+    
+    QString line_name;
+    if (ui.comboBox_city->currentIndex() == 0) {//不是自定义的名称
+        line_name = ui.comboBox_city->currentText();//前缀加入城市
+    }
+    content[JSON_TMP_LINE_NAME] = line_name + ui.comboBox_task_param_line_name->currentText();
+    content[JSON_TMP_BETWEEN_NAME] = ui.comboBox_task_param_between_name_before->currentText() + "-" + ui.comboBox_task_param_between_name_after->currentText();
+    QString line_type;
+    switch (ui.comboBox_task_param_line_type->currentIndex()) {
+    case 0:line_type = "Left"; break;
+    case 1:line_type = "Right"; break;
+    case 2:line_type = "Up"; break;
+    case 3:line_type = "Down";break;
+    default:line_type = "Left";break;
+    }
+    content[JSON_TMP_LINE_TYPE] = line_type;
+
+    content[JSON_START_RING] = ui.spinBox_task_param_starting_ring_number->value();
+    content[JSON_START_MILEAGE] = ui.spinBox_task_param_start_mileage->value();
+    content[JSON_SEGMENT_WIDE] = ui.doubleSpinBox_task_param_segment_width->value();
+
+    ui.label_current_task_name->setText(tr("当前任务:%1").arg(name));
+    ui.label_current_task_name->show();
+    gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_last);
+}
+
+void MainWindow::on_pushButton_tsak_param_first_page_cancel_clicked()
+{
+    ui.StackedWidgetProjectHub->setCurrentWidget(ui.ProjectHome);//取消返回项目选择
 }
 
 
@@ -534,6 +713,24 @@ void MainWindow::on_pushButton_task_param_last_page_previous_step_clicked() {
 
 
 void MainWindow::on_pushButton_task_param_last_page_next_step_prestart_clicked() {
+    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+
+    content[JSON_TEMPLATE] = ui.comboBox_parameter_templates->currentText();
+    content[JSON_ACCURACY] = ui.spinBox_scanner_accuracy->value();
+    content[JSON_SPEED] = ui.spinBox_car_travel_speed->value();
+    content[JSON_DIRECTION] = gControl.carDirection ? "Forward" : "Backward"; //0后退 1 前进
+
+    if (gTrolley) {
+        bool isRatedMileageOn = ui.radioButton_car_rated_mileage_on->isChecked();
+        gTrolley->isRatedMileage = isRatedMileageOn;
+        if (isRatedMileageOn) {
+            int carRatedMileageValue = ui.spinBox_car_rated_mileage->value();
+            content[JSON_CAR_RATED_MILEAGE] = carRatedMileageValue;
+            gTrolley->carRatedMileage = carRatedMileageValue;
+        }
+    }
+
+    gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskAcquisition);
 }
 
@@ -543,10 +740,120 @@ void MainWindow::on_pushButton_task_param_last_page_cancel_clicked() {
 }
 
 
+void MainWindow::on_radioButton_car_obstacle_avoidance_enabled_clicked()
+{
+    ToolTip::ShowText(tr("设置雷达避障行为待支持"), 5000);
+
+    //Session session(sModuleSerial, "SetCarObstacleAvoidance", true);
+    //if (gControl.SendAndWaitResult(session)) {
+    //} else {
+    //    ToolTip::ShowText(tr("设置避障行为失败"), -1);
+    //}
+}
+
+
+void MainWindow::on_radioButton_car_obstacle_avoidance_close_clicked()
+{
+    ToolTip::ShowText(tr("设置雷达避障行为待支持"), 5000);
+
+    //Session session(sModuleSerial, "SetCarObstacleAvoidance", false);
+    //if (gControl.SendAndWaitResult(session)) {
+    //} else {
+    //    ToolTip::ShowText(tr("设置避障行为失败"), -1);
+    //}
+}
+
+
+void MainWindow::on_radioButton_realtime_parsing_enabled_clicked()
+{
+    Session session(sModuleUser, "SetRealtimeParsing", true);
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(tr("设置实时解析失败"), -1);
+    }
+}
+
+
+void MainWindow::on_radioButton_realtime_parsing_off_clicked()
+{
+    Session session(sModuleUser, "SetRealtimeParsing", false);
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(tr("设置实时解析失败"), -1);
+    }
+}
+
+void MainWindow::on_radioButton_car_forward_clicked()
+{
+    //setCheckable(false) 没有的时候,应该禁用或者不显示
+    if (gTrolley && gControl.carDirection == false) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
+        QJsonObject obj;
+        obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
+        QByteArray data;
+        obj["data"] = data.toStdString().c_str();
+        Session session(sModuleSerial, "SetParamsByCode", obj);
+        if (gControl.SendAndWaitResult(session)) {
+            gControl.carDirection = true;
+        } else {
+            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
+            ui.radioButton_car_forward->setChecked(false);
+        }
+    }
+}
+
+
+void MainWindow::on_radioButton_car_backward_clicked()
+{
+    if (gTrolley && gControl.carDirection == true) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
+        QJsonObject obj;
+        obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
+        QByteArray data;
+        obj["data"] = data.toStdString().c_str();
+        Session session(sModuleSerial, "SetParamsByCode", obj);
+        if (gControl.SendAndWaitResult(session)) {
+            gControl.carDirection = false;
+        } else {
+            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
+            ui.radioButton_car_backward->setChecked(false);
+        }
+    }
+}
+
+
+void MainWindow::on_radioButton_camera_format_jpg_clicked()
+{
+    SetCameraFormat("jpg");
+}
+
+
+void MainWindow::on_radioButton_camera_format_jpeg_clicked()
+{
+    SetCameraFormat("jpeg");
+}
+
+
+void MainWindow::on_radioButton_camera_format_png_clicked()
+{
+    SetCameraFormat("png");
+}
+
+
+void MainWindow::on_radioButton_camera_format_bmp_clicked()
+{
+    SetCameraFormat("bmp");
+}
+
+
+void MainWindow::on_radioButton_camera_format_raw_clicked()
+{
+    SetCameraFormat("raw");
+}
+
 void MainWindow::on_pushButton_test_clicked()
 {
     ToolTip::ShowText("测试");
 }
+
 #pragma endregion
 
 void MainWindow::_retranslate()
@@ -554,3 +861,85 @@ void MainWindow::_retranslate()
     qDebug()<<"void MainWindow::retranslate() 更新语言显示,主要是ui文件,和一些qss的文本";
     ui.retranslateUi(this);
 }
+
+void MainWindow::UpdateCitySubwayInfo(const QString& dirPathCity)
+{
+    QDir dir(dirPathCity);
+    // 获取所有.json文件
+    QStringList filters;
+    filters << "*.json";
+    QFileInfoList files = dir.entryInfoList(filters, QDir::Files);
+    // 遍历每个json文件
+    foreach(const QFileInfo& fileInfo,files) {
+        QFile file(fileInfo.absoluteFilePath());
+        if (!file.open(QIODevice::ReadOnly)) {
+            qWarning() << tr("无法读取文件:") << fileInfo.absoluteFilePath();
+            continue;
+        }
+        // 读取文件内容
+        QByteArray data = file.readAll();
+        QString filename = fileInfo.baseName();
+        file.close();
+        // 解析JSON
+        QJsonDocument doc = QJsonDocument::fromJson(data);
+        if (doc.isNull() || !doc.isObject()) {
+            qWarning() << tr("无法解析json数据") << data;
+            continue;
+        }
+        QJsonObject obj = doc.object();
+        QJsonArray lines_array = obj["l"].toArray();
+        QJsonArray subway_lines;
+        foreach(auto line_ref,lines_array) {
+            QJsonObject line = line_ref.toObject();
+            //qDebug() << line;
+            QString line_name = line.value("ln").toString();
+            if (line_name.contains(QChar::ReplacementCharacter)) {
+                qWarning() << "⚠️ 非法线路名称（不是 UTF-8 编码）:" << line_name;
+                continue;
+            }
+            QJsonArray st_array = line.value("st").toArray();
+            QJsonArray st_names;
+            foreach (auto st_ref , st_array) {
+                QJsonObject st_obj = st_ref.toObject();
+                QString name = st_obj.value("n").toString();
+                st_names.append(name);
+            }
+            qDebug() << "插入线路名称:" << line_name << "站点数量:" << st_names.size();
+            QJsonObject line_obj;
+            line_obj["ln"] = line_name;
+            line_obj["st"] = st_names;
+            subway_lines.append(line_obj);
+        }
+        //相同字符大小的线路名称,在Debug模式下,会出现报错 ASSERT: "lhs.size() == rhs.size()" 
+        citySubwayInfo.insert(filename,subway_lines);
+    }
+    ui.comboBox_city->clear();
+    ui.comboBox_city->addItem(tr("自定义"));
+    ui.comboBox_city->addItems(citySubwayInfo.keys());
+}
+
+void MainWindow::UpdateCameraFormat(const QString &format)
+{
+    if(format == "jpg") ui.radioButton_camera_format_jpg->setChecked(true);
+    else if(format == "jpeg") ui.radioButton_camera_format_jpeg->setChecked(true);
+    else if(format == "png") ui.radioButton_camera_format_png->setChecked(true);
+    else if(format == "bmp") ui.radioButton_camera_format_bmp->setChecked(true);
+    else if(format == "raw") ui.radioButton_camera_format_raw->setChecked(true);
+    else ui.radioButton_camera_format_jpg->setChecked(true);
+}
+
+void MainWindow::SetCameraFormat(const QString &format)
+{
+    Session session(sModuleCamera, "SetCameraFormat", format);
+    if(gControl.SendAndWaitResult(session)){
+    }else{
+        ToolTip::ShowText(tr("设置相机照片格式%1失败").arg(format),-1);
+    }
+}
+
+
+
+
+
+
+

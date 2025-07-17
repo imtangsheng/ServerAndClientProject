@@ -9,12 +9,12 @@
 static ActiveSerial* gSerial{ nullptr };// = new ActiveSerial();
 
 SerialPlugin::SerialPlugin() {
-    qDebug() << "[#Trolley]构造函数";
+    qDebug() << "[#Serial]构造函数";
     IPluginDevice::initialize();
 }
 
 SerialPlugin::~SerialPlugin() {
-    qDebug() << "[#Trolley]析构函数";
+    qDebug() << "[#Serial]析构函数";
 }
 
 QString SerialPlugin::_module() const {
@@ -39,13 +39,14 @@ void SerialPlugin::initialize() {
 }
 
 Result SerialPlugin::disconnect() {
-    qDebug() << "[#Trolley]断开连接";
+    qDebug() << "[#Serial]断开连接";
     return Result();
 }
 
 
 QString SerialPlugin::name() const {
-    return gSerial->DeviceName();
+    //return gSerial->DeviceName();
+    return "Serial";
 }
 
 QString SerialPlugin::version() const {
@@ -104,7 +105,7 @@ void SerialPlugin::SaveConfig(const Session& session) {
 }
 
 void SerialPlugin::execute(const QString& method) {
-    qDebug() << "[#Trolley]执行方法" << method;
+    qDebug() << "[#Serial]执行方法" << method;
 }
 
 void SerialPlugin::scan(const Session& session) {

@@ -553,7 +553,7 @@ QLabel[theme=&quot;light&quot;] {
 }</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="PageHome">
        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="768,600">
@@ -3828,7 +3828,7 @@ background: rgba(15, 19, 26, 1);</string>
         <item>
          <widget class="QStackedWidget" name="StackedWidgetProjectHub">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="ProjectHome">
            <property name="cursor">
@@ -4148,8 +4148,8 @@ background: rgb(0, 0, 0);
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1388</width>
-                 <height>761</height>
+                 <width>1350</width>
+                 <height>286</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_42" stretch="0,1,0">
@@ -5651,10 +5651,10 @@ border: 1px solid rgba(255, 141, 26, 1);
               <item>
                <widget class="QStackedWidget" name="stackedWidget_task_param">
                 <property name="currentIndex">
-                 <number>0</number>
+                 <number>1</number>
                 </property>
                 <widget class="QWidget" name="page_task_param_first">
-                 <layout class="QVBoxLayout" name="verticalLayout_11" stretch="1,1,0">
+                 <layout class="QVBoxLayout" name="verticalLayout_11" stretch="1,0,0">
                   <property name="spacing">
                    <number>20</number>
                   </property>
@@ -6132,8 +6132,8 @@ font-size: 20px;
 background: rgba(37, 46, 74, 1);
 border: 1px solid rgba(80, 95, 138, 1);
 spacing: 0px; /* 移除指示器与文字之间的间距 */
-padding-left: 20px;   /* 清除默认padding */
-padding-right: 20px;
+padding-left: 18px;   /* 清除默认padding */
+padding-right: 18px;
 }
 
 QRadioButton:checked {
@@ -6159,7 +6159,30 @@ QSpinBox::down-button {
     width: 0;
     height: 0;
     border: none;
-}</string>
+}
+
+QComboBox {
+border-radius: 10px;
+font-size: 24px;
+background: rgba(37, 46, 74, 1);
+border: 1px solid rgba(80, 95, 138, 1);
+}
+
+/* 下拉按钮区域 */
+QComboBox::drop-down {
+    border: none;
+    width: 30px;  /* 下拉按钮宽度 */
+    padding-right: 6px;
+}
+
+/* 自定义下拉箭头图标 */
+QComboBox::down-arrow {
+    /* 设置下拉箭头图片 */
+	image: url(:/assets/TaskHub/pulldown.png);
+    width: 24px;   /* 图标宽度 */
+    height: 24px;  /* 图标高度 */
+}
+</string>
                     </property>
                     <layout class="QGridLayout" name="gridLayout_2">
                      <property name="leftMargin">
@@ -6183,13 +6206,13 @@ QSpinBox::down-button {
                      <item row="0" column="0">
                       <layout class="QHBoxLayout" name="horizontalLayout_18">
                        <property name="spacing">
-                        <number>0</number>
+                        <number>9</number>
                        </property>
                        <property name="leftMargin">
                         <number>10</number>
                        </property>
                        <item>
-                        <widget class="QLabel" name="label_18">
+                        <widget class="QLabel" name="label_106">
                          <property name="font">
                           <font>
                            <family>思源黑体</family>
@@ -6197,8 +6220,39 @@ QSpinBox::down-button {
                           </font>
                          </property>
                          <property name="text">
-                          <string>区间</string>
+                          <string>城市</string>
                          </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QComboBox" name="comboBox_city">
+                         <property name="minimumSize">
+                          <size>
+                           <width>136</width>
+                           <height>60</height>
+                          </size>
+                         </property>
+                         <property name="font">
+                          <font>
+                           <family>思源黑体</family>
+                           <pointsize>-1</pointsize>
+                          </font>
+                         </property>
+                         <item>
+                          <property name="text">
+                           <string>自定义</string>
+                          </property>
+                         </item>
+                         <item>
+                          <property name="text">
+                           <string>广州</string>
+                          </property>
+                         </item>
+                         <item>
+                          <property name="text">
+                           <string>深圳</string>
+                          </property>
+                         </item>
                         </widget>
                        </item>
                        <item>
@@ -6208,51 +6262,14 @@ QSpinBox::down-button {
                          </property>
                          <property name="sizeHint" stdset="0">
                           <size>
-                           <width>68</width>
-                           <height>20</height>
+                           <width>22</width>
+                           <height>0</height>
                           </size>
                          </property>
                         </spacer>
                        </item>
                        <item>
-                        <widget class="QLineEdit" name="lineEdit_task_param_interval_name">
-                         <property name="minimumSize">
-                          <size>
-                           <width>300</width>
-                           <height>60</height>
-                          </size>
-                         </property>
-                         <property name="maximumSize">
-                          <size>
-                           <width>300</width>
-                           <height>60</height>
-                          </size>
-                         </property>
-                         <property name="font">
-                          <font>
-                           <family>思源黑体</family>
-                           <pointsize>15</pointsize>
-                          </font>
-                         </property>
-                         <property name="styleSheet">
-                          <string notr="true">border-radius: 10px;
-background: rgba(37, 46, 74, 1);
-border: 1px solid rgba(80, 95, 138, 1);</string>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </item>
-                     <item row="1" column="0">
-                      <layout class="QHBoxLayout" name="horizontalLayout_19">
-                       <property name="spacing">
-                        <number>0</number>
-                       </property>
-                       <property name="leftMargin">
-                        <number>10</number>
-                       </property>
-                       <item>
-                        <widget class="QLabel" name="label_20">
+                        <widget class="QLabel" name="label_22">
                          <property name="font">
                           <font>
                            <family>思源黑体</family>
@@ -6260,46 +6277,709 @@ border: 1px solid rgba(80, 95, 138, 1);</string>
                           </font>
                          </property>
                          <property name="text">
-                          <string>线别</string>
+                          <string>线路</string>
                          </property>
                         </widget>
                        </item>
                        <item>
-                        <spacer name="horizontalSpacer_12">
-                         <property name="orientation">
-                          <enum>Qt::Orientation::Horizontal</enum>
-                         </property>
-                         <property name="sizeHint" stdset="0">
-                          <size>
-                           <width>40</width>
-                           <height>20</height>
-                          </size>
-                         </property>
-                        </spacer>
-                       </item>
-                       <item>
-                        <widget class="QComboBox" name="comboBox_task_param_line_type">
+                        <widget class="QComboBox" name="comboBox_task_param_line_name">
                          <property name="minimumSize">
                           <size>
-                           <width>300</width>
+                           <width>136</width>
                            <height>60</height>
                           </size>
                          </property>
-                         <property name="maximumSize">
-                          <size>
-                           <width>300</width>
-                           <height>60</height>
-                          </size>
+                         <property name="font">
+                          <font>
+                           <family>思源黑体</family>
+                           <pointsize>-1</pointsize>
+                          </font>
                          </property>
-                         <property name="styleSheet">
-                          <string notr="true">border-radius: 10px;
-background: rgba(37, 46, 74, 1);
-
-border: 1px solid rgba(80, 95, 138, 1);</string>
+                         <property name="editable">
+                          <bool>true</bool>
                          </property>
                         </widget>
                        </item>
                       </layout>
+                     </item>
+                     <item row="1" column="1">
+                      <layout class="QHBoxLayout" name="horizontalLayout_23">
+                       <property name="spacing">
+                        <number>0</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label_57">
+                         <property name="minimumSize">
+                          <size>
+                           <width>10</width>
+                           <height>0</height>
+                          </size>
+                         </property>
+                         <property name="maximumSize">
+                          <size>
+                           <width>10</width>
+                           <height>16777215</height>
+                          </size>
+                         </property>
+                         <property name="font">
+                          <font>
+                           <family>思源黑体</family>
+                           <pointsize>18</pointsize>
+                          </font>
+                         </property>
+                         <property name="alignment">
+                          <set>Qt::AlignmentFlag::AlignCenter</set>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="label_26">
+                         <property name="font">
+                          <font>
+                           <family>思源黑体</family>
+                           <pointsize>18</pointsize>
+                          </font>
+                         </property>
+                         <property name="text">
+                          <string>起始里程(m)  </string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <layout class="QHBoxLayout" name="horizontalLayout_24">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_sub_50">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <family>思源黑体</family>
+                             <pointsize>15</pointsize>
+                            </font>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">border-top-left-radius:10px;
+border-bottom-left-radius:10px;
+padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                           </property>
+                           <property name="text">
+                            <string>-50</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_sub_1">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <family>思源黑体</family>
+                             <pointsize>15</pointsize>
+                            </font>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                           </property>
+                           <property name="text">
+                            <string>-1</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QSpinBox" name="spinBox_task_param_start_mileage">
+                           <property name="minimumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <family>思源黑体</family>
+                             <pointsize>-1</pointsize>
+                            </font>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignmentFlag::AlignCenter</set>
+                           </property>
+                           <property name="minimum">
+                            <number>50</number>
+                           </property>
+                           <property name="maximum">
+                            <number>5500</number>
+                           </property>
+                           <property name="singleStep">
+                            <number>1</number>
+                           </property>
+                           <property name="value">
+                            <number>100</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_add_1">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <family>思源黑体</family>
+                             <pointsize>15</pointsize>
+                            </font>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                           </property>
+                           <property name="text">
+                            <string>+1</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_add_50">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="minimumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>60</width>
+                             <height>60</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <family>思源黑体</family>
+                             <pointsize>15</pointsize>
+                            </font>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">border-top-right-radius:10px;
+border-bottom-right-radius:10px;
+padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                           </property>
+                           <property name="text">
+                            <string>+50</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </item>
+                      </layout>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="QWidget" name="horizontalWidget_12" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_27">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="leftMargin">
+                         <number>20</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="label_29">
+                          <property name="font">
+                           <font>
+                            <family>思源黑体</family>
+                            <pointsize>18</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>实时解析</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_17">
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QRadioButton" name="radioButton_realtime_parsing_enabled">
+                          <property name="minimumSize">
+                           <size>
+                            <width>80</width>
+                            <height>60</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>80</width>
+                            <height>60</height>
+                           </size>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">border-top-left-radius:10px;
+border-bottom-left-radius:10px;</string>
+                          </property>
+                          <property name="text">
+                           <string>启用</string>
+                          </property>
+                          <property name="checked">
+                           <bool>false</bool>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QRadioButton" name="radioButton_realtime_parsing_off">
+                          <property name="minimumSize">
+                           <size>
+                            <width>80</width>
+                            <height>60</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>80</width>
+                            <height>60</height>
+                           </size>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">border-top-right-radius:10px;
+border-bottom-right-radius:10px;
+</string>
+                          </property>
+                          <property name="text">
+                           <string>关闭</string>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="0" column="2">
+                      <widget class="QWidget" name="horizontalWidget_13" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_28">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="leftMargin">
+                         <number>20</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="label_32">
+                          <property name="font">
+                           <font>
+                            <family>思源黑体</family>
+                            <pointsize>18</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>避障行为</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_18">
+                          <property name="orientation">
+                           <enum>Qt::Orientation::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>40</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QRadioButton" name="radioButton_car_obstacle_avoidance_enabled">
+                          <property name="minimumSize">
+                           <size>
+                            <width>80</width>
+                            <height>60</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>80</width>
+                            <height>60</height>
+                           </size>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">border-top-left-radius:10px;
+border-bottom-left-radius:10px;</string>
+                          </property>
+                          <property name="text">
+                           <string>刹停</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QRadioButton" name="radioButton_car_obstacle_avoidance_close">
+                          <property name="minimumSize">
+                           <size>
+                            <width>0</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>80</width>
+                            <height>60</height>
+                           </size>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true">border-top-right-radius:10px;
+border-bottom-right-radius:10px;</string>
+                          </property>
+                          <property name="text">
+                           <string>关闭</string>
+                          </property>
+                          <property name="checked">
+                           <bool>true</bool>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QWidget" name="horizontalWidget_9" native="true">
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <layout class="QHBoxLayout" name="horizontalLayout_21">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="leftMargin">
+                         <number>10</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="label_24">
+                          <property name="font">
+                           <font>
+                            <family>思源黑体</family>
+                            <pointsize>18</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>起始环号(r)     </string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <layout class="QHBoxLayout" name="horizontalLayout_22">
+                          <property name="spacing">
+                           <number>0</number>
+                          </property>
+                          <item>
+                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_sub_50">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="minimumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="maximumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="font">
+                             <font>
+                              <family>思源黑体</family>
+                              <pointsize>15</pointsize>
+                             </font>
+                            </property>
+                            <property name="styleSheet">
+                             <string notr="true">border-top-left-radius:10px;
+border-bottom-left-radius:10px;
+padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                            </property>
+                            <property name="text">
+                             <string>-50</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_sub_1">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="minimumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="maximumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="font">
+                             <font>
+                              <family>思源黑体</family>
+                              <pointsize>15</pointsize>
+                             </font>
+                            </property>
+                            <property name="styleSheet">
+                             <string notr="true">padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                            </property>
+                            <property name="text">
+                             <string>-1</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QSpinBox" name="spinBox_task_param_starting_ring_number">
+                            <property name="minimumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="maximumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="font">
+                             <font>
+                              <family>思源黑体</family>
+                              <pointsize>-1</pointsize>
+                             </font>
+                            </property>
+                            <property name="alignment">
+                             <set>Qt::AlignmentFlag::AlignCenter</set>
+                            </property>
+                            <property name="suffix">
+                             <string/>
+                            </property>
+                            <property name="prefix">
+                             <string/>
+                            </property>
+                            <property name="minimum">
+                             <number>50</number>
+                            </property>
+                            <property name="maximum">
+                             <number>5500</number>
+                            </property>
+                            <property name="singleStep">
+                             <number>1</number>
+                            </property>
+                            <property name="value">
+                             <number>1500</number>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_add_1">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="minimumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="maximumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="font">
+                             <font>
+                              <family>思源黑体</family>
+                              <pointsize>15</pointsize>
+                             </font>
+                            </property>
+                            <property name="styleSheet">
+                             <string notr="true">padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                            </property>
+                            <property name="text">
+                             <string>+1</string>
+                            </property>
+                           </widget>
+                          </item>
+                          <item>
+                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_add_50">
+                            <property name="sizePolicy">
+                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                              <horstretch>0</horstretch>
+                              <verstretch>0</verstretch>
+                             </sizepolicy>
+                            </property>
+                            <property name="minimumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="maximumSize">
+                             <size>
+                              <width>60</width>
+                              <height>60</height>
+                             </size>
+                            </property>
+                            <property name="font">
+                             <font>
+                              <family>思源黑体</family>
+                              <pointsize>15</pointsize>
+                             </font>
+                            </property>
+                            <property name="styleSheet">
+                             <string notr="true">border-top-right-radius:10px;
+border-bottom-right-radius:10px;
+padding-left: 0px;   /* 清除默认padding */
+padding-right: 0px;
+background: rgba(37, 46, 74, 1);
+text-align: center;</string>
+                            </property>
+                            <property name="text">
+                             <string>+50</string>
+                            </property>
+                           </widget>
+                          </item>
+                         </layout>
+                        </item>
+                       </layout>
+                      </widget>
                      </item>
                      <item row="2" column="1">
                       <layout class="QHBoxLayout" name="horizontalLayout_25">
@@ -6561,16 +7241,16 @@ text-align: center;</string>
                        </item>
                       </layout>
                      </item>
-                     <item row="2" column="0">
+                     <item row="1" column="0">
                       <layout class="QHBoxLayout" name="horizontalLayout_20">
                        <property name="spacing">
-                        <number>0</number>
+                        <number>9</number>
                        </property>
                        <property name="leftMargin">
                         <number>10</number>
                        </property>
                        <item>
-                        <widget class="QLabel" name="label_22">
+                        <widget class="QLabel" name="label_18">
                          <property name="font">
                           <font>
                            <family>思源黑体</family>
@@ -6578,7 +7258,7 @@ text-align: center;</string>
                           </font>
                          </property>
                          <property name="text">
-                          <string>线路</string>
+                          <string>区间</string>
                          </property>
                         </widget>
                        </item>
@@ -6589,76 +7269,39 @@ text-align: center;</string>
                          </property>
                          <property name="sizeHint" stdset="0">
                           <size>
-                           <width>40</width>
+                           <width>20</width>
                            <height>20</height>
                           </size>
                          </property>
                         </spacer>
                        </item>
                        <item>
-                        <widget class="QLineEdit" name="lineEdit_task_param_line_name">
+                        <widget class="QComboBox" name="comboBox_task_param_between_name_before">
                          <property name="minimumSize">
                           <size>
-                           <width>300</width>
-                           <height>60</height>
-                          </size>
-                         </property>
-                         <property name="maximumSize">
-                          <size>
-                           <width>300</width>
+                           <width>136</width>
                            <height>60</height>
                           </size>
                          </property>
                          <property name="font">
                           <font>
                            <family>思源黑体</family>
-                           <pointsize>15</pointsize>
+                           <pointsize>-1</pointsize>
                           </font>
                          </property>
-                         <property name="styleSheet">
-                          <string notr="true">border-radius: 10px;
-background: rgba(37, 46, 74, 1);
-border: 1px solid rgba(80, 95, 138, 1);</string>
-                         </property>
-                         <property name="text">
-                          <string/>
+                         <property name="editable">
+                          <bool>true</bool>
                          </property>
                         </widget>
                        </item>
-                      </layout>
-                     </item>
-                     <item row="1" column="1">
-                      <layout class="QHBoxLayout" name="horizontalLayout_23">
-                       <property name="spacing">
-                        <number>0</number>
-                       </property>
                        <item>
-                        <widget class="QLabel" name="label_57">
+                        <widget class="QLabel" name="label_107">
                          <property name="minimumSize">
                           <size>
                            <width>10</width>
                            <height>0</height>
                           </size>
                          </property>
-                         <property name="maximumSize">
-                          <size>
-                           <width>10</width>
-                           <height>16777215</height>
-                          </size>
-                         </property>
-                         <property name="font">
-                          <font>
-                           <family>思源黑体</family>
-                           <pointsize>18</pointsize>
-                          </font>
-                         </property>
-                         <property name="alignment">
-                          <set>Qt::AlignmentFlag::AlignCenter</set>
-                         </property>
-                        </widget>
-                       </item>
-                       <item>
-                        <widget class="QLabel" name="label_26">
                          <property name="font">
                           <font>
                            <family>思源黑体</family>
@@ -6666,645 +7309,111 @@ border: 1px solid rgba(80, 95, 138, 1);</string>
                           </font>
                          </property>
                          <property name="text">
-                          <string>起始里程(m)  </string>
+                          <string>-</string>
                          </property>
                         </widget>
                        </item>
                        <item>
-                        <layout class="QHBoxLayout" name="horizontalLayout_24">
-                         <property name="spacing">
-                          <number>0</number>
+                        <widget class="QComboBox" name="comboBox_task_param_between_name_after">
+                         <property name="minimumSize">
+                          <size>
+                           <width>136</width>
+                           <height>60</height>
+                          </size>
                          </property>
-                         <item>
-                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_sub_50">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <family>思源黑体</family>
-                             <pointsize>15</pointsize>
-                            </font>
-                           </property>
-                           <property name="styleSheet">
-                            <string notr="true">border-top-left-radius:10px;
-border-bottom-left-radius:10px;
-padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                           </property>
-                           <property name="text">
-                            <string>-50</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_sub_1">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <family>思源黑体</family>
-                             <pointsize>15</pointsize>
-                            </font>
-                           </property>
-                           <property name="styleSheet">
-                            <string notr="true">padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                           </property>
-                           <property name="text">
-                            <string>-1</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QSpinBox" name="spinBox_task_param_start_mileage">
-                           <property name="minimumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <family>思源黑体</family>
-                             <pointsize>-1</pointsize>
-                            </font>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignmentFlag::AlignCenter</set>
-                           </property>
-                           <property name="minimum">
-                            <number>50</number>
-                           </property>
-                           <property name="maximum">
-                            <number>5500</number>
-                           </property>
-                           <property name="singleStep">
-                            <number>1</number>
-                           </property>
-                           <property name="value">
-                            <number>100</number>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_add_1">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <family>思源黑体</family>
-                             <pointsize>15</pointsize>
-                            </font>
-                           </property>
-                           <property name="styleSheet">
-                            <string notr="true">padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                           </property>
-                           <property name="text">
-                            <string>+1</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item>
-                          <widget class="QPushButton" name="pushButton_task_param_start_mileage_add_50">
-                           <property name="sizePolicy">
-                            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                             <horstretch>0</horstretch>
-                             <verstretch>0</verstretch>
-                            </sizepolicy>
-                           </property>
-                           <property name="minimumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="maximumSize">
-                            <size>
-                             <width>60</width>
-                             <height>60</height>
-                            </size>
-                           </property>
-                           <property name="font">
-                            <font>
-                             <family>思源黑体</family>
-                             <pointsize>15</pointsize>
-                            </font>
-                           </property>
-                           <property name="styleSheet">
-                            <string notr="true">border-top-right-radius:10px;
-border-bottom-right-radius:10px;
-padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                           </property>
-                           <property name="text">
-                            <string>+50</string>
-                           </property>
-                          </widget>
-                         </item>
-                        </layout>
+                         <property name="font">
+                          <font>
+                           <family>思源黑体</family>
+                           <pointsize>-1</pointsize>
+                          </font>
+                         </property>
+                         <property name="editable">
+                          <bool>true</bool>
+                         </property>
+                        </widget>
                        </item>
                       </layout>
                      </item>
-                     <item row="0" column="1">
-                      <widget class="QWidget" name="horizontalWidget_9" native="true">
-                       <property name="maximumSize">
-                        <size>
-                         <width>16777215</width>
-                         <height>16777215</height>
-                        </size>
+                     <item row="2" column="0">
+                      <layout class="QHBoxLayout" name="horizontalLayout_19">
+                       <property name="spacing">
+                        <number>9</number>
                        </property>
-                       <layout class="QHBoxLayout" name="horizontalLayout_21">
-                        <property name="spacing">
-                         <number>0</number>
-                        </property>
-                        <property name="leftMargin">
-                         <number>10</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                        <item>
-                         <widget class="QLabel" name="label_24">
-                          <property name="font">
-                           <font>
-                            <family>思源黑体</family>
-                            <pointsize>18</pointsize>
-                           </font>
-                          </property>
+                       <property name="leftMargin">
+                        <number>10</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="label_20">
+                         <property name="font">
+                          <font>
+                           <family>思源黑体</family>
+                           <pointsize>18</pointsize>
+                          </font>
+                         </property>
+                         <property name="text">
+                          <string>线别</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <spacer name="horizontalSpacer_12">
+                         <property name="orientation">
+                          <enum>Qt::Orientation::Horizontal</enum>
+                         </property>
+                         <property name="sizeHint" stdset="0">
+                          <size>
+                           <width>20</width>
+                           <height>20</height>
+                          </size>
+                         </property>
+                        </spacer>
+                       </item>
+                       <item>
+                        <widget class="QComboBox" name="comboBox_task_param_line_type">
+                         <property name="minimumSize">
+                          <size>
+                           <width>300</width>
+                           <height>60</height>
+                          </size>
+                         </property>
+                         <property name="maximumSize">
+                          <size>
+                           <width>300</width>
+                           <height>60</height>
+                          </size>
+                         </property>
+                         <property name="font">
+                          <font>
+                           <family>思源黑体</family>
+                           <pointsize>-1</pointsize>
+                          </font>
+                         </property>
+                         <property name="styleSheet">
+                          <string notr="true"/>
+                         </property>
+                         <item>
                           <property name="text">
-                           <string>起始环号(r)     </string>
+                           <string>左线</string>
                           </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <layout class="QHBoxLayout" name="horizontalLayout_22">
-                          <property name="spacing">
-                           <number>0</number>
-                          </property>
-                          <item>
-                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_sun_50">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="maximumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="font">
-                             <font>
-                              <family>思源黑体</family>
-                              <pointsize>15</pointsize>
-                             </font>
-                            </property>
-                            <property name="styleSheet">
-                             <string notr="true">border-top-left-radius:10px;
-border-bottom-left-radius:10px;
-padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                            </property>
-                            <property name="text">
-                             <string>-50</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_sub_1">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="maximumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="font">
-                             <font>
-                              <family>思源黑体</family>
-                              <pointsize>15</pointsize>
-                             </font>
-                            </property>
-                            <property name="styleSheet">
-                             <string notr="true">padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                            </property>
-                            <property name="text">
-                             <string>-1</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QSpinBox" name="spinBox_task_param_starting_ring_number">
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="maximumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="font">
-                             <font>
-                              <family>思源黑体</family>
-                              <pointsize>-1</pointsize>
-                             </font>
-                            </property>
-                            <property name="alignment">
-                             <set>Qt::AlignmentFlag::AlignCenter</set>
-                            </property>
-                            <property name="suffix">
-                             <string/>
-                            </property>
-                            <property name="prefix">
-                             <string/>
-                            </property>
-                            <property name="minimum">
-                             <number>50</number>
-                            </property>
-                            <property name="maximum">
-                             <number>5500</number>
-                            </property>
-                            <property name="singleStep">
-                             <number>1</number>
-                            </property>
-                            <property name="value">
-                             <number>1500</number>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_add_1">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="maximumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="font">
-                             <font>
-                              <family>思源黑体</family>
-                              <pointsize>15</pointsize>
-                             </font>
-                            </property>
-                            <property name="styleSheet">
-                             <string notr="true">padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                            </property>
-                            <property name="text">
-                             <string>+1</string>
-                            </property>
-                           </widget>
-                          </item>
-                          <item>
-                           <widget class="QPushButton" name="pushButton_task_param_starting_ring_add_50">
-                            <property name="sizePolicy">
-                             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                              <horstretch>0</horstretch>
-                              <verstretch>0</verstretch>
-                             </sizepolicy>
-                            </property>
-                            <property name="minimumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="maximumSize">
-                             <size>
-                              <width>60</width>
-                              <height>60</height>
-                             </size>
-                            </property>
-                            <property name="font">
-                             <font>
-                              <family>思源黑体</family>
-                              <pointsize>15</pointsize>
-                             </font>
-                            </property>
-                            <property name="styleSheet">
-                             <string notr="true">border-top-right-radius:10px;
-border-bottom-right-radius:10px;
-padding-left: 0px;   /* 清除默认padding */
-padding-right: 0px;
-background: rgba(37, 46, 74, 1);
-text-align: center;</string>
-                            </property>
-                            <property name="text">
-                             <string>+50</string>
-                            </property>
-                           </widget>
-                          </item>
-                         </layout>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="0" column="2">
-                      <widget class="QWidget" name="horizontalWidget_13" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_28">
-                        <property name="spacing">
-                         <number>0</number>
-                        </property>
-                        <property name="leftMargin">
-                         <number>20</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                        <item>
-                         <widget class="QLabel" name="label_32">
-                          <property name="font">
-                           <font>
-                            <family>思源黑体</family>
-                            <pointsize>18</pointsize>
-                           </font>
-                          </property>
+                         </item>
+                         <item>
                           <property name="text">
-                           <string>避障行为</string>
+                           <string>右线</string>
                           </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_18">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QRadioButton" name="radioButton_car_obstacle_avoidance_brake">
-                          <property name="minimumSize">
-                           <size>
-                            <width>80</width>
-                            <height>60</height>
-                           </size>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>80</width>
-                            <height>60</height>
-                           </size>
-                          </property>
-                          <property name="styleSheet">
-                           <string notr="true">border-top-left-radius:10px;
-border-bottom-left-radius:10px;</string>
-                          </property>
+                         </item>
+                         <item>
                           <property name="text">
-                           <string>刹停</string>
+                           <string>上行线</string>
                           </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QRadioButton" name="radioButton_car_obstacle_avoidance_close">
-                          <property name="minimumSize">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>80</width>
-                            <height>60</height>
-                           </size>
-                          </property>
-                          <property name="styleSheet">
-                           <string notr="true">border-top-right-radius:10px;
-border-bottom-right-radius:10px;</string>
-                          </property>
+                         </item>
+                         <item>
                           <property name="text">
-                           <string>关闭</string>
+                           <string>下行线</string>
                           </property>
-                          <property name="checked">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="1" column="2">
-                      <widget class="QWidget" name="horizontalWidget_12" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_27">
-                        <property name="spacing">
-                         <number>0</number>
-                        </property>
-                        <property name="leftMargin">
-                         <number>20</number>
-                        </property>
-                        <property name="topMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="rightMargin">
-                         <number>0</number>
-                        </property>
-                        <property name="bottomMargin">
-                         <number>0</number>
-                        </property>
-                        <item>
-                         <widget class="QLabel" name="label_29">
-                          <property name="font">
-                           <font>
-                            <family>思源黑体</family>
-                            <pointsize>18</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>实时解析</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_17">
-                          <property name="orientation">
-                           <enum>Qt::Orientation::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>40</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QRadioButton" name="radioButton_realtime_parsing_enabled">
-                          <property name="minimumSize">
-                           <size>
-                            <width>80</width>
-                            <height>60</height>
-                           </size>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>80</width>
-                            <height>60</height>
-                           </size>
-                          </property>
-                          <property name="styleSheet">
-                           <string notr="true">border-top-left-radius:10px;
-border-bottom-left-radius:10px;</string>
-                          </property>
-                          <property name="text">
-                           <string>启用</string>
-                          </property>
-                          <property name="checked">
-                           <bool>false</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QRadioButton" name="radioButton_realtime_parsing_off">
-                          <property name="minimumSize">
-                           <size>
-                            <width>80</width>
-                            <height>60</height>
-                           </size>
-                          </property>
-                          <property name="maximumSize">
-                           <size>
-                            <width>80</width>
-                            <height>60</height>
-                           </size>
-                          </property>
-                          <property name="styleSheet">
-                           <string notr="true">border-top-right-radius:10px;
-border-bottom-right-radius:10px;
-</string>
-                          </property>
-                          <property name="text">
-                           <string>关闭</string>
-                          </property>
-                          <property name="checked">
-                           <bool>true</bool>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </widget>
+                         </item>
+                        </widget>
+                       </item>
+                      </layout>
                      </item>
                     </layout>
                    </widget>
@@ -8039,7 +8148,7 @@ border-bottom-left-radius:10px;</string>
                               <string>前</string>
                              </property>
                              <property name="checked">
-                              <bool>false</bool>
+                              <bool>true</bool>
                              </property>
                             </widget>
                            </item>
@@ -8070,7 +8179,7 @@ border-bottom-right-radius:10px;
                               <string>后</string>
                              </property>
                              <property name="checked">
-                              <bool>true</bool>
+                              <bool>false</bool>
                              </property>
                             </widget>
                            </item>
@@ -8203,7 +8312,7 @@ border-top-left-radius:10px;
 border-bottom-left-radius:10px;</string>
                              </property>
                              <property name="text">
-                              <string>关闭</string>
+                              <string>开启</string>
                              </property>
                              <property name="checked">
                               <bool>false</bool>
@@ -8234,7 +8343,7 @@ border-bottom-right-radius:10px;
 </string>
                              </property>
                              <property name="text">
-                              <string>开启</string>
+                              <string>关闭</string>
                              </property>
                              <property name="checked">
                               <bool>true</bool>
@@ -8628,120 +8737,6 @@ QSpinBox::down-button {
                            <property name="bottomMargin">
                             <number>0</number>
                            </property>
-                           <item>
-                            <widget class="QLabel" name="label_65">
-                             <property name="font">
-                              <font>
-                               <family>思源黑体</family>
-                               <pointsize>18</pointsize>
-                              </font>
-                             </property>
-                             <property name="text">
-                              <string>照片重叠率(%)  </string>
-                             </property>
-                            </widget>
-                           </item>
-                           <item>
-                            <widget class="QLabel" name="label_Explanation_5">
-                             <property name="styleSheet">
-                              <string notr="true">    padding-top: 5px; /* 向下移动 * 2px */</string>
-                             </property>
-                             <property name="text">
-                              <string/>
-                             </property>
-                             <property name="pixmap">
-                              <pixmap resource="resources.qrc">:/assets/TaskHub/explanation.png</pixmap>
-                             </property>
-                             <property name="alignment">
-                              <set>Qt::AlignmentFlag::AlignCenter</set>
-                             </property>
-                            </widget>
-                           </item>
-                           <item>
-                            <spacer name="horizontalSpacer_27">
-                             <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
-                             </property>
-                             <property name="sizeType">
-                              <enum>QSizePolicy::Policy::Preferred</enum>
-                             </property>
-                             <property name="sizeHint" stdset="0">
-                              <size>
-                               <width>20</width>
-                               <height>20</height>
-                              </size>
-                             </property>
-                            </spacer>
-                           </item>
-                           <item>
-                            <widget class="QSpinBox" name="spinBox_camera_overlap_rate">
-                             <property name="minimumSize">
-                              <size>
-                               <width>140</width>
-                               <height>60</height>
-                              </size>
-                             </property>
-                             <property name="maximumSize">
-                              <size>
-                               <width>140</width>
-                               <height>60</height>
-                              </size>
-                             </property>
-                             <property name="font">
-                              <font>
-                               <family>思源黑体</family>
-                               <pointsize>-1</pointsize>
-                              </font>
-                             </property>
-                             <property name="cursor">
-                              <cursorShape>PointingHandCursor</cursorShape>
-                             </property>
-                             <property name="styleSheet">
-                              <string notr="true">QSpinBox {
-font-size: 20px;
-color: rgba(129, 141, 179, 1);
-border-radius: 10px;
-background: rgba(36, 45, 73, 0.2);
-}
-
-/* 如果需要同时隐藏按钮区域 */
-QSpinBox::up-button,
-QSpinBox::down-button {
-    width: 0;
-    height: 0;
-    border: none;
-}</string>
-                             </property>
-                             <property name="alignment">
-                              <set>Qt::AlignmentFlag::AlignCenter</set>
-                             </property>
-                             <property name="minimum">
-                              <number>1</number>
-                             </property>
-                             <property name="maximum">
-                              <number>100</number>
-                             </property>
-                             <property name="singleStep">
-                              <number>1</number>
-                             </property>
-                             <property name="value">
-                              <number>20</number>
-                             </property>
-                            </widget>
-                           </item>
-                           <item>
-                            <spacer name="horizontalSpacer_26">
-                             <property name="orientation">
-                              <enum>Qt::Orientation::Horizontal</enum>
-                             </property>
-                             <property name="sizeHint" stdset="0">
-                              <size>
-                               <width>40</width>
-                               <height>20</height>
-                              </size>
-                             </property>
-                            </spacer>
-                           </item>
                           </layout>
                          </widget>
                         </item>
@@ -13801,7 +13796,7 @@ text-align: center;
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>59</x>
+     <x>29</x>
      <y>109</y>
     </hint>
     <hint type="destinationlabel">
@@ -13822,22 +13817,6 @@ text-align: center;
     </hint>
     <hint type="destinationlabel">
      <x>330</x>
-     <y>163</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>lineEdit_task_param_interval_name</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>label_task_param_interval_name</receiver>
-   <slot>setText(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>479</x>
-     <y>587</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>978</x>
      <y>163</y>
     </hint>
    </hints>
@@ -13903,22 +13882,6 @@ text-align: center;
     <hint type="destinationlabel">
      <x>142</x>
      <y>394</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>spinBox_camera_overlap_rate</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>label_camera_overlap_rate</receiver>
-   <slot>setText(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>1169</x>
-     <y>642</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>158</x>
-     <y>434</y>
     </hint>
    </hints>
   </connection>
@@ -13993,7 +13956,7 @@ text-align: center;
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>59</x>
+     <x>29</x>
      <y>109</y>
     </hint>
     <hint type="destinationlabel">
@@ -14009,7 +13972,7 @@ text-align: center;
    <slot>click()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>78</x>
+     <x>29</x>
      <y>109</y>
     </hint>
     <hint type="destinationlabel">
@@ -14153,12 +14116,12 @@ text-align: center;
    <slot>stepDown()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1153</x>
-     <y>278</y>
+     <x>310</x>
+     <y>308</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1233</x>
-     <y>278</y>
+     <x>390</x>
+     <y>302</y>
     </hint>
    </hints>
   </connection>
@@ -14169,12 +14132,12 @@ text-align: center;
    <slot>stepUp()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1313</x>
-     <y>278</y>
+     <x>470</x>
+     <y>308</y>
     </hint>
     <hint type="destinationlabel">
-     <x>1233</x>
-     <y>278</y>
+     <x>390</x>
+     <y>302</y>
     </hint>
    </hints>
   </connection>
@@ -14185,8 +14148,8 @@ text-align: center;
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1197</x>
-     <y>85</y>
+     <x>24</x>
+     <y>102</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -14201,8 +14164,8 @@ text-align: center;
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1084</x>
-     <y>824</y>
+     <x>79</x>
+     <y>150</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -14217,8 +14180,8 @@ text-align: center;
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>811</x>
-     <y>99</y>
+     <x>61</x>
+     <y>102</y>
     </hint>
     <hint type="destinationlabel">
      <x>861</x>
@@ -14233,12 +14196,140 @@ text-align: center;
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>1113</x>
-     <y>88</y>
+     <x>57</x>
+     <y>102</y>
     </hint>
     <hint type="destinationlabel">
      <x>694</x>
-     <y>840</y>
+     <y>320</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_content_tunnel_diameter_sub_0_point_1</sender>
+   <signal>clicked()</signal>
+   <receiver>doubleSpinBox_task_param_content_tunnel_diameter</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>764</x>
+     <y>430</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>808</x>
+     <y>421</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_content_tunnel_diameter_add_0_point_1</sender>
+   <signal>clicked()</signal>
+   <receiver>doubleSpinBox_task_param_content_tunnel_diameter</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>889</x>
+     <y>428</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>853</x>
+     <y>426</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_starting_ring_sub_1</sender>
+   <signal>clicked()</signal>
+   <receiver>spinBox_task_param_starting_ring_number</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>766</x>
+     <y>570</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>810</x>
+     <y>558</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_starting_ring_add_1</sender>
+   <signal>clicked()</signal>
+   <receiver>spinBox_task_param_starting_ring_number</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>883</x>
+     <y>556</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>844</x>
+     <y>556</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_start_mileage_sub_1</sender>
+   <signal>clicked()</signal>
+   <receiver>spinBox_task_param_start_mileage</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>791</x>
+     <y>647</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>816</x>
+     <y>647</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_start_mileage_add_1</sender>
+   <signal>clicked()</signal>
+   <receiver>spinBox_task_param_start_mileage</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>866</x>
+     <y>659</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>840</x>
+     <y>659</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_segment_width_add_0_point_1</sender>
+   <signal>clicked()</signal>
+   <receiver>doubleSpinBox_task_param_segment_width</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>881</x>
+     <y>741</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>847</x>
+     <y>741</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_task_param_segment_width_sub_0_point_1</sender>
+   <signal>clicked()</signal>
+   <receiver>doubleSpinBox_task_param_segment_width</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>754</x>
+     <y>723</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>803</x>
+     <y>737</y>
     </hint>
    </hints>
   </connection>

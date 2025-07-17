@@ -57,3 +57,8 @@ void ChildWidget::setDeviceState(bool offline)
         break;
     }
 }
+
+void ChildWidget::stop()
+{
+    mainWindow->ui.pushButton_acquisition_stop->click();
+}

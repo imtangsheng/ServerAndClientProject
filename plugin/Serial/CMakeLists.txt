@@ -37,7 +37,7 @@ set(Serial_SOURCES
     "${INCLUDE_DIR}interface/iPluginDevice.h"
     SerialPlugin.h SerialPlugin.cpp
     SerialPlugin.json "readme.md"
-)
+    ${PROJECT_SOURCE_DIR}/public/serial/LinsF400Imu.h)
 
 #INTERFACE
 add_library(${PLUGIN_NAME} SHARED 

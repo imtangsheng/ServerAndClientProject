@@ -31,18 +31,18 @@ void CreateNewProject::on_pushButton_Accepted_clicked() {
     project.name = GetProjectName(ui->lineEdit_project_name->text());
     project.path = GetProjectPath(project.name);
 
-    project.data[FRIEND_PROJECT_NAME] = name;
-    project.data[FRIEND_PROJECT_VERSION] = share::Shared::GetVersion();
+    project.data[JSON_PROJECT_NAME] = name;
+    project.data[JSON_PROJECT_VERSION] = share::Shared::GetVersion();
 
     QJsonObject content;
-    content[FRIEND_DEVICE_TYPE] = "201";
-    content[FRIEND_AUTHOR] = ui->lineEdit_creator->text();
-    content[FRIEND_LINE_NAME] = ui->lineEdit_project_route->text();
+    content[JSON_DEVICE_TYPE] = "201";
+    content[JSON_CREATER] = ui->lineEdit_creator->text();
+    content[JSON_LINE_NAME] = ui->lineEdit_project_route->text();
 
-    content[FRIEND_CREATE_TIME] = QDateTime::currentDateTime().toString(kTimeFormat);
-    content[FRIEND_NOTE] = ui->textEdit_remark->toPlainText();
+    content[JSON_CREATE_TIME] = QDateTime::currentDateTime().toString(kTimeFormat);
+    content[JSON_NOTE] = ui->textEdit_remark->toPlainText();
 
-    project.data[FRIEND_PROJECT_CONTENT] = content;
+    project.data[JSON_PROJECT_CONTENT] = content;
 
     Session session({ {"id", Session::NextId()}, {"module", sModuleUser}, {"method", "AppNewProject"}, {"params", project.ToJsonObject()}});
     if(gControl.SendAndWaitResult(session)) {

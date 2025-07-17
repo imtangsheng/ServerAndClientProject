@@ -115,14 +115,37 @@ void UserServer::onDeviceStateChanged(Session session) {
     }
 }
 
+void UserServer::SetRealtimeParsing(Session session) {
+    bool checked = session.params.toBool();
+    gSettings->setValue("RealtimeParsing", checked);
+    //gShare.isRealtimeParsing = checked;
+    gShare.on_success(tr("设置实时解析"), session);
+}
+
 void UserServer::onLanguageChanged(QString language) {
     qDebug() << "UserServer::onLanguageChanged" << language;
     gSettings->setValue("language", language);
     emit gShare.signal_language_changed(language);
 }
 
-void UserServer::onAutoStartedClicked(bool checked) {
+void UserServer::onAutoStartedClicked(const Session& session) {
+    bool checked = session.params.toBool();
     SetAutoStart(checked);//设置开机自启 注册表的方法
+    gShare.on_success(tr("设置开机自启"), session);
+}
+
+void UserServer::onCarWarningClicked(const Session& session) {
+    //需要检查小车模块,然后使用命令设置,目前该功能待完成
+    bool checked = session.params.toBool();
+    gSettings->setValue("CarWarning", checked);
+    gShare.on_success(tr("设置车辆警告"), session);
+}
+
+void UserServer::onLogLevelChanged(const Session& session) {
+    int level = session.params.toInt();
+    gSettings->setValue("LogLevel", level);
+    gLog.logLevel = static_cast<LogLevel>(level);
+    gShare.on_success(tr("设置日志级别"), session);
 }
 
 void UserServer::SetRegisterSettings(const Session& session) {

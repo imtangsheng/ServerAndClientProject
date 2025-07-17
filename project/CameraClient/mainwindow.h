@@ -15,7 +15,7 @@ inline QTranslator g_translator;//qt的国际化
 #endif
 
 #include <QMainWindow>
-#include "MainController.h"
+#include "MainControl.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -30,7 +30,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    QString module_ = south::ShareLib::GetModuleName(south::ModuleName::user);
+    QString module_ = share::ShareLib::GetModuleName(share::ModuleName::user);
     // 修改函数签名，直接传值而不是引用
     Q_INVOKABLE void login_verify(double type,const QString& version);//设备登录验证程序
 protected slots:

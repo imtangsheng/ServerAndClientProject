@@ -25,6 +25,7 @@ public:
     Result OnStarted(CallbackResult callback = nullptr) final;
     Result OnStopped(CallbackResult callback = nullptr) final;
     //#采集控制属性设置接口
+    Q_INVOKABLE void GetImageFormat(const Session& session); // 设置图像格式
     Q_INVOKABLE void SetImageFormat(const Session& session); // 设置图像格式
 
 public slots:

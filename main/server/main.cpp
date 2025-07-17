@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
 	QCoreApplication::setApplicationVersion("1.0");
 	// 安装消息处理钩子，重定向QDebug输出
 #ifdef QT_NO_DEBUG
-	gLog.init("../logs/", "log", LogLevel::Info, false);
+	gLog.init("../logs/", "log", static_cast<LogLevel>(gSettings->value("LogLevel", +LogLevel::Warning).toInt()), false);
 	gLog.InstallMessageHandler();
 #else
 	gLog.init("../logs/", "log", LogLevel::Debug, true);
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
 	// 打印Qt的C++版本
 	QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
 	qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
-	qDebug() << "Sortware version:" << __DATE__ << " " << __TIME__ << "Qt version : " << QT_VERSION_STR << "C++ version : " << __cplusplus;
+	qDebug() << "Software version:" << __DATE__ << " " << __TIME__ << "Qt version : " << QT_VERSION_STR << "C++ version : " << __cplusplus;
     gShare.InitConfigSettings(appDir.absolutePath(), "server");//初始化配置文件路径,名称
     gShare.sessiontype_ = int(SessionType::Server);
     // 设置语言

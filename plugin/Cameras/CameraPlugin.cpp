@@ -85,6 +85,11 @@ void CameraPlugin::execute(const QString& method) {
     qDebug() << "#PluginCamera执行函数" << method;
 }
 
+void CameraPlugin::GetImageFormat(const Session& session) {
+    //获取照片格式
+    gShare.on_session(session.ResponseString(g_image_format), session.socket);
+}
+
 void CameraPlugin::SetImageFormat(const Session& session) {
     
     QString format = session.params.toString();

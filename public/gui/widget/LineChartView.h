@@ -45,7 +45,7 @@ protected:
         // 获取字体度量信息
         QFontMetricsF fm(font);
 
-        qDebug () << plotArea << chartRect;
+        qDebug() <<"LineChartView:图表数据绘制区域 整个视图区域"<< plotArea << chartRect;
         // 5. 绘制X轴标题（水平显示）
         if (!xTitle.isEmpty()) {
             // 计算文本实际需要的空间

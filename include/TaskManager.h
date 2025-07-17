@@ -1,81 +1,99 @@
-/**
+ï»¿/**
  * @file TaskManager.h
- * @brief ¹¤×÷ÈÎÎñ´¦ÀíÁ÷³ÌĞÅÏ¢ºÍ¿ØÖÆÀà·½·¨¼¯ºÏ
+ * @brief å·¥ä½œä»»åŠ¡å¤„ç†æµç¨‹ä¿¡æ¯å’Œæ§åˆ¶ç±»æ–¹æ³•é›†åˆ
  *
- * ÏÔÊ¾ÈÎÎñÊı¾İÎÄ¼ş½á¹¹Ê¾ÀıÍ¼
+ * æ˜¾ç¤ºä»»åŠ¡æ•°æ®æ–‡ä»¶ç»“æ„ç¤ºä¾‹å›¾
  *
  * @author Tang
  * @date May 13, 2025
  *
- * @dir data/ Êı¾İ×ÜÄ¿Â¼
- *     @dir project_name.nfproj/ ÏîÄ¿ÎÄ¼ş¼Ğ
- *         @file project_info.json ÏîÄ¿ĞÅÏ¢jsonÊı¾İ
+ * @dir data/ æ•°æ®æ€»ç›®å½•
+ *     @dir project_name.nfproj/ é¡¹ç›®æ–‡ä»¶å¤¹
+ *         @file project_info.json é¡¹ç›®ä¿¡æ¯jsonæ•°æ®
  *         @dir task_name/
- *             @file task_info.json ÈÎÎñĞÅÏ¢jsonÊı¾İ
- *             @dir PoiontCloud/ É¨ÃèÒÇÊı¾İ´æ´¢ÎÄ¼ş¼Ğ
- *                  @file Scan001.fls ·¨ÈçÉú³ÉµÄÊı¾İ
- *             @dir Task/ ÈÎÎñÄ¿Â¼ÎÄ¼ş¼Ğ
- *                  @file FaroFileInfo.txt ·¨ÈçÎÄ¼şĞÅÏ¢,±£´æÊ±¼äĞÅÏ¢
+ *             @file task_info.json ä»»åŠ¡ä¿¡æ¯jsonæ•°æ®
+ *             @dir PoiontCloud/ æ‰«æä»ªæ•°æ®å­˜å‚¨æ–‡ä»¶å¤¹
+ *                  @file Scan001.fls æ³•å¦‚ç”Ÿæˆçš„æ•°æ®
+ *             @dir Task/ ä»»åŠ¡ç›®å½•æ–‡ä»¶å¤¹
+ *                  @file FaroFileInfo.txt æ³•å¦‚æ–‡ä»¶ä¿¡æ¯,ä¿å­˜æ—¶é—´ä¿¡æ¯
  *                      @data time	path
- *                  @file Inclinometer.txt Çã½Ç¼ÆÊı¾İ
+ *                  @file Inclinometer.txt å€¾è§’è®¡æ•°æ®
  *                      @data X	Y	Time
- *                  @file mileage.txt Àï³ÌÊı¾İ,Ä¬ÈÏË«Àï³Ì
+ *                  @file mileage.txt é‡Œç¨‹æ•°æ®,é»˜è®¤åŒé‡Œç¨‹
  *                      @data ID	LeftMileage	LeftTime	LeftTimeRaw	RightMileage	RightTime	RightTimeRaw
- *                  @file scannerTime.txt »ñÈ¡µ½µÄÉ¨ÃèÒÇºÍĞ¡³µÊ±¼äÊı¾İ,¶ÔÓ¦Àï³ÌÖĞLeftTimeÉ¨ÃèÒÇÊ±¼äºÍLeftTimeRawĞ¡³µÊ±¼ä,¼´¼ÆËãÉÏÃæµÄÊ±¼äÊÇ²¹²îÖµ·¨
+ *                  @file scannerTime.txt è·å–åˆ°çš„æ‰«æä»ªå’Œå°è½¦æ—¶é—´æ•°æ®,å¯¹åº”é‡Œç¨‹ä¸­LeftTimeæ‰«æä»ªæ—¶é—´å’ŒLeftTimeRawå°è½¦æ—¶é—´,å³è®¡ç®—ä¸Šé¢çš„æ—¶é—´æ˜¯è¡¥å·®å€¼æ³•
  *                      @data ID	TrolleyTime	ScannerTime
- *                  @file singleMileage.txt µ¥Àï³ÌÊı¾İ,¼æÈİºóĞøÊı¾İ,ºóĞø²»Ê¹ÓÃ
+ *                  @file singleMileage.txt å•é‡Œç¨‹æ•°æ®,å…¼å®¹åç»­æ•°æ®,åç»­ä¸ä½¿ç”¨
  *                      @data ID	Mileage	Time	TimeRaw
- *              @dir Pics/ Í¼ÏñÊı¾İ´æ´¢ÎÄ¼ş¼Ğ
- *                  @dir Cam%ID/ Ïà»úID Í¼ÏñÊı¾İÕÕÆ¬ÎÄ¼ş¼Ğ
- *                  @file centralPosition.txt Ïà»ú´¥·¢ÆØ¹â´ÎÊı»úÎ»ĞÅÏ¢Êı¾İ
+ *              @dir Pics/ å›¾åƒæ•°æ®å­˜å‚¨æ–‡ä»¶å¤¹
+ *                  @dir Cam%ID/ ç›¸æœºID å›¾åƒæ•°æ®ç…§ç‰‡æ–‡ä»¶å¤¹
+ *                  @file centralPosition.txt ç›¸æœºè§¦å‘æ›å…‰æ¬¡æ•°æœºä½ä¿¡æ¯æ•°æ®
  *                      @data ID	CamID	CentralPosition	time	ActualPosition
- * 
+ *
  */
 
 #ifndef _WORK_H_
 #define _WORK_H_
 #include "file_read_and_save.h"
-//ÉùÃ÷ÓÑÔªÀàµÄjsonÊı¾İÃû³Æ,ÓÃÓÚ´¦Àí¶Ë½»»¥¹Ì¶¨µÄÃû³Æ
-// project_info.json µÚÒ»¼¶key
-#define FRIEND_PROJECT_VERSION	"Version"
-#define FRIEND_PROJECT_NAME		"ProjectName"
-#define FRIEND_PROJECT_CONTENT	"ProjectContent"
-// ProjectContent µÚ¶ş¼¶key
 
-#define FRIEND_MISSION_CONTENT	"MissionContent"
-#define FRIEND_BETWEEN_NAME		"BetweenName"
-#define FRIEND_DEVICE_TYPE		"DeviceModel"
-#define FRIEND_SEGMENT_WIDE		"SegmentWidth"
-#define FRIEND_JOB_NAME			"JobName"
-#define FRIEND_LINE_NAME			"LineName"
-#define FRIEND_LINE_TYPE			"LineType"
-#define FRIEND_AUTHOR				"Author"
-#define FRIEND_DIRECTION			"TrolleyDirection"
-#define FRIEND_CAMERA_POSITION	"CameraPostion"
-#define FRIEND_IMAGE_ACCURACY		"Accuracy"
+ //å£°æ˜å‹å…ƒç±»çš„jsonæ•°æ®åç§°,ç”¨äºå¤„ç†ç«¯äº¤äº’å›ºå®šçš„åç§°
+ // project_info.json ç¬¬ä¸€çº§key
+#define JSON_PROJECT_VERSION	"Version" //ç‰ˆæœ¬åç§°
+#define JSON_PROJECT_NAME		"ProjectName"
+#define JSON_PROJECT_CONTENT	"ProjectContent"
+#define JSON_LINE_NAME		"LineName" //é‡‡é›†çº¿è·¯
+#define JSON_CREATER		"Creater" //åˆ›å»ºäºº
+#define JSON_NOTE		"Note" //å¤‡æ³¨
+// ProjectContent ç¬¬äºŒçº§key
 
-//ÆäËûÏÔÊ¾ĞÅÏ¢,·ÇÏà¹Ø
-#define FRIEND_CREATE_TIME		"CreateTime"
-#define FRIEND_NOTE				"Note"
+#define JSON_TASK_NAME			"JobName" //é»˜è®¤ä¸ºç³»ç»Ÿå½“å‰æ—¶é—´
+#define JSON_TASK_CONTENT	"MissionContent" //æ•°æ®å‚æ•°ä¸»ä½“jsonæ•°æ®
+//å‚æ•°ä¸»ä½“jsonæ•°æ®
+#define JSON_DEVICE_TYPE		"DeviceModel" //è®¾å¤‡ç±»å‹,è‡ªåŠ¨è·å–
+#define JSON_SPEED	"Speed" //é€Ÿåº¦,m/h
+#define JSON_DIRECTION    "TrolleyDirection" //æ–¹å‘,Forward/Backward 0/1
+#define JSON_SCAN_SN  "ScanSN" //æ‰«æä»ªåºåˆ—å· å¯é€šè¿‡apiæ¥å£/swebapi/scanner-infosè·å–
+#define JSON_ACCURACY		"Accuracy" //ç‚¹äº‘ç²¾åº¦,æ ¹æ®é€Ÿåº¦å’Œå‚æ•°å…¬å¼è®¡æ•°
 
-static inline const QString cProjectNameSuffix = ".nfproj";//ÏîÄ¿ÎÄ¼şÃûºó×º
-static inline constexpr const char* kProjectInfoFileName = "project_info.json";////ÏîÄ¿ÎÄ¼şĞÅÏ¢jsonÊı¾İ
-static inline constexpr const char* kTaskInfoFileName = "task_info.json";//ÈÎÎñÎÄ¼şĞÅÏ¢jsonÊı¾İ
-static inline constexpr const char* kTaskDirCarName = "Task";//ÈÎÎñÊı¾İ´æ´¢ÎÄ¼ş¼Ğ
-static inline constexpr const char* kTaskDirCameraName = "Pics";//Ïà»úÊı¾İ´æ´¢ÎÄ¼ş¼Ğ
-static inline constexpr const char* kTaskDirPointCloudName = "PointCloud";//É¨ÃèÒÇÊı¾İ´æ´¢ÎÄ¼ş¼Ğ
+#define JSON_DIAMETER	"Diameter" //éš§é“ç›´å¾„,æ¤­åœ†æ‹Ÿåˆæ—¶éœ€è¦
+#ifdef __MS201__
+#define JSON_OVERLAP_RATE "OverlapRate" //é‡å ç‡ MS201
+#define JSON_CAMERA_POSITION	"CameraPostion" //æ‹ç…§çš„æ—¶å€™æœºä½ MS201
+#define JSON_EXPOSE_TIME "ExposeTime" //ç›¸æœºçš„æ›å…‰æ—¶é—´ MS201
+#endif // DeviceIsMS201__
+
+#define JSON_SEGMENT_WIDE		"SegmentWidth" //ç®¡ç‰‡å®½åº¦,ç”¨äºè‡ªåŠ¨åˆ†ç¯
+#define JSON_START_RING  "StartRing" //èµ·å§‹ç¯å·,é¢„å¤„ç†å¯¹é½
+#define JSON_START_MILEAGE "StartMileage" //èµ·å§‹é‡Œç¨‹,é¢„å¤„ç†å¯¹é½
+
+#define JSON_TMP_LINE_NAME			"LineName" //çº¿è·¯,TMPå¹³å°ç»„å‚æ•°
+#define JSON_TMP_LINE_TYPE			"LineType" //çº¿åˆ«,ä¸Š/ä¸‹è¡Œ,å·¦/å³çº¿,TMPå¹³å°ç»„å‚æ•°
+#define JSON_TMP_BETWEEN_NAME		"BetweenName" //åŒºé—´,TMPå¹³å°ç»„å‚æ•°
+
+//å…¶ä»–æ˜¾ç¤ºä¿¡æ¯,éç›¸å…³
+#define JSON_CREATE_TIME		"CreateTime" //åˆ›å»ºæ—¶é—´
+#define JSON_TEMPLATE		"ParameterTemplate" //æ¨¡æ¿ä¿¡æ¯,è®°å½•é€‰æ‹©çš„æ¨¡æ¿ä¿¡æ¯
+
+#define JSON_CAR_RATED_MILEAGE "CarRatedMileage" //å°è½¦é¢å®šé‡Œç¨‹æ ‡å®šå€¼,å¤§äºæ­¤åˆ™è‡ªåŠ¨ç»“æŸä»»åŠ¡
+
+static inline const QString cProjectNameSuffix = ".nfproj";//é¡¹ç›®æ–‡ä»¶ååç¼€
+static inline constexpr const char* kProjectInfoFileName = "project_info.json";////é¡¹ç›®æ–‡ä»¶ä¿¡æ¯jsonæ•°æ®
+static inline constexpr const char* kTaskInfoFileName = "task_info.json";//ä»»åŠ¡æ–‡ä»¶ä¿¡æ¯jsonæ•°æ®
+static inline constexpr const char* kTaskDirCarName = "Task";//ä»»åŠ¡æ•°æ®å­˜å‚¨æ–‡ä»¶å¤¹
+static inline constexpr const char* kTaskDirCameraName = "Pics";//ç›¸æœºæ•°æ®å­˜å‚¨æ–‡ä»¶å¤¹
+static inline constexpr const char* kTaskDirPointCloudName = "PointCloud";//æ‰«æä»ªæ•°æ®å­˜å‚¨æ–‡ä»¶å¤¹
 
 inline static const QString cKeyName{ "name" };
 inline static const QString cKeyPath{ "path" };
 inline static const QString cKeyData{ "data" };
-//ÉÏÏÂÎÄĞÅÏ¢,°üº¬¶ÔÓ¦listµÄÊı¾İ,ÁĞÈçÏîÄ¿ÖĞ°üº¬ÈÎÎñĞÅÏ¢µÄjsonÊı¾İ
+//ä¸Šä¸‹æ–‡ä¿¡æ¯,åŒ…å«å¯¹åº”listçš„æ•°æ®,åˆ—å¦‚é¡¹ç›®ä¸­åŒ…å«ä»»åŠ¡ä¿¡æ¯çš„jsonæ•°æ®
 inline static const QString cKeyContent{ "content" };
 
-constexpr const char* kTimeFormat = "yyyy-MM-dd HH:mm:ss";//ÈÎÎñµÄÊ±¼ä¸ñÊ½
+constexpr const char* kTimeFormat = "yyyy-MM-dd HH:mm:ss";//ä»»åŠ¡çš„æ—¶é—´æ ¼å¼
 struct FileInfoDetails
 {
-    QString name; //Ãû³Æ ¶ÔÓ¦key cKeyName
-    QString path; //¾ø¶ÔÂ·¾¶ ¶ÔÓ¦key cKeyPath
+    QString name; //åç§° å¯¹åº”key cKeyName
+    QString path; //ç»å¯¹è·¯å¾„ å¯¹åº”key cKeyPath
     QJsonObject data;
 
     QJsonObject ToJsonObject() const {
@@ -93,37 +111,37 @@ struct FileInfoDetails
     }
 
     FileInfoDetails() = default;
-    FileInfoDetails(QJsonObject obj){
+    FileInfoDetails(QJsonObject obj) {
         name = obj[cKeyName].toString();
         path = obj[cKeyPath].toString();
         data = obj[cKeyData].toObject();
     }
     QDateTime getTime() const {
-        return QDateTime::fromString(data.value(FRIEND_CREATE_TIME).toString(),kTimeFormat);
+        return QDateTime::fromString(data.value(JSON_CREATE_TIME).toString(), kTimeFormat);
     }
 
 };
 
 #define gTaskManager TaskManager::instance()
 
-//¼ÇÂ¼µ±Ç°µÄÏîÄ¿ºÍÖ´ĞĞµÄÈÎÎñĞÅÏ¢
-extern SHAREDLIB_EXPORT FileInfoDetails* gProjectFileInfo;//µ±Ç°ÕıÔÚÖ´ĞĞµÄÏîÄ¿ĞÅÏ¢(¿Í»§¶ËÊ¹ÓÃ)
-extern SHAREDLIB_EXPORT FileInfoDetails* gTaskFileInfo;//µ±Ç°ÕıÔÚÖ´ĞĞµÄÈÎÎñĞÅÏ¢
-inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//¼ÇÂ¼µ±Ç°Éè±¸×´Ì¬Öµ QAtomicInteger ÀàĞÍ
+//è®°å½•å½“å‰çš„é¡¹ç›®å’Œæ‰§è¡Œçš„ä»»åŠ¡ä¿¡æ¯
+extern SHAREDLIB_EXPORT FileInfoDetails* gProjectFileInfo;//å½“å‰æ­£åœ¨æ‰§è¡Œçš„é¡¹ç›®ä¿¡æ¯(å®¢æˆ·ç«¯ä½¿ç”¨)
+extern SHAREDLIB_EXPORT FileInfoDetails* gTaskFileInfo;//å½“å‰æ­£åœ¨æ‰§è¡Œçš„ä»»åŠ¡ä¿¡æ¯
+inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//è®°å½•å½“å‰è®¾å¤‡çŠ¶æ€å€¼ QAtomicInteger ç±»å‹
 
 
 class SHAREDLIB_EXPORT TaskManager : public QObject
 {
     Q_OBJECT
 public:
-    static TaskManager& instance() {//Ê¹ÓÃÒıÓÃ,·µ»ØÆä¾²Ì¬±äÁ¿,²»½øĞĞ¿½±´Êı¾İ
+    static TaskManager& instance() {//ä½¿ç”¨å¼•ç”¨,è¿”å›å…¶é™æ€å˜é‡,ä¸è¿›è¡Œæ‹·è´æ•°æ®
         static TaskManager instance;
         return instance;
     }
-    QJsonObject data;//¹¤×÷Ä¿Â¼ÏÂµÄjsonÖ´ĞĞµÄÈÎÎñĞÅÏ¢Êı¾İ,·½±ã´«ÊäºÍ½»»»
+    QJsonObject data;//å·¥ä½œç›®å½•ä¸‹çš„jsonæ‰§è¡Œçš„ä»»åŠ¡ä¿¡æ¯æ•°æ®,æ–¹ä¾¿ä¼ è¾“å’Œäº¤æ¢
 
 protected:
-    // ±£»¤¹¹Ôìº¯Êı,Ö»ÄÜ¼Ì³ĞÊ¹ÓÃ
+    // ä¿æŠ¤æ„é€ å‡½æ•°,åªèƒ½ç»§æ‰¿ä½¿ç”¨
     explicit TaskManager(QObject* parent = nullptr) : QObject(parent) {
         // qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
     }
@@ -166,24 +184,24 @@ public:
     bool isInitialized{ false };
     Result initialize() {
         if (isInitialized) return true;
-        if (gTaskFileInfo == nullptr) { //È·±£ÈÎÎñ¶ÔÏó´æÔÚ
+        if (gTaskFileInfo == nullptr) { //ç¡®ä¿ä»»åŠ¡å¯¹è±¡å­˜åœ¨
             return Result::Failure(tr("Task is not initialized."));
         }
         QString filepath = gTaskFileInfo->path + "/" + filename;
-        // È·±£Ä¿Â¼´æÔÚ
+        // ç¡®ä¿ç›®å½•å­˜åœ¨
         QFileInfo fileInfo(filepath);
         QDir dir = fileInfo.dir();
-        if (!dir.exists() && !dir.mkpath(".")) {//È·±£ÔÚĞ´ÈëÎÄ¼şÖ®Ç°,ÏàÓ¦µÄÄ¿Â¼½á¹¹ÒÑ¾­´æÔÚ
+        if (!dir.exists() && !dir.mkpath(".")) {//ç¡®ä¿åœ¨å†™å…¥æ–‡ä»¶ä¹‹å‰,ç›¸åº”çš„ç›®å½•ç»“æ„å·²ç»å­˜åœ¨
             return Result::Failure(tr("Failed to create directory: %1").arg(dir.absolutePath()));
         }
-        // ´ò¿ªÎÄ¼ş
-        file = new QFile(filepath);//»º³åÇø´óĞ¡ÓÉ Qt µÄµ×²ãÊµÏÖºÍ²Ù×÷ÏµÍ³¾ö¶¨£¨Í¨³£Îª 4KB »ò 16KB£¬¾ßÌåÈ¡¾öÓÚÆ½Ì¨£©
-        if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {//Ê¹ÓÃ QIODevice::Unbuffered ±êÖ¾´ò¿ªÎÄ¼ş£¬½ûÓÃ Qt µÄÄÚ²¿»º³å£¬Ö±½ÓĞ´Èë´ÅÅÌ
+        // æ‰“å¼€æ–‡ä»¶
+        file = new QFile(filepath);//ç¼“å†²åŒºå¤§å°ç”± Qt çš„åº•å±‚å®ç°å’Œæ“ä½œç³»ç»Ÿå†³å®šï¼ˆé€šå¸¸ä¸º 4KB æˆ– 16KBï¼Œå…·ä½“å–å†³äºå¹³å°ï¼‰
+        if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {//ä½¿ç”¨ QIODevice::Unbuffered æ ‡å¿—æ‰“å¼€æ–‡ä»¶ï¼Œç¦ç”¨ Qt çš„å†…éƒ¨ç¼“å†²ï¼Œç›´æ¥å†™å…¥ç£ç›˜
             delete file; file = nullptr;
             return Result::Failure(tr("Failed to open file: %1").arg(filepath));
         }
         stream = new QTextStream(file);
-        WriteLine(firstline);//Ğ´ÈëµÚÒ»ĞĞÊı¾İ
+        WriteLine(firstline);//å†™å…¥ç¬¬ä¸€è¡Œæ•°æ®
         isInitialized = true;
         return true;
 
@@ -191,15 +209,15 @@ public:
 
     void WriteLine(const QString& line) {//Write a line of data
         *stream << line;
-        //stream->flush(); //Á¢¼´Ë¢ĞÂ»º³åÇø,Ğ´ÈëÊı¾İµ½ÎÄ¼ş
+        //stream->flush(); //ç«‹å³åˆ·æ–°ç¼“å†²åŒº,å†™å…¥æ•°æ®åˆ°æ–‡ä»¶
     }
     void WriteLineAndFlush(const QString& line) {//Write a line of data
         *stream << line;
-        stream->flush(); //Á¢¼´Ë¢ĞÂ»º³åÇø,Ğ´ÈëÊı¾İµ½ÎÄ¼ş
+        stream->flush(); //ç«‹å³åˆ·æ–°ç¼“å†²åŒº,å†™å…¥æ•°æ®åˆ°æ–‡ä»¶
     }
     void close() {
         if (stream) {
-            stream->device()->close();//Á¢¼´½«»º³åÇøÊı¾İĞ´ÈëÎÄ¼ş²¢¹Ø±ÕÎÄ¼ş¾ä±ú
+            stream->device()->close();//ç«‹å³å°†ç¼“å†²åŒºæ•°æ®å†™å…¥æ–‡ä»¶å¹¶å…³é—­æ–‡ä»¶å¥æŸ„
             delete stream; stream = nullptr;
         }
         if (file) {
@@ -218,7 +236,7 @@ class SHAREDLIB_EXPORT SavaRawData : public QObject
 {
     Q_OBJECT
 public:
-    explicit SavaRawData(const QString& filename) :filename(filename),file(nullptr), QObject(&gTaskManager) {
+    explicit SavaRawData(const QString& filename) :filename(filename), file(nullptr), QObject(&gTaskManager) {
         connect(&gTaskManager, &TaskManager::started, this, &SavaRawData::initialize);
         connect(&gTaskManager, &TaskManager::finished, this, &SavaRawData::close);
     }
@@ -229,19 +247,19 @@ public:
     bool isInitialized{ false };
     Result initialize() {
         if (isInitialized) return true;
-        if (gTaskFileInfo == nullptr) { //È·±£ÈÎÎñ¶ÔÏó´æÔÚ
+        if (gTaskFileInfo == nullptr) { //ç¡®ä¿ä»»åŠ¡å¯¹è±¡å­˜åœ¨
             return Result::Failure(tr("Task is not initialized."));
         }
         QString filepath = gTaskFileInfo->path + "/" + filename;
-        // È·±£Ä¿Â¼´æÔÚ
+        // ç¡®ä¿ç›®å½•å­˜åœ¨
         QFileInfo fileInfo(filepath);
         QDir dir = fileInfo.dir();
-        if (!dir.exists() && !dir.mkpath(".")) {//È·±£ÔÚĞ´ÈëÎÄ¼şÖ®Ç°,ÏàÓ¦µÄÄ¿Â¼½á¹¹ÒÑ¾­´æÔÚ
+        if (!dir.exists() && !dir.mkpath(".")) {//ç¡®ä¿åœ¨å†™å…¥æ–‡ä»¶ä¹‹å‰,ç›¸åº”çš„ç›®å½•ç»“æ„å·²ç»å­˜åœ¨
             return Result::Failure(tr("Failed to create directory: %1").arg(dir.absolutePath()));
         }
-        // ´ò¿ªÎÄ¼ş
-        file = new QFile(filepath);//»º³åÇø´óĞ¡ÓÉ Qt µÄµ×²ãÊµÏÖºÍ²Ù×÷ÏµÍ³¾ö¶¨£¨Í¨³£Îª 4KB »ò 16KB£¬¾ßÌåÈ¡¾öÓÚÆ½Ì¨£©
-        if (!file->open(QIODevice::WriteOnly | QIODevice::Append)) {//Ê¹ÓÃ QIODevice::Unbuffered ±êÖ¾´ò¿ªÎÄ¼ş£¬½ûÓÃ Qt µÄÄÚ²¿»º³å£¬Ö±½ÓĞ´Èë´ÅÅÌ
+        // æ‰“å¼€æ–‡ä»¶
+        file = new QFile(filepath);//ç¼“å†²åŒºå¤§å°ç”± Qt çš„åº•å±‚å®ç°å’Œæ“ä½œç³»ç»Ÿå†³å®šï¼ˆé€šå¸¸ä¸º 4KB æˆ– 16KBï¼Œå…·ä½“å–å†³äºå¹³å°ï¼‰
+        if (!file->open(QIODevice::WriteOnly | QIODevice::Append)) {//ä½¿ç”¨ QIODevice::Unbuffered æ ‡å¿—æ‰“å¼€æ–‡ä»¶ï¼Œç¦ç”¨ Qt çš„å†…éƒ¨ç¼“å†²ï¼Œç›´æ¥å†™å…¥ç£ç›˜
             delete file; file = nullptr;
             return Result::Failure(tr("Failed to open file: %1").arg(filepath));
         }

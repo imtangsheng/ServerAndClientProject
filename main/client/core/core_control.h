@@ -28,10 +28,12 @@ public:
         return self;
     }
 
+    bool carDirection{true};//1是向前,0是向后
+
     QSet<QPointer<QWebSocket>> sockets; // 自动去重
     void sendTextMessage(const QString &message);
     Result SendAndWaitResult(Session &session, quint8 sTimeout = 30);
-    void SetBackgroudAcrylicEffect(QDialog *dialog);
+    void SetBackgroudAcrylicEffect(QWidget *dialog);
 private:
     CoreControl() = default;
 

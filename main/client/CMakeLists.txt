@@ -97,3 +97,7 @@ install(FILES ${qm_files}
 set_target_properties(${APP_NAME} PROPERTIES
     OUTPUT_NAME "${APP_NAME}${PROJECT_VERSION}" # 修改输出文件名
 )
+
+target_compile_definitions(${APP_NAME} PRIVATE
+    __DEVICE_TYPE__="MS301"#三叶草相机设备类型的控制串口
+)
