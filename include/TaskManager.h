@@ -52,7 +52,9 @@
 #define JSON_DEVICE_TYPE		"DeviceModel" //设备类型,自动获取
 #define JSON_SPEED	"Speed" //速度,m/h
 #define JSON_DIRECTION    "TrolleyDirection" //方向,Forward/Backward 0/1
+
 #define JSON_SCAN_SN  "ScanSN" //扫描仪序列号 可通过api接口/swebapi/scanner-infos获取
+#define JSON_SCAN_HEIGHT "ScanHeight" //扫描仪高度,单位mm
 #define JSON_ACCURACY		"Accuracy" //点云精度,根据速度和参数公式计数
 
 #define JSON_DIAMETER	"Diameter" //隧道直径,椭圆拟合时需要

@@ -39,6 +39,7 @@ private:
 
 signals:
     void onProjectClicked(const FileInfoDetails &project);
+    void onParamTemplateClicked(int id);
 
 };
 #endif // CORE_CONTROL_H

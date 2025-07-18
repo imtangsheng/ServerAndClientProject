@@ -90,10 +90,17 @@ MainWindow::MainWindow(QWidget* parent)
     ui.ProjectsWidgetContents->setColumnStretch(2, 1);
 
     connect(&gControl, &CoreControl::onProjectClicked, this, &MainWindow::onEnterProjectClicked);
-#pragma endregion
-#pragma region PageTask任务页
+
+// #PageTask任务页
     UpdateCitySubwayInfo(":assets/docs/city");
 #pragma endregion
+#pragma region PageTemplate参数模板页
+    ui.LayoutParamTemplate->setColumnStretch(0, 1);
+    ui.LayoutParamTemplate->setColumnStretch(1, 1);
+    connect(&gControl, &CoreControl::onParamTemplateClicked, this, &MainWindow::CurrentParamTemplateChanged);
+    UpdateLayoutParamTemplate();
+#pragma endregion
+
 }
 
 MainWindow::~MainWindow() {
@@ -279,6 +286,11 @@ void MainWindow::on_pushButton_device_management_clicked() {
 
 
 void MainWindow::on_pushButton_parameter_templates_clicked() {
+    static bool isFirst = true;
+    if(isFirst){
+        UpdateLayoutParamTemplate();
+        isFirst = false;
+    }
     ui.MainStackedWidget->setCurrentWidget(ui.PageTemplates);
 }
 
@@ -706,6 +718,21 @@ void MainWindow::on_pushButton_tsak_param_first_page_cancel_clicked()
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.ProjectHome);//取消返回项目选择
 }
 
+void MainWindow::on_comboBox_parameter_templates_activated(int index)
+{
+    qDebug() << "MainWindow::on_comboBox_parameter_templates_activated(int "<<index;
+    QJsonObject param = parameterTemplatesInfo.at(index).toObject();
+    if(param.isEmpty())return;
+    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    // content = content.unite(param);// 直接合并两个对象,如果有重复的 key 则使用 param 中的值
+
+    QVariantMap map = param.toVariantMap();
+    map.insert(content.toVariantMap());
+    content = QJsonObject::fromVariantMap(map);
+
+    gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
+}
+
 
 void MainWindow::on_pushButton_task_param_last_page_previous_step_clicked() {
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_first);
@@ -904,7 +931,7 @@ void MainWindow::UpdateCitySubwayInfo(const QString& dirPathCity)
                 QString name = st_obj.value("n").toString();
                 st_names.append(name);
             }
-            qDebug() << "插入线路名称:" << line_name << "站点数量:" << st_names.size();
+            // qDebug() << "插入线路名称:" << line_name << "站点数量:" << st_names.size();
             QJsonObject line_obj;
             line_obj["ln"] = line_name;
             line_obj["st"] = st_names;
@@ -937,9 +964,34 @@ void MainWindow::SetCameraFormat(const QString &format)
     }
 }
 
+#include"button/ParamItemQRadioBox.h"
+void MainWindow::UpdateLayoutParamTemplate()
+{
+    // 清除现有项目
+    while (QLayoutItem* item = ui.LayoutParamTemplate->takeAt(0)){
+        ui.LayoutParamTemplate->removeItem(item);
+        item->widget()->deleteLater();
+    }
+    if(parameterTemplatesInfo.isEmpty()){
+        QJsonObject info;
+        info["name"] = "默认";
+        parameterTemplatesInfo.append(info);
+        parameterTemplatesInfo.append(info);
+        parameterTemplatesInfo.append(info);
+    }
+    for(auto i =0; i< parameterTemplatesInfo.size();++i){
+        QJsonObject param = parameterTemplatesInfo.at(i).toObject();
+        ParamItemQRadioBox *button = new ParamItemQRadioBox(i,param,this->ui.WidgetParamTemplate);
+        ui.LayoutParamTemplate->addWidget(button);
+    }
+    // 强制更新布局
+    // ui.WidgetParamTemplate->adjustSize();
+    // ui.LayoutParamTemplate->update();
+}
 
-
-
-
-
-
+void MainWindow::CurrentParamTemplateChanged(int id)
+{
+    qDebug()<< "CurrentParamTemplateChanged(int "<<id;
+    QJsonObject param = parameterTemplatesInfo.at(id).toObject();
+    qDebug() << param;
+}

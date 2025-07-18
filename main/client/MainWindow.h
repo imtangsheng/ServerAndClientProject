@@ -127,6 +127,8 @@ private slots:
     void on_pushButton_task_param_first_page_next_step_clicked();
 
     void on_pushButton_tsak_param_first_page_cancel_clicked();
+    //任务参数设置第二页
+    void on_comboBox_parameter_templates_activated(int index);
 
     void on_pushButton_task_param_last_page_previous_step_clicked();
 
@@ -162,11 +164,15 @@ private slots:
 private:
     friend class ChildWidget;
     Ui::MainWindow ui;
-    QJsonObject citySubwayInfo;
     void _retranslate();//更新文本翻译
+
+    QJsonObject citySubwayInfo; //城市地铁线路站点信息
     void UpdateCitySubwayInfo(const QString& dirPathCity);
     void UpdateCameraFormat(const QString &format);
     void SetCameraFormat(const QString &format);
+    QJsonArray parameterTemplatesInfo; //参数模板数组信息
+    void UpdateLayoutParamTemplate();
+    void CurrentParamTemplateChanged(int id);
 
 signals:
     void languageChanged();
