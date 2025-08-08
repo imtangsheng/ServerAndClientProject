@@ -27,6 +27,7 @@ CameraPlugin::CameraPlugin() {
 //    //qCritical() << "Camera initialization failed:" << e.what();
 //#endif
     IPluginDevice::initialize();
+    gShare.RegisterHandler(_module(), this);
 }
 
 CameraPlugin::~CameraPlugin() {
@@ -36,9 +37,9 @@ CameraPlugin::~CameraPlugin() {
 QString CameraPlugin::_module() const {
     return g_plugin_module_name;
 }
-void CameraPlugin::initialize() {
+Result CameraPlugin::initialize() {
     //此处头文件包含为局部类的实现
-    gCameraSDK->initialize();
+    return gCameraSDK->initialize();
 }
 
 Result CameraPlugin::disconnect() {
@@ -72,14 +73,6 @@ void CameraPlugin::initUi(const Session& session) {
     emit gSigSent(Session::RequestString(2, _module(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
 }
 
-void CameraPlugin::SaveConfig(const Session& session) {
-    config_ = session.params.toObject();
-    Result result = WriteJsonFile(ConfigFilePath(), config_);
-    if (!result) {
-        LOG_WARNING(result.message);
-    }
-    gShare.on_send(result, session);
-}
 
 void CameraPlugin::execute(const QString& method) {
     qDebug() << "#PluginCamera执行函数" << method;

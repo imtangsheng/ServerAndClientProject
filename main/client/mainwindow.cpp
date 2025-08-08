@@ -1,13 +1,15 @@
 #include "MainWindow.h"
+#include"button/ParamItemQRadioBox.h"
 
 #include "ui/AboutDialog.h"
 #include "ui/WebSocketWidget.h"
 QPointer<WebSocketWidget>gWebWidget;
 
-
 #include"ChildWindow/TrolleyWidget.h"
 #include"ChildWindow/CameraWidget.h"
 #include"ChildWindow/ScannerWidget.h"
+
+
 
 QPointer<TrolleyWidget>gTrolley;
 #define SAFE_TROLLEY_CALL(expr) \
@@ -34,12 +36,15 @@ MainWindow::MainWindow(QWidget* parent)
     //系统设置界面
 #pragma region settings系统设置数据界面
     //#网络设置
-    gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();
+    gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();//192.200.1.20
     ui.lineEdit_network_url->setText(gWebWidget->url);
     gWebWidget->isAutoReconnect = gSettings->value("network/AutoReconnect", true).toBool();
     ui.radioButton_network_reconnect_on->setChecked(gWebWidget->isAutoReconnect);
     gWebWidget->reconnectInterval = gSettings->value("network/ReconnectInterval", 5000).toInt();
     ui.spinBox_network_reconnect_interval->setValue(gWebWidget->reconnectInterval);
+
+    gWebWidget->reconnectTimer.start(gWebWidget->reconnectInterval);
+
     //#设备启用 /*界面控件显示 加载模块*/
     if (gSettings->value("device/trolley", true).toBool()) gTrolley = new TrolleyWidget(this);
     if (gSettings->value("device/camera", true).toBool()) gCamera = new CameraWidget(this);
@@ -95,6 +100,7 @@ MainWindow::MainWindow(QWidget* parent)
     UpdateCitySubwayInfo(":assets/docs/city");
 #pragma endregion
 #pragma region PageTemplate参数模板页
+    ui.comboBox_parameter_templates->setModel(&paramNamesModel);
     ui.LayoutParamTemplate->setColumnStretch(0, 1);
     ui.LayoutParamTemplate->setColumnStretch(1, 1);
     connect(&gControl, &CoreControl::onParamTemplateClicked, this, &MainWindow::CurrentParamTemplateChanged);
@@ -269,6 +275,11 @@ void MainWindow::on_action_stop_triggered()
     qDebug() << "#Window::on_action_stop_triggered()";
 }
 
+void MainWindow::on_pushButton_test_clicked()
+{
+
+}
+
 
 void MainWindow::on_pushButton_project_hub_clicked() {
     ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub);
@@ -352,7 +363,8 @@ void MainWindow::on_pushButton_network_connect_clicked() {
             ToolTip::ShowText(tr("网络错误"),tr("无效的url地址!请重新输入"));
             return;
         }
-        gWebWidget->socket->open(url);
+        gWebWidget->url = urlStr;
+        // gWebWidget->socket->open(url);
         qDebug() << "Connecting to " << url;
         ui.pushButton_network_connect->setText(tr("连接中"));
     }else{
@@ -583,7 +595,7 @@ void MainWindow::on_comboBox_city_activated(int index)
     if(city.isEmpty()) return;
     QJsonArray lines = citySubwayInfo.value(city).toArray();
     ui.comboBox_task_param_line_name->clear();
-    for (const QJsonValue& value : lines) {
+    foreach(const QJsonValue& value , lines) {
         QJsonObject line = value.toObject();
         ui.comboBox_task_param_line_name->addItem(line.value("ln").toString());
     }
@@ -595,7 +607,7 @@ void MainWindow::on_comboBox_city_activated(int index)
     ui.comboBox_task_param_between_name_before->clear();
     ui.comboBox_task_param_between_name_after->clear();
     // 方法1：直接遍历
-    for (const QJsonValue& value : stations) {
+    foreach(const QJsonValue& value , stations) {
         QString station = value.toString();
         ui.comboBox_task_param_between_name_before->addItem(station);
         ui.comboBox_task_param_between_name_after->addItem(station);
@@ -615,7 +627,7 @@ void MainWindow::on_comboBox_task_param_line_name_activated(int index)
     ui.comboBox_task_param_between_name_before->clear();
     ui.comboBox_task_param_between_name_after->clear();
     // 方法1：直接遍历
-    for (const QJsonValue& value : stations) {
+    foreach(const QJsonValue& value , stations) {
         QString station = value.toString();
         ui.comboBox_task_param_between_name_before->addItem(station);
         ui.comboBox_task_param_between_name_after->addItem(station);
@@ -693,15 +705,7 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
     }
     content[JSON_TMP_LINE_NAME] = line_name + ui.comboBox_task_param_line_name->currentText();
     content[JSON_TMP_BETWEEN_NAME] = ui.comboBox_task_param_between_name_before->currentText() + "-" + ui.comboBox_task_param_between_name_after->currentText();
-    QString line_type;
-    switch (ui.comboBox_task_param_line_type->currentIndex()) {
-    case 0:line_type = "Left"; break;
-    case 1:line_type = "Right"; break;
-    case 2:line_type = "Up"; break;
-    case 3:line_type = "Down";break;
-    default:line_type = "Left";break;
-    }
-    content[JSON_TMP_LINE_TYPE] = line_type;
+    content[JSON_TMP_LINE_TYPE] = GetLineType(ui.comboBox_task_param_line_type->currentIndex());
 
     content[JSON_START_RING] = ui.spinBox_task_param_starting_ring_number->value();
     content[JSON_START_MILEAGE] = ui.spinBox_task_param_start_mileage->value();
@@ -725,12 +729,14 @@ void MainWindow::on_comboBox_parameter_templates_activated(int index)
     if(param.isEmpty())return;
     QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
     // content = content.unite(param);// 直接合并两个对象,如果有重复的 key 则使用 param 中的值
-
     QVariantMap map = param.toVariantMap();
     map.insert(content.toVariantMap());
     content = QJsonObject::fromVariantMap(map);
 
     gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
+
+    ui.doubleSpinBox_scanner_accuracy->setValue(param.value(JSON_ACCURACY).toDouble());
+    ui.spinBox_car_travel_speed->setValue(param.value(JSON_SPEED).toInt());
 }
 
 
@@ -740,12 +746,17 @@ void MainWindow::on_pushButton_task_param_last_page_previous_step_clicked() {
 
 
 void MainWindow::on_pushButton_task_param_last_page_next_step_prestart_clicked() {
-    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    QString name = ui.comboBox_parameter_templates->currentText().trimmed(); // 移除首尾空格
+    if(name.isEmpty()){
+        ToolTip::ShowText(tr("请先选中参数模板"));
+        return;
+    }
 
-    content[JSON_TEMPLATE] = ui.comboBox_parameter_templates->currentText();
-    content[JSON_ACCURACY] = ui.spinBox_scanner_accuracy->value();
+    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    content[JSON_TEMPLATE] = name;
+    content[JSON_ACCURACY] = ui.doubleSpinBox_scanner_accuracy->value();
     content[JSON_SPEED] = ui.spinBox_car_travel_speed->value();
-    content[JSON_DIRECTION] = gControl.carDirection ? "Forward" : "Backward"; //0后退 1 前进
+    content[JSON_DIRECTION] = GetCarDirection(gControl.carDirection); //0后退 1 前进
 
     if (gTrolley) {
         bool isRatedMileageOn = ui.radioButton_car_rated_mileage_on->isChecked();
@@ -876,11 +887,145 @@ void MainWindow::on_radioButton_camera_format_raw_clicked()
     SetCameraFormat("raw");
 }
 
-void MainWindow::on_pushButton_test_clicked()
+/**参数模板页面操作**/
+void MainWindow::on_pushButton_template_query_clicked()
 {
-    ToolTip::ShowText("测试");
+    if(parameterTemplatesInfo.isEmpty()) return;
+    QString filter = ui.lineEdit_template_query_name->text().trimmed();
+    if(filter.isEmpty()){
+        ToolTip::ShowText(tr("请输入要查询的关键词"));
+        return;
+    }
+    while (QLayoutItem* item = ui.LayoutParamTemplate->takeAt(0)){
+        ui.LayoutParamTemplate->removeItem(item);
+        item->widget()->deleteLater();
+    }
+
+    int i = 0;
+    foreach(const auto &item,parameterTemplatesInfo)   {
+        QJsonObject obj = item.toObject();
+        //会检查字符串中是否包含指定的子串。默认是区分大小写的。
+        if(obj.value(JSON_TEMPLATE).toString().contains(filter)){// 不区分大小写的匹配，使用 Qt::CaseInsensitive
+            ParamItemQRadioBox *button = new ParamItemQRadioBox(i++,obj,this->ui.WidgetParamTemplate);
+            ui.LayoutParamTemplate->addWidget(button);
+        }
+    }
 }
 
+
+void MainWindow::on_pushButton_template_add_clicked()
+{
+    QJsonObject param = GetParamTemplate();
+    int index = parameterTemplatesInfo.size();
+    parameterTemplatesInfo.append(param);
+    ParamItemQRadioBox* button = new ParamItemQRadioBox(index, param, this->ui.WidgetParamTemplate);
+    ui.LayoutParamTemplate->addWidget(button, index / 2, index % 2);//不会删除前一个,所以使用插入
+    // ui.comboBox_parameter_templates->insertItem(index,param.value(JSON_TEMPLATE).toString());
+    paramNamesModel.insertRow(index,new QStandardItem(param.value(JSON_TEMPLATE).toString()));
+}
+
+
+void MainWindow::on_pushButton_template_delete_clicked()
+{
+    //删除所有的选中项 _currentParamTemplateId
+    //for (int i = 0; i < ui.LayoutParamTemplate->count(); ++i) {
+    //    QLayoutItem* item = ui.LayoutParamTemplate->itemAt(i);
+    //    ParamItemQRadioBox* button = qobject_cast<ParamItemQRadioBox*>(item->widget());
+    //    if (button) {
+    //        if (button->isChecked()) {
+    //            parameterTemplatesInfo.removeAt(button->index);
+    //            qDebug() << "MainWindow::on_pushButton_template_delete_clicked()"<<button->index;
+    //            ui.LayoutParamTemplate->removeItem(item);
+    //            item->widget()->deleteLater();
+    //        }
+    //    }
+    //}
+    if (_currentParamTemplateId < 0) {
+        ToolTip::ShowText(tr("请先选中要删除的参数模板"));
+    }
+    parameterTemplatesInfo.removeAt(_currentParamTemplateId);
+    UpdateLayoutParamTemplate();
+}
+
+
+void MainWindow::on_pushButton_template_reset_clicked()
+{
+    QString name = ui.lineEdit_template_name->text().trimmed();
+    if(name.isEmpty()){
+        ToolTip::ShowText(tr("请输入要修改的名称"));
+        return;
+    }
+    if(_currentParamTemplateId < 0){
+        ToolTip::ShowText(tr("请先选中要修改的参数模板"));
+        return;
+    }
+    QJsonObject param = GetParamTemplate();
+    parameterTemplatesInfo.replace(_currentParamTemplateId, param);
+    QLayoutItem* item = ui.LayoutParamTemplate->itemAt(_currentParamTemplateId);
+    ParamItemQRadioBox* radioBox = qobject_cast<ParamItemQRadioBox*>(item->widget());
+    radioBox->ShowParam(param);//重置显示信息
+    // ui.comboBox_parameter_templates->setItemText(_currentParamTemplateId, param.value(JSON_TEMPLATE).toString());
+    paramNamesModel.item(_currentParamTemplateId)->setText(param.value(JSON_TEMPLATE).toString());
+
+}
+
+//转到对应的信号处理
+void MainWindow::on_pushButton_template_camera_param_server_save_clicked()
+{
+    if(gCamera) gCamera->ui->pushButton_param_server_save->click();
+}
+
+
+void MainWindow::on_pushButton_template_camera_param_server_delete_clicked()
+{
+    gCamera->ui->pushButton_param_delete_key->click();
+}
+
+
+void MainWindow::on_pushButton_template_camera_param_add_key_clicked()
+{
+    gCamera->ui->pushButton_param_add_key->click();
+}
+
+
+void MainWindow::on_pushButton_template_camera_param_delete_key_clicked()
+{
+    gCamera->ui->pushButton_param_delete_key->click();
+}
+
+
+void MainWindow::on_pushButton_template_camera_param_setting_clicked()
+{
+    gCamera->ui->pushButton_param_setting->click();
+}
+
+
+void MainWindow::on_spinBox_template_car_speed_valueChanged(int arg1)
+{
+    uint8_t resolution = ui.comboBox_template_scanner_Resolution->currentText().toInt();
+    uint8_t measurementRate = ui.comboBox_template_scanner_MeasurementRate->currentText().toInt();
+    double accuracy = GetAccuracy(arg1,resolution,measurementRate);
+    // 断开信号连接
+    ui.doubleSpinBox_template_points_accuracy->blockSignals(true);
+    ui.doubleSpinBox_template_points_accuracy->setValue(accuracy);
+    ui.doubleSpinBox_template_points_accuracy->blockSignals(false);
+}
+
+
+void MainWindow::on_doubleSpinBox_template_points_accuracy_valueChanged(double arg1)
+{
+    uint8_t resolution = ui.comboBox_template_scanner_Resolution->currentText().toInt();
+    uint8_t measurementRate = ui.comboBox_template_scanner_MeasurementRate->currentText().toInt();
+    int maxSpeed = GetMaxSpeed(arg1,resolution,measurementRate);
+    if(maxSpeed < ui.spinBox_template_car_speed->value()){
+        ui.spinBox_template_car_speed->blockSignals(true);
+        ui.spinBox_template_car_speed->setValue(maxSpeed);
+        ui.spinBox_template_car_speed->blockSignals(false);
+    }
+    ui.label_max_speed_tips->setText(tr("最佳行驶速度%1m/h").arg(maxSpeed));
+    double diameter = GetMaxRadius(arg1,resolution)*2 / 1000;//从mm换算为m
+    ui.label_max_diameter_tips->setText(tr("最大隧道直径%1m").arg(diameter, 0, 'f', 2));
+}
 #pragma endregion
 
 void MainWindow::_retranslate()
@@ -947,11 +1092,12 @@ void MainWindow::UpdateCitySubwayInfo(const QString& dirPathCity)
 
 void MainWindow::UpdateCameraFormat(const QString &format)
 {
-    if(format == "jpg") ui.radioButton_camera_format_jpg->setChecked(true);
-    else if(format == "jpeg") ui.radioButton_camera_format_jpeg->setChecked(true);
-    else if(format == "png") ui.radioButton_camera_format_png->setChecked(true);
-    else if(format == "bmp") ui.radioButton_camera_format_bmp->setChecked(true);
-    else if(format == "raw") ui.radioButton_camera_format_raw->setChecked(true);
+    // QString formatLower = format.toLower(); //可以转为小写再比较
+    if(format.compare("jpg", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_jpg->setChecked(true);
+    else if(format.compare("jpeg", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_jpeg->setChecked(true);
+    else if(format.compare("png", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_png->setChecked(true);
+    else if(format.compare("bmp", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_bmp->setChecked(true);
+    else if(format.compare("raw", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_raw->setChecked(true);
     else ui.radioButton_camera_format_jpg->setChecked(true);
 }
 
@@ -964,17 +1110,25 @@ void MainWindow::SetCameraFormat(const QString &format)
     }
 }
 
-#include"button/ParamItemQRadioBox.h"
 void MainWindow::UpdateLayoutParamTemplate()
 {
     // 清除现有项目
     while (QLayoutItem* item = ui.LayoutParamTemplate->takeAt(0)){
-        ui.LayoutParamTemplate->removeItem(item);
-        item->widget()->deleteLater();
+        // ui.LayoutParamTemplate->removeItem(item);
+        if (item->widget()) {
+            // 先移除布局关系
+            ui.LayoutParamTemplate->removeWidget(item->widget());
+            item->widget()->deleteLater();
+        }
+        delete item;
     }
+    // 确保布局完全清空
+    ui.LayoutParamTemplate->invalidate();
+    // ui.comboBox_parameter_templates->clear();//任务页更新
+    paramNamesModel.clear();
     if(parameterTemplatesInfo.isEmpty()){
         QJsonObject info;
-        info["name"] = "默认";
+        info[JSON_TEMPLATE] = "默认";
         parameterTemplatesInfo.append(info);
         parameterTemplatesInfo.append(info);
         parameterTemplatesInfo.append(info);
@@ -982,11 +1136,14 @@ void MainWindow::UpdateLayoutParamTemplate()
     for(auto i =0; i< parameterTemplatesInfo.size();++i){
         QJsonObject param = parameterTemplatesInfo.at(i).toObject();
         ParamItemQRadioBox *button = new ParamItemQRadioBox(i,param,this->ui.WidgetParamTemplate);
-        ui.LayoutParamTemplate->addWidget(button);
+        ui.LayoutParamTemplate->addWidget(button,i/2,i%2);//第二次添加时候,会出现第一0,0是空白的情况
+        // ui.comboBox_parameter_templates->insertItem(i,param.value(JSON_TEMPLATE).toString());
+        paramNamesModel.insertRow(i,new QStandardItem(param.value(JSON_TEMPLATE).toString()));
+
     }
     // 强制更新布局
-    // ui.WidgetParamTemplate->adjustSize();
-    // ui.LayoutParamTemplate->update();
+    ui.LayoutParamTemplate->update();
+    _currentParamTemplateId = -1;//重置当前不选
 }
 
 void MainWindow::CurrentParamTemplateChanged(int id)
@@ -994,4 +1151,42 @@ void MainWindow::CurrentParamTemplateChanged(int id)
     qDebug()<< "CurrentParamTemplateChanged(int "<<id;
     QJsonObject param = parameterTemplatesInfo.at(id).toObject();
     qDebug() << param;
+    if(param.isEmpty())return;
+    _currentParamTemplateId = id;
+    SetParamTemplate(param);
 }
+
+QJsonObject MainWindow::GetParamTemplate()
+{
+    QJsonObject param;
+    param[JSON_TEMPLATE] = ui.lineEdit_template_name->text();
+    param[Json_TunnelType] = ui.comboBox_template_tunnel_type->currentText();
+    param[JSON_DIAMETER] = ui.doubleSpinBox_template_tunnel_diameter->value();
+    param[JSON_SPEED] = ui.spinBox_template_car_speed->value();
+    param[JSON_ACCURACY] = ui.doubleSpinBox_template_points_accuracy->value();
+    param[Json_MeasurementRate] = ui.comboBox_template_scanner_MeasurementRate->currentText();//int类型
+    param[Json_SplitAfterLines] = ui.spinBox_template_scanner_SplitAfterLines->value();
+    param[Json_Resolution] = ui.comboBox_template_scanner_Resolution->currentText();
+    param[JSON_SCAN_HEIGHT] = ui.doubleSpinBox_template_scanner_height->value();
+    param[Json_CameraTemplate] = ui.comboBox_template_camera->currentText();
+
+    return param;
+}
+
+void MainWindow::SetParamTemplate(QJsonObject param)
+{
+    ui.lineEdit_template_name->setText(param[JSON_TEMPLATE].toString());
+    ui.comboBox_template_tunnel_type->setCurrentText(param[Json_TunnelType].toString());
+    ui.doubleSpinBox_template_tunnel_diameter->setValue(param[JSON_DIAMETER].toDouble());
+    ui.spinBox_template_car_speed->setValue(param[JSON_SPEED].toInt());
+    ui.comboBox_template_scanner_MeasurementRate->setCurrentText(param[Json_MeasurementRate].toString());//int类型
+    ui.spinBox_template_scanner_SplitAfterLines->setValue(param[Json_SplitAfterLines].toInt());
+    ui.comboBox_template_scanner_Resolution->setCurrentText(param[Json_Resolution].toString());//int类型
+    ui.doubleSpinBox_template_scanner_height->setValue(param[JSON_SCAN_HEIGHT].toDouble());
+    ui.comboBox_template_camera->setCurrentText(param[Json_CameraTemplate].toString());
+}
+
+
+
+
+

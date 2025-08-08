@@ -1,5 +1,5 @@
 #include "TrolleyWidget.h"
-
+#include "MainWindow.h"
 TrolleyWidget::TrolleyWidget(MainWindow *parent)
     : ChildWidget(parent)
     , ui(new Ui::TrolleyWidget)
@@ -12,7 +12,7 @@ TrolleyWidget::TrolleyWidget(MainWindow *parent)
     gShare.RegisterHandler(_module(),this);
 
     // 界面
-
+    ui->comboBox_car_param_templates->setModel(&parent->paramNamesModel);
     //表的标题设置,初始化
     initialize();
     // start();

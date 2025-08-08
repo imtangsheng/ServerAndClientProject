@@ -56,3 +56,6 @@ target_link_libraries(${APP_NAME} PUBLIC
 set_target_properties(${APP_NAME} PROPERTIES
     OUTPUT_NAME "${APP_NAME}${PROJECT_VERSION}" # 修改输出文件名
 )
+
+# 确保插件和应用依赖共享库
+add_dependencies(${APP_NAME} Faro)

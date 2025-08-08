@@ -135,7 +135,7 @@ struct Session {
         if (json.contains("context")) context = json["context"].toVariant();
     }
     //使用请求体参数构造函数
-    Session(const QString& module, const QString& method, const QJsonValue& params){
+    Session(const QString& module, const QString& method, const QJsonValue& params = QJsonValue()){
         this->module = module;this->method = method;this->params = params; this->id = NextId();
     }
     // 请求的Request发送

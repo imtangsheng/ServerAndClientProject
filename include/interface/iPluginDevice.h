@@ -29,20 +29,20 @@ class IPluginDevice : public QObject
 public:
     explicit IPluginDevice(QObject* parent = nullptr) :QObject(parent),
         currentState(DeviceState::Disconnected) {
-        qDebug() << "IPluginDevice()构造函数被调用" << QThread::currentThread();
+        qDebug() << "[IPluginDevice]构造函数被调用" << QThread::currentThread();
     }
     virtual ~IPluginDevice() {
         qDebug() << "IPluginDevice()析构函数被调用";
     }
 
     virtual QString _module() const = 0;//记录当前设备模块名称 必要用于注册设备
-    double state_;//记录设备状态值,int类型,double类型用于json数据网络传输
+    double state_{-1};//记录设备状态值,int类型,double类型用于json数据网络传输
     QJsonObject config_;//设备配置参数 json格式
     TaskState taskState{ TaskState::TaskState_Waiting };//任务状态
 
-
+    Q_INVOKABLE virtual Result activate(QJsonObject param) { return true; } //激活设备,注册服务
     // 基本操作接口 默认设计的是首先要执行一次,执行初始化变量赋值等操作
-    virtual void initialize() {
+    virtual Result initialize() {
         if (!translator.load(":/" + name() + "/" + zh_CN)) {
             LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(": / " + name() + " / " + zh_CN));
         }
@@ -57,10 +57,10 @@ public:
             }
             });
 
-        LoadConfigFromFile(ConfigFilePath());//加载配置文件到 params_
+        return LoadConfigFromFile(ConfigFilePath());//加载配置文件到 params_
 
-        //注册设备控制模块
-        gShare.RegisterHandler(_module(), this);
+        //注册设备控制模块 该为设备验证后注册服务
+        //return gShare.RegisterHandler(_module(), this);
     }
 
     virtual Result disconnect() = 0; // 断开连接
@@ -85,11 +85,16 @@ public:
     }
 public slots:
     virtual void initUi(const Session& session) = 0;//初始化UI,返回配置信息
-    virtual void SaveConfig(const Session& session) = 0;//保存配置
+    virtual void SaveConfig(const Session& session) {//保存配置
+        config_ = session.params.toObject();
+        Result result = WriteJsonFile(ConfigFilePath(), config_);
+        if (!result) {
+            LOG_WARNING(tr("%1 save params config file error:%1").arg(name()).arg(result.message));
+        }
+        gShare.on_send(result, session);
+    }
     // 执行约定的方法
     virtual void execute(const QString& method) = 0; // 执行特定功能
-
-
 
 signals:
     void state_changed(DeviceState oldState, DeviceState newState);
@@ -126,7 +131,7 @@ protected:
             LOG_WARNING(result.message);
             return result;
         }
-        //获取相机配置文件的json数据
+        //获取配置文件的json数据
         result = ReadJsonFile(absolutePath, config_);
         if (!result || config_.isEmpty()) {
             LOG_WARNING(result.message);

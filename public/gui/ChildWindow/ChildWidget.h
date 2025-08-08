@@ -22,7 +22,7 @@ public:
     double state_{0};//记录当前设备状态值
     QString stateString;//监控显示信息
     QJsonObject config_;//设备参数 json格式
-    QJsonObject parameter; //统一的相机配置参数界面json对象
+    QJsonObject parameter; //统一的置参数界面json对象
     QJsonObject task; //执行任务的时候的参数
     QJsonObject general;//通用配置参数
     // QJsonObject GetGeneral(){

@@ -13,7 +13,7 @@ inline bool IsValidHandle(dvpHandle handle) {
 static INT AcquiringImageCallback(dvpHandle handle, dvpStreamEvent event, void* pContext, dvpFrame* pFrame, void* pBuffer) {
     // 记录开始时间
     QDateTime startTime = QDateTime::currentDateTime();
-    qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") << QThread::currentThreadId() << "采集回调函数调用 handle event" << handle << event;
+    qDebug() << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") << QThread::currentThread() << "采集回调函数调用 handle event" << handle << event;
     // 通过pContext访问设备对象
     struCameraInfo* device = static_cast<struCameraInfo*>(pContext);
     device->AcquiringImage(pFrame, pBuffer);

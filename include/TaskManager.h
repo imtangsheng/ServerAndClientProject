@@ -45,38 +45,62 @@
 #define JSON_CREATER		"Creater" //创建人
 #define JSON_NOTE		"Note" //备注
 // ProjectContent 第二级key
-
 #define JSON_TASK_NAME			"JobName" //默认为系统当前时间
 #define JSON_TASK_CONTENT	"MissionContent" //数据参数主体json数据
-//参数主体json数据
+//云图 参数主体json数据
 #define JSON_DEVICE_TYPE		"DeviceModel" //设备类型,自动获取
 #define JSON_SPEED	"Speed" //速度,m/h
 #define JSON_DIRECTION    "TrolleyDirection" //方向,Forward/Backward 0/1
 
+inline QString GetCarDirection(bool direction){
+   return direction ? "Forward" : "Backward"; //0后退 1 前进
+}
+
+#define JSON_DIAMETER	"Diameter" //隧道直径,椭圆拟合时需要
 #define JSON_SCAN_SN  "ScanSN" //扫描仪序列号 可通过api接口/swebapi/scanner-infos获取
 #define JSON_SCAN_HEIGHT "ScanHeight" //扫描仪高度,单位mm
 #define JSON_ACCURACY		"Accuracy" //点云精度,根据速度和参数公式计数
+//TMP平台组显示参数
+#define JSON_TMP_LINE_NAME			"LineName" //线路,TMP平台组参数
+#define JSON_TMP_LINE_TYPE			"LineType" //线别,上/下行,左/右线,TMP平台组参数
+inline QString GetLineType(int index) {
+    QString line_type;
+    switch (index) {
+    case 0:line_type = "Left"; break;
+    case 1:line_type = "Right"; break;
+    case 2:line_type = "Up"; break;
+    case 3:line_type = "Down"; break;
+    default:line_type = "Left"; break;
+    }
+    return line_type;
+}
 
-#define JSON_DIAMETER	"Diameter" //隧道直径,椭圆拟合时需要
+
+#define JSON_TMP_BETWEEN_NAME		"BetweenName" //区间,TMP平台组参数
+
+//其他显示信息,非相关
 #ifdef __MS201__
 #define JSON_OVERLAP_RATE "OverlapRate" //重叠率 MS201
 #define JSON_CAMERA_POSITION	"CameraPostion" //拍照的时候机位 MS201
 #define JSON_EXPOSE_TIME "ExposeTime" //相机的曝光时间 MS201
 #endif // DeviceIsMS201__
-
+//参考信息
 #define JSON_SEGMENT_WIDE		"SegmentWidth" //管片宽度,用于自动分环
 #define JSON_START_RING  "StartRing" //起始环号,预处理对齐
 #define JSON_START_MILEAGE "StartMileage" //起始里程,预处理对齐
 
-#define JSON_TMP_LINE_NAME			"LineName" //线路,TMP平台组参数
-#define JSON_TMP_LINE_TYPE			"LineType" //线别,上/下行,左/右线,TMP平台组参数
-#define JSON_TMP_BETWEEN_NAME		"BetweenName" //区间,TMP平台组参数
-
-//其他显示信息,非相关
 #define JSON_CREATE_TIME		"CreateTime" //创建时间
 #define JSON_TEMPLATE		"ParameterTemplate" //模板信息,记录选择的模板信息
 
 #define JSON_CAR_RATED_MILEAGE "CarRatedMileage" //小车额定里程标定值,大于此则自动结束任务
+//其他信息参考
+#define Json_TunnelType "TunnelType" //隧道类型
+#define Json_CameraTemplate "CamemraTemplate"
+//扫描仪设备参数
+#define Json_MeasurementRate "MeasurementRate" //测量速率
+#define Json_SplitAfterLines "SplitAfterLines" //分块线数
+#define Json_Resolution "Resolution" //分辨率
+#define Json_NumCols "NumCols" //列数 扫描线数,到达此数会停止扫描
 
 static inline const QString cProjectNameSuffix = ".nfproj";//项目文件名后缀
 static inline constexpr const char* kProjectInfoFileName = "project_info.json";////项目文件信息json数据

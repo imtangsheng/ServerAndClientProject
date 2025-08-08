@@ -109,8 +109,8 @@ void UserServer::initialize(quint16 port) {
 void UserServer::onDeviceStateChanged(Session session) {
     qDebug() << "UserServer::onDeviceStateChanged";
     for (auto& plugin : gManagerPlugin->m_plugins) {
-        session.module = plugin.self->_module();
-        session.params = QJsonArray{ {plugin.self->state_,"state"} };//double 类型传输值 message用于显示信息
+        session.module = plugin.ptr->_module();
+        session.params = QJsonArray{ {plugin.ptr->state_,"state"} };//double 类型传输值 message用于显示信息
         gShare.on_session(session.GetRequest(), session.socket);
     }
 }
@@ -331,7 +331,7 @@ void UserServer::acquisition_begins(const Session& session) {
     // 按照预定义顺序启动特定设备
     for (const auto& deviceType : START_ORDER) {
         if (!devices.contains(deviceType)) { continue; }
-        result = gManagerPlugin->m_plugins[deviceType].self->OnStarted();
+        result = gManagerPlugin->m_plugins[deviceType].ptr->OnStarted();
         if (!result) {
             gManagerPlugin->stop(devicesStarted);
             gShare.on_send(result, session);
@@ -359,7 +359,7 @@ void UserServer::acquisition_end(const Session& session) {
     QStringList devices = gManagerPlugin->m_plugins.keys();
     static const auto trolleyString = share::Shared::GetModuleName(share::ModuleName::serial);
     if (!isTrolleyStopped && devices.contains(trolleyString)) {
-        gManagerPlugin->m_plugins[trolleyString].self->OnStopped([session, this](bool success) {
+        gManagerPlugin->m_plugins[trolleyString].ptr->OnStopped([session, this](bool success) {
             if (success) {
                 isTrolleyStopped = true;
                 this->acquisition_end(session);
@@ -371,7 +371,7 @@ void UserServer::acquisition_end(const Session& session) {
         // 按照预定义顺序停止设备
         for (const auto& deviceType : STOP_ORDER) {
             if (devices.contains(deviceType)) {
-                gManagerPlugin->m_plugins[deviceType].self->OnStopped();
+                gManagerPlugin->m_plugins[deviceType].ptr->OnStopped();
             }
         }
         Result result = gManagerPlugin->stop(devices);

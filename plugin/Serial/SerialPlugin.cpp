@@ -9,8 +9,9 @@
 static ActiveSerial* gSerial{ nullptr };// = new ActiveSerial();
 
 SerialPlugin::SerialPlugin() {
-    qDebug() << "[#Serial]构造函数";
     IPluginDevice::initialize();
+    qDebug() << "[#Serial]构造函数";
+    gShare.RegisterHandler(_module(), this);
 }
 
 SerialPlugin::~SerialPlugin() {
@@ -21,7 +22,7 @@ QString SerialPlugin::_module() const {
     return g_module_name;
 }
 
-void SerialPlugin::initialize() {
+Result SerialPlugin::initialize() {
     gSerial = new ActiveSerial(this, config_.value("port").toString());
     QJsonObject general = config_.value("general").toObject();
 #ifdef DEVICE_TYPE_CAR
@@ -36,6 +37,7 @@ void SerialPlugin::initialize() {
     }
 
 #endif // DEVICE_TYPE_CAR
+    return true;
 }
 
 Result SerialPlugin::disconnect() {
@@ -95,14 +97,6 @@ void SerialPlugin::initUi(const Session& session) {
     emit gSigSent(Session::RequestString(2, _module(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
 }
 
-void SerialPlugin::SaveConfig(const Session& session) {
-    config_ = session.params.toObject();
-    Result result = WriteJsonFile(ConfigFilePath(), config_);
-    if (!result) {
-        LOG_WARNING(tr("Save params error:%1").arg(result.message));
-    }
-    gShare.on_send(result, session);
-}
 
 void SerialPlugin::execute(const QString& method) {
     qDebug() << "[#Serial]执行方法" << method;

@@ -9,7 +9,7 @@ WaitDialog::WaitDialog(Session* session,QWebSocket* client, quint8 sTimeout,QWid
     // init();
     setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog); // 设置无边框
     // setAttribute(Qt::WA_TranslucentBackground); // 设置背景透明
-    setAttribute(Qt::WA_DeleteOnClose);
+    // setAttribute(Qt::WA_DeleteOnClose);
 }
 
 WaitDialog::~WaitDialog()

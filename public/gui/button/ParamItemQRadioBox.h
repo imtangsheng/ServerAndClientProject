@@ -14,10 +14,9 @@ class ParamItemQRadioBox : public QWidget
 public:
     explicit ParamItemQRadioBox(int id,QJsonObject param,QWidget *parent = nullptr);
     ~ParamItemQRadioBox();
-    int id;
-    // QString text;
-
-    // bool isChecked();
+    int index;//序列号,json数组
+    void ShowParam(QJsonObject param);
+    bool isChecked();
     void SetChecked(bool checked);
 
 private:
@@ -27,7 +26,7 @@ protected:
     void mousePressEvent(QMouseEvent *event) override
     {
         SetChecked(true);
-        emit gControl.onParamTemplateClicked(id);
+        emit gControl.onParamTemplateClicked(index);
     }
 };
 

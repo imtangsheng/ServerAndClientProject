@@ -19,7 +19,7 @@ ManagerPlugin::~ManagerPlugin()
 Result ManagerPlugin::start(QStringList& pluginsName) {
     Result result(true);
 	for (const auto& name: pluginsName) {
-		result = m_plugins[name].self->OnStarted();
+		result = m_plugins[name].ptr->OnStarted();
         if (!result) break;
 	}
     return result;
@@ -28,7 +28,7 @@ Result ManagerPlugin::start(QStringList& pluginsName) {
 Result ManagerPlugin::stop(QStringList& pluginsName) {
 	Result ret(true);
 	for (const auto& name : pluginsName) {
-		ret = m_plugins[name].self->OnStopped();
+		ret = m_plugins[name].ptr->OnStopped();
         if (!ret) break;
 	}
     return ret;
@@ -93,6 +93,10 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 		delete loader;
 		return Result::Failure("Failed to get plugin instance");
 	}
+	Result result = plugin->initialize();
+	if (!result){
+		LOG_ERROR(tr("[#插件]%1初始化失败,设备%2,[#错误]%3").arg(pluginName).arg(plugin->name()).arg(result.message));
+	}
 	//加载json文件的元组
 	QJsonObject jsonFile;
 /**
@@ -114,11 +118,10 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	// 添加插件到列表 存储插件信息
 	PluginData pluginData;
 	pluginData.loader = loader;
-	pluginData.self = plugin;
+	pluginData.ptr = plugin;
 	pluginData.json = jsonFile;
 	m_plugins.insert(pluginName, pluginData);
 	qInfo() << "Plugin loaded:" << pluginName << "version:" << plugin->version() << "name:" << plugin->name();
-	plugin->initialize();
 	return Result::Success();
 }
 
@@ -149,7 +152,7 @@ IPluginDevice* ManagerPlugin::PluginGetPtr(const QString& pluginName)
 	if (!m_plugins.contains(pluginName)) {
 		return nullptr;
 	}
-	return m_plugins[pluginName].self;
+	return m_plugins[pluginName].ptr;
 }
 
 void ManagerPlugin::switch_plugin(const QString& pluginName, const bool& enable)
@@ -162,5 +165,16 @@ void ManagerPlugin::switch_plugin(const QString& pluginName, const bool& enable)
 		if (!pluginsInvalid.contains(pluginName)) pluginsInvalid.append(pluginName);
 	}
 	share::Shared::GetConfigSettings()->setValue("Manager/InvalidPlugins", pluginsInvalid);
+}
+
+void ManagerPlugin::Activate(const Session& session) {
+	QJsonObject param = session.params.toObject();
+	QString name = param.value("name").toString();
+	if (!m_plugins.contains(name)) {
+		qWarning() << "插件不存在" << name;
+		gShare.on_send(-1, session);
+	}
+	gShare.on_send(m_plugins.value(name).ptr->activate(param), session);
+
 }
 

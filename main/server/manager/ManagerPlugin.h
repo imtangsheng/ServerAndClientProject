@@ -51,11 +51,12 @@ public:
 
 public slots:
     void switch_plugin(const QString& pluginName,const bool& enable = false);
+    void Activate(const Session& session);
 private:
     struct PluginData {
-        QPluginLoader* loader{nullptr};
-        IPluginDevice* self{ nullptr };
-        QJsonObject json;
+        QPluginLoader* loader{nullptr};//插件的加载器,便于加载和卸载
+        IPluginDevice* ptr{ nullptr };//插件的指针引用
+        QJsonObject json;//插件信息
     };
 
     QDir m_pluginDir;                        // 插件目录

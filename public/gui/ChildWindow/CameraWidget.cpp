@@ -1,13 +1,14 @@
 // #include "stdafx.h"
 #include "CameraWidget.h"
-// #include "ui_CameraWidget.h"
+#include "mainwindow.h"
+
 CameraWidget::CameraWidget(MainWindow *parent)
     :ChildWidget(parent)
     , ui(new Ui::CameraWidget)
 {
     qDebug()<< "CameraWidget构造函数初始化";
     ui->setupUi(this);
-
+    ui->comboBox_param_templates->setModel(&parent->paramNamesModel);
     deviceType = Camera;
     ChildWidget::initialize();
     gShare.RegisterHandler(_module(),this);// 注册当前类的成员函数作为处理器

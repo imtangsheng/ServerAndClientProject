@@ -16,7 +16,7 @@ public:
     explicit ProjectItemCheckBox(const FileInfoDetails& project,QWidget *parent = nullptr);
     ~ProjectItemCheckBox();
     FileInfoDetails project;
-    QString text;
+    // QString text;
     bool isChecked();
     void SetChecked(bool checked);
 

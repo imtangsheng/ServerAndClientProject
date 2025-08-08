@@ -16,7 +16,7 @@ public:
     // 基本数据定义
     QString _module() const override;    // 设备名称
     // 基本操作接口
-    void initialize() override;
+    Result initialize() override;
     Result disconnect() override;
     QString name() const override;    // 设备名称
     QString version() const override; // 版本
@@ -30,7 +30,6 @@ public:
 
 public slots:
     void initUi(const Session& session) final;//初始化UI,返回配置信息
-    void SaveConfig(const Session& session) final;
     // 执行约定的方法
     void execute(const QString& method) final; // 执行特定功能
 

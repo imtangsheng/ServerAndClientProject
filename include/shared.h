@@ -82,10 +82,11 @@ public:
         GetConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath).arg(appName), QSettings::IniFormat));
     }
     // 注册处理器实例
-    void RegisterHandler(const QString& module, QObject* handler) {
+    bool RegisterHandler(const QString& module, QObject* handler) {
         qDebug() << "Registering handler for module:" << module << QThread::currentThread();
         handlers[module] = handler;//静态变量的生命周期与程序相同，无法在 Controller 销毁时释放资源
         //handler->setParent(this);//QObject::setParent: Cannot set parent, new parent is in a different thread
+        return true;
     }
 
 #pragma region InvokeMethod
@@ -113,10 +114,10 @@ public:
     }
 
     Result FindFilePath(const QString& fileName, QString& validConfigPath);
-    inline void on_session(const QString& message, QObject* client = nullptr);//连接到发送信号接口的函数
+    inline void on_session(const QString& message, QObject* client = nullptr);//向连接端发送消息
 public slots:
-    void on_success(const QString& msg, const Session& session);
-    void on_send(const Result& result, const Session& session);
+    void on_success(const QString& msg, const Session& session);//发送成功消息
+    void on_send(const Result& result, const Session& session);//结果自动发送消息
 protected:
     // 保护构造函数,只能继承使用
     explicit Shared(QObject* parent = nullptr) : QObject(parent) {

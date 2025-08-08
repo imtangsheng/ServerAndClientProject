@@ -48,6 +48,7 @@ void WebSocketWidget::on_pushButton_sendMessage_clicked()
 
 void WebSocketWidget::tryReconnect()
 {
+    qDebug() << tr("尝试重新连接到:") << url;
     if (isAutoReconnect && socket->state() != QAbstractSocket::ConnectedState) {
         socket->open(url);
         ui->textBrowser_MessageReceived->append(tr("尝试重新连接到:") + url + "...");
