@@ -74,16 +74,13 @@ public:
     QString language;//记录当前显示语言
 
     QString appPath{ "../" };
+    QJsonObject info;//程序应用信息
     QSharedPointer<QSettings> RegisterSettings;//注册表设置,使用invokeMethod方法调用函数
     QMap<ModuleName, BinarySessionHandler> handlerBinarySession;
-    void InitConfigSettings(const QString& path, const QString& appName) {
-        appPath = path;
-        RegisterSettings.reset(new QSettings("South_Software", appName));
-        GetConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath).arg(appName), QSettings::IniFormat));
-    }
+    void awake(const QString& path, const QString& appName);
     // 注册处理器实例
     bool RegisterHandler(const QString& module, QObject* handler) {
-        qDebug() << "Registering handler for module:" << module << QThread::currentThread();
+        qDebug() << "服务模块注册:" << module << QThread::currentThread();
         handlers[module] = handler;//静态变量的生命周期与程序相同，无法在 Controller 销毁时释放资源
         //handler->setParent(this);//QObject::setParent: Cannot set parent, new parent is in a different thread
         return true;
@@ -121,13 +118,13 @@ public slots:
 protected:
     // 保护构造函数,只能继承使用
     explicit Shared(QObject* parent = nullptr) : QObject(parent) {
-        qDebug() << tr("Share::Share() - Current thread:") << QThread::currentThread();
+        qDebug() << tr("Share::Share() - 当前线程:") << QThread::currentThread();
         // 取消线程:确保对象移动到目标线程,构造函数本身的代码仍在原始线程（如主线程）中执行，只有对象的信号槽和事件处理会迁移到目标线程。线程亲和性(thread affinity)有严格限制
     }
 private:
     QMap<QString, QObject*> handlers;//需要手动管理
     ~Shared() {
-        qDebug() << "Share::~Share() 析构函数 - Current thread:" << QThread::currentThread();
+        qDebug() << "Share::~Share() 析构函数 - 当前线程:" << QThread::currentThread();
         handlers.clear();
     }
     Shared(const Shared&) = delete;

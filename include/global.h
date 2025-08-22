@@ -51,7 +51,7 @@ struct Result
 
 };
 // 声明结构体为元类型
-//Q_DECLARE_METATYPE(Result)
+Q_DECLARE_METATYPE(Result)
 // 注册 结构体为元类型 运行时环境初始化时调用  main 函数或者构造函数中
 //qRegisterMetaType<Result>("Result");
 
@@ -163,6 +163,9 @@ struct Session {
         return (now << kShiftBits) | (++counter & kMask); // 时间戳左移20位,空出低20位给计数器 counter自增并取低20位,与时间戳组合形成唯一ID
     }
 };
+
+// 在头文件中注册类型 告诉Qt的元对象系统关于 Session 类的信息 1.可以在信号槽中使用 2.可以在 QVariant 中存储 3.可以在跨线程通信中使用
+Q_DECLARE_METATYPE(Session)//
 ///用std::function定义处理器类型 QFunctionPointer 为Qt的函数指针类型无参数无类型返回值;不支持通过字符串动态查找函数。
 ///不支持跨线程调用（需要手动实现线程安全）。不支持信号槽机制。
 ///依赖于 Qt 的元对象系统，需要 Q_OBJECT 宏和 moc 预处理。性能开销较大，因为需要通过字符串查找函数。

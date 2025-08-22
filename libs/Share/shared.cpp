@@ -5,14 +5,23 @@ QString Shared::GetVersion() {
     return version;
 }
 
+void Shared::awake(const QString& path, const QString& appName) {
+    appPath = path;
+    RegisterSettings.reset(new QSettings("South_Software", appName));
+    GetConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath,appName), QSettings::IniFormat));
+    info["dir"] = appPath;
+    info["type"] = sessiontype_;
+    info["version"] = VERSION_STR;
+}
+
 Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {
     // 创建搜索路径列表
     QStringList searchPaths;
     // 应用程序所在目录
-    searchPaths << appPath + "/" + fileName;  // exe目录下
+    searchPaths << appPath + "/config/" + fileName;  // exe目录下
     // 当前工作目录及其相关路径
     searchPaths << "./" + fileName;              // 当前工作目录
-    searchPaths << "../" + fileName;             // 上级目录
+    searchPaths << "../config/" + fileName;             // 上级目录
     searchPaths << QDir::currentPath() + "/" + fileName;  // 当前路径
     // 搜索文件
     for (const QString& path : searchPaths) {
@@ -23,7 +32,7 @@ Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {
     }
     // 如果未找到，记录错误信息
     if (validConfigPath.isEmpty()) {
-        QString lastError = QString("Config file '%1' not found. Searched paths:").arg(fileName);
+        QString lastError = QString("配置文件'%1'未找到").arg(fileName);
         for (const QString& path : searchPaths) {
             lastError += "\n" + path;
         }
@@ -67,15 +76,23 @@ Result Shared::invoke(const Session& session) {
             return Result(false, session.ErrorString(-2, tr("最多支持 10 个参数")));
         }
         QGenericArgument* argv = new QGenericArgument[paramCount];  // 动态分配参数数组
-        QList<QVariant> tempStorage;  // 用来临时存储数据，避免悬空指针,字符传入失败
-        // 遍历请求的参数，并根据类型转换为 QGenericArgument
+        /*[issues #1]如果 tempStorage 是局部变量，可能在 invokeMethod 执行前销毁，导致 argv[i] 指向无效内存。推荐将 tempStorage 提升为成员变量或确保其生命周期*/
+        static QList<QVariant> tempStorage;  // QList 的隐式共享机制用来临时存储数据，避免悬空指针,字符传入失败
+        /* 遍历请求的参数，并根据类型转换为 QGenericArgument
+         * &tempStorage.last()传递了 QVariant*
+         */
         for (int i = 0; i < paramCount; ++i) {
             QJsonValue param = array[i];
-            if (param.isString()) {
-                tempStorage.append(param.toString());  // 确保 QString 存活,不然会被释放,其他类型不会
+            if (param.isString()) {//槽函数期望const QString&类型，
+                QString str = param.toString();
+                tempStorage.append(QVariant(str));  // 存储到临时容器
+                //[issues #1]正确的方式：获取实际数据的const引用
+                const QString& actualString = tempStorage.last().toString();
+                argv[i] = QGenericArgument("QString", &actualString);
                 //argv[i] = QGenericArgument("QString", reinterpret_cast<const void*>(&tempStorage.last()));
-                argv[i] = QGenericArgument("QString", &tempStorage.last());
+                // argv[i] = QGenericArgument("QString", &tempStorage.last());//Q_ARG 默认创建 const QString& 类型参数 传递了 QVariant* 而不是 QString*，导致 moc 代码解引用错误
                 //argv[i] = Q_ARG(QString, &tempStorage.last().toString());//不可用
+                // qDebug() <<"请求的参数:"<<tempStorage.last();
             } else if (param.isBool()) {
                 tempStorage.append(param.toBool()); argv[i] = QGenericArgument("bool", reinterpret_cast<const void*>(&tempStorage.last()));
             } else if (param.isDouble()) {
@@ -83,7 +100,7 @@ Result Shared::invoke(const Session& session) {
             } else if (param.isObject()) {
                 tempStorage.append(param.toObject()); argv[i] = QGenericArgument("QJsonObject", reinterpret_cast<const void*>(&tempStorage.last()));
             } else {
-                delete[] argv;  // 释放内存
+                delete[] argv;tempStorage.clear();  // 释放内存
                 return Result(false, session.ErrorString(-2, tr("发送的参数类型是不支持的参数类型")));
             }
         }
@@ -103,14 +120,15 @@ Result Shared::invoke(const Session& session) {
             qFatal() << "Qt is support 10 params,Unsupported number of arguments!";
             break;
         }
-        delete[] argv;
+        delete[] argv;//释放内存
+        tempStorage.clear();
     } else {
         // 默认使用请求对象作为参数 isNull()是否无效或者未定义值 其他参数调用默认 备注:空的""为字符串类型,会判断为有效值
         success = QMetaObject::invokeMethod(targetObject, method, Q_ARG(const Session&, session));
     }
     if (!success)//如果未找到调用的方法,返回失败,支持函数重载
     {
-        return Result(false, session.ErrorString(-3, tr("方法调用失败,请检测模块%1的方法:%2使用的参数是否正确").arg(session.module).arg(session.method)));
+        return Result(false, session.ErrorString(-3, tr("方法调用失败,请检测模块%1的方法:%2使用的参数是否正确").arg(session.module,session.method)));
     }
     return true;
 }
