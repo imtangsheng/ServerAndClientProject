@@ -5,176 +5,190 @@
 #include "FaroControl.h"
 using namespace faro;
 #include "api/faro.ls.sdk.tlh"
-// Faro许可证验证
-//const BSTR licenseCode = _bstr_t(
-//    "FARO Open Runtime License\n"
-//    "Key:" FARO_LICENSE_KEY "\n"
-//    "\n"
-//    "The software is the registered property of "
-//    "FARO Scanner Production GmbH, Stuttgart, Germany.\n"
-//    "All rights reserved.\n"
-//    "This software may only be used with written permission "
-//    "of FARO Scanner Production GmbH, Stuttgart, Germany.");
 
 static IiQLicensedInterfaceIfPtr liPtr(nullptr); //许可
 static IScanCtrlSDKPtr scanCtrl(nullptr);// = static_cast<IScanCtrlSDKPtr>(liPtr);
 
-#pragma region _IScanCtrlSDKEvents Members
+// 全局回调函数（静态变量）
+static ScanCompletedCallback g_scanCompletedCallback = nullptr;
+#pragma region _IScanCtrlSDKEvents 事件接收器类 - 实现了_IScanCtrlSDKEvents接口，用于接收扫描SDK的事件
 
-// 事件接收器类
-//class CScanEventSink : public _IScanCtrlSDKEvents
-//{
-//private:
-//    LONG m_cRef;
-//    
-//public:
-//    CScanEventSink() : m_cRef(1) {}
-//    
-//    // IUnknown 接口实现
-//    STDMETHODIMP QueryInterface(REFIID riid, void** ppv)
-//    {
-//        if (riid == IID_IUnknown || riid == IID_IDispatch || 
-//            riid == __uuidof(_IScanCtrlSDKEvents))
-//        {
-//            *ppv = this;
-//            AddRef();
-//            return S_OK;
-//        }
-//        *ppv = NULL;
-//        return E_NOINTERFACE;
-//    }
-//    
-//    STDMETHODIMP_(ULONG) AddRef()
-//    {
-//        return InterlockedIncrement(&m_cRef);
-//    }
-//    
-//    STDMETHODIMP_(ULONG) Release()
-//    {
-//        LONG lRef = InterlockedDecrement(&m_cRef);
-//        if (lRef == 0)
-//            delete this;
-//        return lRef;
-//    }
-//    
-//    // IDispatch 接口实现
-//    STDMETHODIMP GetTypeInfoCount(UINT* pctinfo)
-//    {
-//        *pctinfo = 0;
-//        return S_OK;
-//    }
-//    
-//    STDMETHODIMP GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo)
-//    {
-//        return E_NOTIMPL;
-//    }
-//    
-//    STDMETHODIMP GetIDsOfNames(REFIID riid, LPOLESTR* rgszNames, 
-//                              UINT cNames, LCID lcid, DISPID* rgDispId)
-//    {
-//        return E_NOTIMPL;
-//    }
-//    
-//    // 最重要的方法 - 处理事件调用
-//    STDMETHODIMP Invoke(DISPID dispIdMember, REFIID riid, LCID lcid,
-//                       WORD wFlags, DISPPARAMS* pDispParams, 
-//                       VARIANT* pVarResult, EXCEPINFO* pExcepInfo, 
-//                       UINT* puArgErr)
-//    {
-//        switch(dispIdMember)
-//        {
-//            case 0x1: // scanCompleted 的 DISPID
-//                return scanCompleted();
-//            default:
-//                return DISP_E_MEMBERNOTFOUND;
-//        }
-//    }
-//    
-//    // 实现具体的事件处理
-//    STDMETHODIMP scanCompleted()
-//    {
-//        //std::cout << "扫描完成事件被触发!" << std::endl;
-//        // 在这里添加你的事件处理逻辑
-//        qDebug() << "扫描完成事件被触发!";
-//        return S_OK;
-//    }
-//};
-//class CEventConnection
-//{
-//private:
-//    IConnectionPointContainer* m_pContainer;
-//    IConnectionPoint* m_pConnectionPoint;
-//    CScanEventSink* m_pEventSink;
-//    DWORD m_dwCookie;
-//
-//public:
-//    CEventConnection() : m_pContainer(NULL), m_pConnectionPoint(NULL),
-//        m_pEventSink(NULL), m_dwCookie(0) {
-//    }
-//
-//    ~CEventConnection() {
-//        Disconnect();
-//    }
-//
-//    // 连接到COM对象的事件
-//    HRESULT Connect(IUnknown* pSource) {
-//        HRESULT hr;
-//
-//        // 获取连接点容器
-//        hr = pSource->QueryInterface(IID_IConnectionPointContainer,
-//            (void**)&m_pContainer);
-//        if (FAILED(hr))
-//            return hr;
-//
-//        // 查找事件接口的连接点
-//        hr = m_pContainer->FindConnectionPoint(__uuidof(_IScanCtrlSDKEvents),
-//            &m_pConnectionPoint);
-//        if (FAILED(hr)) {
-//            m_pContainer->Release();
-//            m_pContainer = NULL;
-//            return hr;
-//        }
-//
-//        // 创建事件接收器
-//        m_pEventSink = new CScanEventSink();
-//        if (!m_pEventSink) {
-//            Disconnect();
-//            return E_OUTOFMEMORY;
-//        }
-//
-//        // 建立连接
-//        hr = m_pConnectionPoint->Advise(m_pEventSink, &m_dwCookie);
-//        if (FAILED(hr)) {
-//            Disconnect();
-//            return hr;
-//        }
-//
-//        return S_OK;
-//    }
-//
-//    // 断开连接
-//    void Disconnect() {
-//        if (m_pConnectionPoint && m_dwCookie != 0) {
-//            m_pConnectionPoint->Unadvise(m_dwCookie);
-//            m_dwCookie = 0;
-//        }
-//
-//        if (m_pConnectionPoint) {
-//            m_pConnectionPoint->Release(); 
-//            m_pConnectionPoint = NULL;
-//        }
-//
-//        if (m_pContainer) {
-//            m_pContainer->Release();
-//            m_pContainer = NULL;
-//        }
-//
-//        if (m_pEventSink) {
-//            m_pEventSink->Release();
-//            m_pEventSink = NULL;
-//        }
-//    }
-//};
+class CScanEventSink : public _IScanCtrlSDKEvents
+{
+private:
+    LONG m_cRef;  // COM对象引用计数，用于管理对象生命周期
+
+public:
+    // 构造函数：初始化引用计数为1
+    CScanEventSink() : m_cRef(1) {}
+
+    // IUnknown 接口实现 - COM对象必须实现的基础接口
+    STDMETHODIMP QueryInterface(REFIID riid, void** ppv) {
+        // 检查客户端请求的接口是否被支持
+        if (riid == IID_IUnknown ||          // 基础COM接口
+            riid == IID_IDispatch ||         // 自动化接口
+            riid == __uuidof(_IScanCtrlSDKEvents)) // 扫描事件接口
+        {
+            *ppv = this;      // 返回当前对象指针
+            AddRef();         // 增加引用计数
+            return S_OK;      // 成功
+        }
+        *ppv = NULL;
+        return E_NOINTERFACE; // 不支持请求的接口
+    }
+
+    // 增加引用计数 - 线程安全的原子操作
+    STDMETHODIMP_(ULONG) AddRef() {
+        return InterlockedIncrement(&m_cRef);
+    }
+
+    // 减少引用计数 - 当计数为0时自动删除对象
+    STDMETHODIMP_(ULONG) Release() {
+        LONG lRef = InterlockedDecrement(&m_cRef);
+        if (lRef == 0)
+            delete this;  // 自动释放内存
+        return lRef;
+    }
+
+    // IDispatch 接口实现 - 用于支持自动化和脚本调用
+
+    // 返回类型信息数量 - 这里返回0表示不提供类型信息
+    STDMETHODIMP GetTypeInfoCount(UINT* pctinfo) {
+        *pctinfo = 0;
+        return S_OK;
+    }
+
+    // 获取类型信息 - 未实现
+    STDMETHODIMP GetTypeInfo(UINT iTInfo, LCID lcid, ITypeInfo** ppTInfo) {
+        return E_NOTIMPL;
+    }
+
+    // 获取方法/属性的调度ID - 未实现
+    STDMETHODIMP GetIDsOfNames(REFIID riid, LPOLESTR* rgszNames,
+        UINT cNames, LCID lcid, DISPID* rgDispId) {
+        return E_NOTIMPL;
+    }
+
+    // 最重要的方法 - 处理事件调用的核心函数
+    // 当COM对象触发事件时，会通过这个方法通知事件接收器
+    STDMETHODIMP Invoke(DISPID dispIdMember,    // 方法的调度ID
+        REFIID riid,             // 接口ID
+        LCID lcid,               // 地区设置
+        WORD wFlags,             // 调用标志
+        DISPPARAMS* pDispParams, // 参数信息
+        VARIANT* pVarResult,     // 返回值
+        EXCEPINFO* pExcepInfo,   // 异常信息
+        UINT* puArgErr)          // 错误参数索引
+    {
+        // 根据调度ID分发到具体的事件处理函数
+        qDebug() << "事件调用Id:" << dispIdMember;
+        switch (dispIdMember) {
+        case 0x1: // scanCompleted 事件的调度ID
+            return scanCompleted();
+        default:
+            return DISP_E_MEMBERNOTFOUND; // 未找到对应的方法
+        }
+    }
+
+    // 实现具体的扫描完成事件处理
+    STDMETHODIMP scanCompleted() {
+        // 输出调试信息到Qt调试控制台
+        qDebug() << "扫描完成事件被触发!";
+        // 调用全局回调函数（如果已设置）
+        if (g_scanCompletedCallback) {
+            g_scanCompletedCallback();
+        }
+        return S_OK;
+    }
+};
+
+// 事件连接管理类 - 负责建立和管理与COM对象的事件连接
+class CEventConnection
+{
+private:
+    IConnectionPointContainer* m_pContainer;    // 连接点容器接口
+    IConnectionPoint* m_pConnectionPoint;       // 具体的连接点接口
+    CScanEventSink* m_pEventSink;              // 事件接收器对象
+    DWORD m_dwCookie;                          // 连接标识符
+
+public:
+    // 构造函数：初始化所有指针为NULL
+    CEventConnection() : m_pContainer(NULL), m_pConnectionPoint(NULL),
+        m_pEventSink(NULL), m_dwCookie(0) {
+    }
+
+    // 析构函数：确保断开所有连接
+    ~CEventConnection() {
+        Disconnect();
+    }
+
+    // 连接到COM对象的事件源
+    HRESULT Connect(IUnknown* pSource) {
+        HRESULT hr;
+
+        // 步骤1：获取连接点容器接口
+        // 连接点容器是COM对象提供事件连接服务的接口
+        hr = pSource->QueryInterface(IID_IConnectionPointContainer,
+            (void**)&m_pContainer);
+        if (FAILED(hr))
+            return hr;
+
+        // 步骤2：查找特定事件接口的连接点
+        // 每种事件接口都有对应的连接点
+        hr = m_pContainer->FindConnectionPoint(__uuidof(_IScanCtrlSDKEvents),
+            &m_pConnectionPoint);
+        if (FAILED(hr)) {
+            m_pContainer->Release(); // 释放已获取的接口
+            m_pContainer = NULL;
+            return hr;
+        }
+
+        // 步骤3：创建事件接收器实例
+        m_pEventSink = new CScanEventSink();
+        if (!m_pEventSink) {
+            Disconnect();
+            return E_OUTOFMEMORY; // 内存分配失败
+        }
+
+        // 步骤4：建立事件连接
+        // Advise方法将事件接收器注册到连接点，返回连接标识符 
+        // 一旦连接建立（即 Advise 成功），COM 对象会在事件发生时（如扫描完成）主动调用事件接收器（CScanEventSink）的 Invoke 方法，并根据 DISPID 分发到相应的事件处理函数（如 scanCompleted）。
+        hr = m_pConnectionPoint->Advise(m_pEventSink, &m_dwCookie);
+        if (FAILED(hr)) {
+            Disconnect();
+            return hr;
+        }
+
+        return S_OK; // 连接成功
+    }
+
+    // 断开事件连接并清理资源
+    void Disconnect() {
+        // 断开事件连接
+        if (m_pConnectionPoint && m_dwCookie != 0) {
+            m_pConnectionPoint->Unadvise(m_dwCookie); // 取消事件通知
+            m_dwCookie = 0;
+        }
+
+        // 释放连接点接口
+        if (m_pConnectionPoint) {
+            m_pConnectionPoint->Release();
+            m_pConnectionPoint = NULL;
+        }
+
+        // 释放连接点容器接口
+        if (m_pContainer) {
+            m_pContainer->Release();
+            m_pContainer = NULL;
+        }
+
+        // 释放事件接收器对象
+        if (m_pEventSink) {
+            m_pEventSink->Release(); // 减少引用计数，可能触发对象删除
+            m_pEventSink = NULL;
+        }
+    }
+};
 #pragma endregion
 
 
@@ -191,11 +205,30 @@ FaroControl::FaroControl(QObject* parent)
         scanCtrl = static_cast<IScanCtrlSDKPtr>(liPtr);
         if(!scanCtrl){throw tr("[#Faro]创建SDK接口错误");}
     } catch (const QString& error) {
-        LOG_ERROR(tr("#Faro:法如扫描初始化错误: %1").arg(error));
-        errorNumbers = -1;
+        LOG_ERROR(tr("#[致命错误]Faro:法如扫描初始化错误: %1").arg(error));
+        //- 致命错误
+        qFatal() << tr("#[致命错误]Faro:法如扫描初始化错误: %1").arg(error);//输出后程序会立即终止运行
     }
-    //ip = "192.168.43.1";
-    ip = "172.17.9.20";
+
+    // 创建事件处理器并连接 
+    static CEventConnection eventConnection;// 事件连接管理器
+    // 事件连接会在析构函数中自动断开
+    HRESULT hr = eventConnection.Connect(scanCtrl);// IUnknown* m_pScanSDK;              // 扫描SDK COM对象
+    if (SUCCEEDED(hr)) {
+        qDebug() << "事件监听已成功建立";
+            // 运行消息循环等待事件 COM 事件通知依赖于 Windows 消息机制（通常通过内部窗口或消息泵）。当 COM 对象触发事件时，它会向消息队列发送消息，DispatchMessage 确保这些消息被分发到 CScanEventSink 的 Invoke 方法。
+            //MSG msg;//GetMessage(&msg, NULL, 0, 0)：从消息队列中获取一条消息。如果队列为空，它会阻塞直到有消息到达（除非指定了超时或特定消息过滤）
+            //if (GetMessage(&msg, NULL, 0, 0)) {
+            //    TranslateMessage(&msg);//TranslateMessage(&msg)：将虚拟键消息转换为字符消息（主要用于键盘输入，这里可能无关）。
+            //    DispatchMessage(&msg);//DispatchMessage(&msg)：将消息分发给相应的窗口过程或 COM 事件处理机制。
+            //}
+    } else {
+        LOG_ERROR(tr("建立事件监听失败: %1").arg(hr));
+    }
+    
+    //ip = "192.168.43.1";//无线
+    //ip = "172.17.9.20";//有线
+    ip = "192.168.1.20";//测试
 }
 
 FaroControl::~FaroControl() {
@@ -230,7 +263,11 @@ int FaroControl::SetParameters(QJsonObject param) {
     2 螺旋灰 将 HelicalGrey 设置为使用 TTL 接口以螺旋模式进行扫描。
     3 螺旋CANGrey 将 HelicalCANGrey 设置为使用 CAN 通信以螺旋模式进行扫描。
     */
-    QString path = "D:/Test/Data/";
+    QString path = param.value("dir").toString();
+    if (path.isEmpty()) {
+        LOG_ERROR(tr("[#Faro]目录参数为空").arg(path));
+        return -1;
+    }
     QDir dir(path);
     // 检查目录是否存在
     if (!dir.exists()) {
@@ -272,23 +309,6 @@ int FaroControl::ScanStart() {
     * 收到启动信号后，激光传感器需要大约 10 个扫描色谱柱以预热。在此期间，记录的扫描数据将无法使用。
     * 请注意，在螺旋扫描模式下，记录的扫描点没有完整的 3D信息，并且必须使用额外的定位信息进行扩展（例如来自里程表或 GPS 的定位信息）。
     */
-    // 创建事件处理器并连接
-    //static CEventConnection eventConnection;
-    //HRESULT hr = eventConnection.Connect(scanCtrl);
-    //if (SUCCEEDED(hr)) {
-        //qDebug()<< "事件监听已成功建立";
-
-        // 运行消息循环等待事件
-        //MSG msg;
-        //while (GetMessage(&msg, NULL, 0, 0)) {
-        //    TranslateMessage(&msg);
-        //    DispatchMessage(&msg);
-        //}
-    //} else {
-        //qDebug() << "建立事件监听失败: " << hr;
-    //}
-
-    // 事件连接会在析构函数中自动断开
     //scanCtrl->clearExceptions();//Clears all exceptions on the scanner.This function is automatically called at the beginning of scanStart.
     int ret = scanCtrl->startScan();//0, 1, 3, 4  约等待8秒才可以触发录制的功能,否则点击无效
     qDebug() << "执行结果" << ret;
@@ -367,6 +387,10 @@ int FaroControl::shutdown()
 {
     //http://192.168.43.1/lswebapi/operations/shutdown
     return scanCtrl->shutDown();//0, 3 
+}
+
+void FaroControl::SetScanCompletedCallback(const ScanCompletedCallback& callback) {
+    g_scanCompletedCallback = callback;
 }
 
 void FaroControl::onDirectoryChanged(const QString& path) {

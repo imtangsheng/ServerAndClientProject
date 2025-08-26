@@ -32,14 +32,15 @@ public:
     virtual void initialize();
     bool isInitUi{false};
 
-    Q_INVOKABLE void setDeviceState(bool offline=true);//设备登录状态显示
+
     void stop();//停止任务执行
 public slots:
+    virtual void onEnableChanged(bool enable=true);//设备模块是否激活,在线状态显示
     virtual void initUi(const Session& session) = 0;
     virtual void onConfigChanged(QJsonObject config) = 0;
     virtual void onDeviceStateChanged(double state,QString message){
         qDebug() <<"[#IWidget]"<<deviceType <<"state:" <<state << message;
-        setDeviceState(false);
+        onEnableChanged(false);
     };//设备登录状态显示
 protected:
     MainWindow* mainWindow{nullptr};  // 保存主窗口指针

@@ -38,6 +38,32 @@ void ScannerWidget::ShowMessage(const QString &msg)
 qDebug() <<"ShowMessage:"<< msg;
 }
 
+void ScannerWidget::ScanPowerSwitch(bool flag)
+{
+    if(flag){
+        ui->pushButton_power_switch->setText(tr("开启上电"));
+        ui->pushButton_power_switch->setStyleSheet("");
+    }else{
+        ui->pushButton_power_switch->setText(tr("关闭上电"));
+        ui->pushButton_power_switch->setStyleSheet(R"(
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                stop:0 rgba(250, 77, 100, 255),
+                stop:1 rgba(240, 112, 79, 255));
+        )");
+    }
+}
+
+void ScannerWidget::onEnableChanged(bool enable)
+{
+    qDebug() <<_module()<< "模块已经加载,指令控制状态"<<enable;
+    ChildWidget::onEnableChanged(enable);
+    if(enable){
+        ui->pushButton_connect->hide();
+    } else {
+        ui->pushButton_connect->show();
+    }
+}
+
 void ScannerWidget::initUi(const Session &session)
 {
     QJsonObject obj = session.result.toObject();
@@ -86,21 +112,43 @@ void ScannerWidget::retranslate_ui()
     ui->retranslateUi(this);
 }
 
+void ScannerWidget::on_pushButton_connect_clicked()
+{
+    QJsonObject obj;
+    obj["ip"] = ui->lineEdit_scanner_ip->text();
+    obj["name"] = _module();
+    Session session(sModuleManager, "Activate",obj); //设备激活使用
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(tr("设备连接激活失败"), -1);
+    }
+}
+
+void ScannerWidget::on_pushButton_update_clicked()
+{
+    Session session(_module(), "initUi");
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(tr("更新信息失败"), -1);
+        return;
+    }
+}
+
 void ScannerWidget::on_comboBox_param_templates_activated(int index)
 {
     parameter = mainWindow->parameterTemplatesInfo.at(index).toObject();
 }
 
 
-void ScannerWidget::on_pushButton_power_on_clicked()
+void ScannerWidget::on_pushButton_power_switch_clicked()
 {
     qDebug() <<"void ScannerWidget::on_pushButton_power_on_clicked()";
-    Session session(_module(), "GetProgressPercent");
+    static bool flag = true;
+    Session session(sModuleSerial, "SetScanPowerSwitch",!flag);
     if (gControl.SendAndWaitResult(session)) {
-        int percent = session.params.toInt();
-        qDebug() <<"扫描进度(%):" << percent;
+        ScanPowerSwitch(!flag);
+        flag = !flag;
     } else {
-        ToolTip::ShowText(tr("获取进度失败"), -1);
+        ToolTip::ShowText(tr("操作失败"), -1);
     }
 }
 
@@ -114,121 +162,50 @@ void ScannerWidget::on_pushButton_power_off_clicked()
 
 }
 
-
+#include "../dialog/CameraFocalLengthDialog.h"
 void ScannerWidget::on_pushButton_diameter_height_measurement_clicked()
 {
-    QJsonObject param;
-    param["dir"] = "D:/Test/Data";
-    param["CameraHight"] = 1.8;//相机中心到轨面的高度
-    param["partes"] = 15;//15机位 15个分组
-
-    Session session(_module(), "GetCameraPositionDistance",param);
-    gControl.sendTextMessage(session.GetRequest());
-    // if (gControl.SendAndWaitResult(session)) {
-    // } else {
-        // ToolTip::ShowText(tr("测量相机焦距失败"), -1);
-    // }
-}
-
-
-void ScannerWidget::on_pushButton_task_management_clicked()
-{
-    Session session(_module(), "ScanPause");
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(tr("暂停扫描失败"), -1);
-    }
+    CameraFocalLengthDialog dialog(this);
+    dialog.exec();
 }
 
 
 void ScannerWidget::on_pushButton_start_clicked()
 {
-    QString cmd,text;
-    static int state =1;
-    switch (state) {
+    /*状态机方法结构最清晰，适合复杂的状态转换逻辑 但是需要继承类自定义*/
+    QString cmd,text,style;
+    static int currentState = 1;
+    int state;
+    QString tip;
+    switch (currentState) {
     case 1:
-        cmd = "ScanStart";text = tr("启动失败");state = 2;
+        cmd = "ScanStart";tip = tr("启动失败");
+        state = 2;text = tr("开始\n录制");
+        style = "font-size: 30px;";
         break;
     case 2:
-        cmd = "ScanRecord";text = tr("开始录制数据失败");state = 4;
+        cmd = "ScanRecord";tip = tr("开始录制数据失败");
+        state = 4;text = tr("停止\n扫描");
+        style = R"(
+            font-size: 30px;
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                  stop:0 rgba(250, 77, 100, 255),
+                  stop:1 rgba(240, 112, 79, 255));
+        )";
         break;
     case 4:
-        cmd = "ScanStop";text = tr("立即停止扫描失败"); state = 1;
+        cmd = "ScanStop";tip = tr("立即停止扫描失败");
+        state = 1;text = tr("开始\n扫描");
+        style = "font-size: 30px;";
         break;
     }
     Session session(_module(), cmd);
     if (gControl.SendAndWaitResult(session)) {
+        currentState = state;
+        ui->pushButton_start->setText(text);
+        ui->pushButton_start->setStyleSheet(style);
     } else {
-        ToolTip::ShowText(text, -1);
-    }
-}
-
-
-void ScannerWidget::on_pushButton_connect_clicked()
-{
-    QJsonObject obj;
-    obj["ip"] = ui->lineEdit_scanner_ip->text();
-    obj["name"] = _module();
-    Session session(sModuleManager, "Activate",obj); //设备激活使用
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(tr("设备连接激活失败"), -1);
-    }
-}
-
-
-void ScannerWidget::on_radioButton_rate_1_clicked()
-{
-    Session session(_module(), "SetParameter", parameter);
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(tr("设置参数失败"), -1);
-    }
-}
-
-
-void ScannerWidget::on_radioButton_rate_2_clicked()
-{
-    QString cmd,text;
-    cmd = "ScanStart";text = tr("启动失败");
-    Session session(_module(), cmd);
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(text, -1);
-    }
-}
-
-
-void ScannerWidget::on_radioButton_rate_4_clicked()
-{
-
-    QString cmd,text;
-    cmd = "ScanRecord";text = tr("开始录制数据失败");
-
-    Session session(_module(), cmd);
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(text, -1);
-    }
-}
-
-
-void ScannerWidget::on_radioButton_rate_8_clicked()
-{
-    Session session(_module(), "ScanStop");
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(tr("立即停止扫描失败"), -1);
-    }
-}
-
-
-void ScannerWidget::on_pushButton_update_clicked()
-{
-    Session session(_module(), "initUi");
-    if (!gControl.SendAndWaitResult(session)) {
-        ToolTip::ShowText(tr("更新信息失败"), -1);
-        return;
+        ToolTip::ShowText(tip, -1);
     }
 }
 
@@ -242,5 +219,295 @@ void ScannerWidget::on_spinBox_number_scan_lines_editingFinished()
 void ScannerWidget::on_spinBox_number_block_lines_editingFinished()
 {
     parameter[Json_SplitAfterLines] = ui->spinBox_number_block_lines->value();
+}
+
+void ScannerWidget::on_radioButton_rate_1_clicked()
+{
+    parameter[Json_Quality] = 4;
+    parameter[Json_MeasurementRate] = 1;
+    ui->radioButton_quality_4->setChecked(true);
+
+
+}
+
+
+void ScannerWidget::on_radioButton_rate_2_clicked()
+{
+    parameter[Json_Quality] = 3;
+    parameter[Json_MeasurementRate] = 2;
+    ui->radioButton_quality_3->setChecked(true);
+
+}
+
+
+void ScannerWidget::on_radioButton_rate_4_clicked()
+{
+    parameter[Json_Quality] = 2;
+    parameter[Json_MeasurementRate] = 4;
+    ui->radioButton_quality_2->setChecked(true);
+
+}
+
+
+void ScannerWidget::on_radioButton_rate_8_clicked()
+{
+    parameter[Json_Quality] = 1;
+    parameter[Json_MeasurementRate] = 8;
+    ui->radioButton_quality_1->setChecked(true);
+
+}
+
+void ScannerWidget::on_radioButton_quality_1_clicked()
+{
+    parameter[Json_Quality] = 1;
+    parameter[Json_MeasurementRate] = 8;
+    ui->radioButton_rate_8->setChecked(true);
+}
+
+
+void ScannerWidget::on_radioButton_quality_2_clicked()
+{
+    parameter[Json_Quality] = 2;
+    parameter[Json_MeasurementRate] = 4;
+    ui->radioButton_rate_4->setChecked(true);
+
+}
+
+
+void ScannerWidget::on_radioButton_quality_3_clicked()
+{
+    parameter[Json_Quality] = 3;
+    parameter[Json_MeasurementRate] = 2;
+    ui->radioButton_rate_2->setChecked(true);
+}
+
+
+void ScannerWidget::on_radioButton_quality_4_clicked()
+{
+    parameter[Json_Quality] = 4;
+    parameter[Json_MeasurementRate] = 1;
+    ui->radioButton_rate_1->setChecked(true);
+}
+
+
+void ScannerWidget::on_radioButton_quality_6_clicked()
+{
+parameter[Json_Quality] = 6;
+}
+
+
+void ScannerWidget::on_radioButton_quality_8_clicked()
+{
+parameter[Json_Quality] = 8;
+}
+
+
+void ScannerWidget::on_radioButton_resolution_1_clicked()
+{
+    parameter[Json_Resolution] = 1;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(true);
+    ui->radioButton_rate_4->setEnabled(true);
+    ui->radioButton_rate_8->setEnabled(true);
+
+    ui->radioButton_quality_1->setEnabled(true);
+    ui->radioButton_quality_2->setEnabled(true);
+    ui->radioButton_quality_3->setEnabled(true);
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_2_clicked()
+{
+    parameter[Json_Resolution] = 2;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(true);
+    ui->radioButton_rate_4->setEnabled(true);
+    ui->radioButton_rate_8->setEnabled(true);
+
+    ui->radioButton_quality_1->setEnabled(true);
+    ui->radioButton_quality_2->setEnabled(true);
+    ui->radioButton_quality_3->setEnabled(true);
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_4_clicked()
+{
+    parameter[Json_Resolution] = 4;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(true);
+    ui->radioButton_rate_4->setEnabled(true);
+    ui->radioButton_rate_8->setEnabled(true);
+
+    ui->radioButton_quality_1->setEnabled(true);
+    ui->radioButton_quality_2->setEnabled(true);
+    ui->radioButton_quality_3->setEnabled(true);
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_5_clicked()
+{
+    parameter[Json_Resolution] = 5;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(true);
+    ui->radioButton_rate_4->setEnabled(true);
+    ui->radioButton_rate_8->setEnabled(false);
+
+    ui->radioButton_quality_1->setEnabled(false);
+    ui->radioButton_quality_2->setEnabled(true);
+    ui->radioButton_quality_3->setEnabled(true);
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_8_clicked()
+{
+    parameter[Json_Resolution] = 8;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(true);
+    ui->radioButton_rate_4->setEnabled(true);
+    ui->radioButton_rate_8->setEnabled(false);
+
+    ui->radioButton_quality_1->setEnabled(false);
+    ui->radioButton_quality_2->setEnabled(true);
+    ui->radioButton_quality_3->setEnabled(true);
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_10_clicked()
+{
+    parameter[Json_Resolution] = 10;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(true);
+    ui->radioButton_rate_4->setEnabled(false);
+    ui->radioButton_rate_8->setEnabled(false);
+
+    ui->radioButton_quality_1->setEnabled(false);
+    ui->radioButton_quality_2->setEnabled(false);
+    ui->radioButton_quality_3->setEnabled(true);
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_16_clicked()
+{
+    parameter[Json_Resolution] = 16;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(true);
+    ui->radioButton_rate_4->setEnabled(false);
+    ui->radioButton_rate_8->setEnabled(false);
+
+    ui->radioButton_quality_1->setEnabled(false);
+    ui->radioButton_quality_2->setEnabled(false);
+    ui->radioButton_quality_3->setEnabled(true);
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_20_clicked()
+{
+    parameter[Json_Resolution] = 20;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(false);
+    ui->radioButton_rate_4->setEnabled(false);
+    ui->radioButton_rate_8->setEnabled(false);
+
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_1->setEnabled(false);
+    ui->radioButton_quality_2->setEnabled(false);
+    ui->radioButton_quality_3->setEnabled(false);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+}
+
+
+void ScannerWidget::on_radioButton_resolution_32_clicked()
+{
+    parameter[Json_Resolution] = 32;
+    ui->radioButton_rate_1->setEnabled(true);
+    ui->radioButton_rate_2->setEnabled(false);
+    ui->radioButton_rate_4->setEnabled(false);
+    ui->radioButton_rate_8->setEnabled(false);
+
+    ui->radioButton_quality_4->setEnabled(true);
+    ui->radioButton_quality_1->setEnabled(false);
+    ui->radioButton_quality_2->setEnabled(false);
+    ui->radioButton_quality_3->setEnabled(false);
+    ui->radioButton_quality_6->setEnabled(false);
+    ui->radioButton_quality_8->setEnabled(false);
+
+}
+
+
+void ScannerWidget::on_pushButton_ScanStart_clicked()
+{
+    QString cmd,text;
+    cmd = "ScanStart";text = tr("启动失败");
+    Session session(_module(), cmd);
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(text, -1);
+    }
+}
+
+
+void ScannerWidget::on_pushButton_ScanRecord_clicked()
+{
+    QString cmd,text;
+    cmd = "ScanRecord";text = tr("开始录制数据失败");
+
+    Session session(_module(), cmd);
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(text, -1);
+    }
+}
+
+
+void ScannerWidget::on_pushButton_ScanPause_clicked()
+{
+    Session session(_module(), "ScanPause");
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(tr("暂停扫描失败"), -1);
+    }
+}
+
+
+void ScannerWidget::on_pushButton_ScanStop_clicked()
+{
+    Session session(_module(), "ScanStop");
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(tr("立即停止扫描失败"), -1);
+    }
+}
+
+
+void ScannerWidget::on_pushButton_ScanSetParameter_clicked()
+{
+    parameter["dir"] = gShare.info.value("dir").toString() + "/config/faro/test";
+    Session session(_module(), "SetParameter", parameter);
+    if (gControl.SendAndWaitResult(session)) {
+    } else {
+        ToolTip::ShowText(tr("设置参数失败"), -1);
+    }
 }
 

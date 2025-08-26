@@ -2,6 +2,7 @@
 #include "iFaro.h"
 using namespace faro;
 
+
 /**
  * @brief import directive of iQOpen.SDK
  * 声明法如扫描的解析变量,参考FARO自动化手册
@@ -145,7 +146,7 @@ constexpr int col_focus = 50;//相机计算列,默认中间列
 void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     qDebug() << "进行相机角度焦距计算:" << QThread::currentThread();
 
-    QString flsFileDir = in.value("dir").toString();
+    QString flsFileDir = in.value("dir").toString(); 
     if (flsFileDir.isEmpty()) {
         LOG_ERROR(tr("检测到要输入的目录参数为空"));
         return;
@@ -157,12 +158,14 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     if (currentFiles.isEmpty()) { LOG_ERROR(tr("没有找到FLS文件")); return; }
     if (currentFiles.size() > 1) { LOG_INFO(tr("找到%1个FLS文件,默认使用第一个").arg(currentFiles.size())); }
 
-    double cameraHight = in.value("CameraHight").toDouble();//相机中心到轨面的高度
-    if (cameraHight < 2 * gScanerHight || cameraHight > 5) {
+    double cameraHight = in.value("CameraHight").toDouble(1.8);//相机中心到轨面的高度
+    //static double gScannerHight = ;
+    double scannerHight = in.value("ScannerHight").toDouble(0.5544);//扫描仪中心到轨面高度是554.4mm
+    if (cameraHight < 2 * scannerHight || cameraHight > 5) {
         LOG_ERROR(tr("相机中心到轨面的高度%1不符合要求,请重新输入").arg(cameraHight));
         return;
     }
-    double shiftUp = cameraHight - gScanerHight;//向上移动原点
+    double shiftUp = cameraHight - scannerHight;//向上移动原点
     size_t parteQual = in.value("partes").toInt(15);//等分数 分布的角度值 范围(0-2*M_PI)
     static double rangeValue = 0.2;//组与其他一个组之间的重叠率,取开始的一个计算范围
 
@@ -236,5 +239,6 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     out["focals"] = focals;
     ret = WriteJsonFile(outfilepath, out);
     if (!ret) { LOG_ERROR(ret.message); return; }
-
+    session.result = out;
+    gShare.on_session(session.ResponseString(out, tr("测量相机焦距成功")) , session.socket);
 }

@@ -5,6 +5,11 @@
 #include <QDateTime>
 #include <QFileSystemWatcher>
 #include "iFaro.h"
+
+// 定义回调函数类型
+using ScanCompletedCallback = std::function<void()>; // 简单回调，无参数
+// 如果需要传递参数，可以定义为：std::function<void(VARIANT*, int)> 或其他类型
+
 class FaroControl : public QObject
 {
     Q_OBJECT
@@ -24,6 +29,7 @@ public:
     int GetScanPercent();
     int shutdown();
 
+    void SetScanCompletedCallback(const ScanCompletedCallback& callback);
     int errorNumbers = 0;
 
     QAtomicInteger<bool> isNextStopToggled = false;//The next stop triggers完成一个文件,判断是否停止的标志

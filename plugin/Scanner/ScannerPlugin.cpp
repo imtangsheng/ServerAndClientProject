@@ -3,6 +3,7 @@
  * @brief
  * @date 2025-02
  */
+#include<QTimer>
 #include "ScannerPlugin.h"
 #include "Faro/FaroControl.h"
 static FaroControl* gFaroCtrl{nullptr};
@@ -15,8 +16,12 @@ ScannerPlugin::ScannerPlugin()
     IPluginDevice::initialize();
     qDebug() << "[#Scanner]构造函数" << QThread::currentThread();
     gFaroCtrl = new FaroControl(this);
-        gFaroHandle = new FaroHandle();
-    gShare.RegisterHandler(_module(), this);// 设备连接前不加入注册服务中
+    gFaroHandle = new FaroHandle();
+    //gShare.RegisterHandler(GetModuleName(), this);// 设备连接前不加入注册服务中
+
+    gFaroCtrl->SetScanCompletedCallback([]() {
+        qDebug() << "[#Scanner]扫描完成";
+    });
 }
 
 ScannerPlugin::~ScannerPlugin()
@@ -24,50 +29,41 @@ ScannerPlugin::~ScannerPlugin()
     qDebug() << "[#Scanner]析构函数";
 }
 
-QString ScannerPlugin::_module() const
+QString ScannerPlugin::GetModuleName() const
 {
     static QString moduleName = share::Shared::GetModuleName(share::ModuleName::scanner);
     return moduleName;
 }
 
-Result ScannerPlugin::activate(QJsonObject param)
+Result ScannerPlugin::Activate_(QJsonObject param, bool again)
 {
+    //是否已经激活过
+    if (!again) { //不需要再次激活 已经连接了,直接返回已经激活
+        if (gFaroCtrl->isConnect()) {
+            RegisterServerHandler();
+            return true;
+        }
+    }
     QString ip = param.value("ip").toString();
     if (!ip.isEmpty()) {
         gFaroCtrl->ip = ip;
     }
-    return initialize();
+    if (!TryConnect()) {
+        CheckConnect();
+        return Result::Failure(tr("当前连接查询超时,请耐心等待连接状态变化(约45秒)"));//尝试连接失败,此处考虑更换ip的情况,先返回错误
+    }
+    return true;
 }
 
 Result ScannerPlugin::initialize()
 {
-    Result result(false);
-    int ret = gFaroCtrl->Connect();
-    switch (ret) {
-    case static_cast<int>(faro::OK)://0
-        qDebug() << "连接成功";
-        if (gFaroCtrl->isConnect()) {
-            return gShare.RegisterHandler(_module(), this);// 设备连接前不加入注册服务中
-        } else {
-            result.message = tr("[#Faro]连接执行结果成功,但是连接状态显示未连接");
-            break;
+    QTimer::singleShot(5000, this, [this]() {
+        if (!TryConnect()) {
+            CheckConnect();
         }
-    case static_cast<int>(faro::TIMEOUT)://2
-        result.message = tr("连接超时");
-        break;
-    case static_cast<int>(faro::FAILED)://4
-        result.message = (tr("[#Faro]连接%1失败").arg(gFaroCtrl->ip));
-        break;
-    default:
-        result.message = (tr("[#Faro]连接未知错误码%1").arg(ret));
-        break;
-    }
-    qDebug() << "连接结果" << ret;
-    if (gFaroCtrl->isConnect()) {
-        qDebug() << "连接结果错误" << ret<< "但是状态显示已经连接";
-        return gShare.RegisterHandler(_module(), this);// 设备连接前不加入注册服务中
-    }
-    return result;
+    });
+
+    return true;//有线连接必失败,所以不记录错误信息
 }
 
 Result ScannerPlugin::disconnect()
@@ -85,6 +81,15 @@ QString ScannerPlugin::version() const
     return QString("0.0.1");
 }
 
+bool ScannerPlugin::RegisterServerHandler() {
+    static bool isRegister = false;
+    if (isRegister) return isRegister;
+    gShare.RegisterHandler(GetModuleName(), this);// 设备连接前不加入注册服务中
+    // PushClients("initUi", config_,GetModuleName()); //推送,初始化界面
+    isRegister = true;
+    return isRegister;
+}
+
 Result ScannerPlugin::OnStarted(CallbackResult callback)
 {
 return Result::Success();
@@ -93,6 +98,51 @@ return Result::Success();
 Result ScannerPlugin::OnStopped(CallbackResult callback)
 {
 return Result::Success();
+}
+
+//使用有线连接的时候,不会立马返回,而是超时,但其实已经连接
+Result ScannerPlugin::TryConnect() {
+    qDebug() << "[#Faro]尝试连接";
+    Result res(false);
+    int ret = gFaroCtrl->Connect();
+    switch (ret) {
+    case static_cast<int>(faro::OK)://0
+        qDebug() << "连接成功";
+        if (gFaroCtrl->isConnect()) {
+            RegisterServerHandler();//立马就连接上了
+            return true;
+        } else {
+            res.message = tr("[#Faro]连接执行结果成功,但是连接状态显示未连接");
+            break;
+        }
+    case static_cast<int>(faro::TIMEOUT)://2
+        res.message = tr("连接超时");
+        break;
+    case static_cast<int>(faro::FAILED)://4
+        res.message = (tr("[#Faro]连接%1失败").arg(gFaroCtrl->ip));
+        break;
+    default:
+        res.message = (tr("[#Faro]连接未知错误码:%1").arg(ret));
+        break;
+    }
+    res.code = ret;
+    return res;
+}
+
+void ScannerPlugin::CheckConnect() {
+    static int check_count = 10;
+    qDebug() << "检测设备连接状态:" << check_count;
+    if (gFaroCtrl->isConnect()) {
+        RegisterServerHandler();
+        return;
+    }
+    check_count--;
+    if (check_count > 0) {
+        QTimer::singleShot(1000,this, &ScannerPlugin::CheckConnect);
+    } else {
+        check_count = 10;
+        LOG_WARNING(tr("[#Faro]连接超时:%1,设备不存在或者请重新连接").arg(gFaroCtrl->ip));
+    }
 }
 
 void ScannerPlugin::initUi(const Session &session)
@@ -132,7 +182,7 @@ void ScannerPlugin::ScanConnect(const Session& session) {
     case static_cast<int>(faro::OK)://0
         qDebug() << "连接成功";
         if (gFaroCtrl->isConnect()) {
-            gShare.RegisterHandler(_module(), this);// 设备连接前不加入注册服务中
+            gShare.RegisterHandler(GetModuleName(), this);// 设备连接前不加入注册服务中
             result = Result::Success(tr("连接成功"));
             break;
         } else {
@@ -215,6 +265,7 @@ void ScannerPlugin::GetCameraPositionDistance(const Session& session) {
     //ret = gFaroCtrl->ScanRecord();
     //gFaroHandle->CreateCameraFocalByScanFile(param);
     // 异步调用
+    gFaroHandle->session = session;
     QMetaObject::invokeMethod(gFaroHandle, "CreateCameraFocalByScanFile",
         Qt::QueuedConnection,
         Q_ARG(QJsonObject, param));

@@ -21,7 +21,7 @@ namespace faro
         "This software may only be used with written permission "
         "of FARO Scanner Production GmbH, Stuttgart, Germany.");
     constexpr double InvalidValue = 0.01;//无效值,判断小于0的值
-    inline double gScanerHight = 0.556;//扫描仪中心到轨面高度是554.4mm
+
     inline double gCameraCenterToLens = 0.250; //相机中心到相机镜头的距离250mm
     enum ErrorNumbers :int {// 在头文件中定义错误信息枚举
         OK = 0,
