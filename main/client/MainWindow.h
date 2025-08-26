@@ -6,9 +6,11 @@
 #include <QStyleFactory>
 inline QString g_language;
 inline QTranslator g_translator;//qt的国际化
-
+#include <QStandardItemModel>
 #include "ui_MainWindow.h"
-#include"button/ProjectItemCheckBox.h"
+#include "button/ProjectItemCheckBox.h"
+
+#include "public/utils/scanner_utils.h"
 
 class MainWindow : public QMainWindow
 {
@@ -24,23 +26,31 @@ public:
     bool UpdateProjects();
     void SetLogLevel(LogLevel level);
 
+    QJsonArray parameterTemplatesInfo; //参数模板数组信息
+    QStandardItemModel paramNamesModel;//参数模板数据
 public slots:
+    void onEnableChanged(bool enable=true);
+    void onSignIn(QJsonObject obj);
+    void onShowMessage(const QString& message, double level);//Q_ARG 使用 const 引用
+protected:
+    void onShowMessage(const QString& message, LogLevel level);//要值传递
+    void changeEvent(QEvent *event) override;
+protected slots:
     void GotoHomePage();
     void onEnterProjectClicked(const FileInfoDetails& project);
-    void onShowMessage(const QString &message, LogLevel level);
 
-protected slots:
     void onConnectSocket();
     void onDisconnectSocket();
     void onSocketError(QAbstractSocket::SocketError error);    // 新增错误处理槽
 protected:
-    void changeEvent(QEvent *event) override;
 
 private slots:
     void on_action_goto_home_triggered();
     void on_action_start_triggered();
     void on_action_stop_triggered();
     //首页界面
+    void on_pushButton_test_clicked();
+
     void on_pushButton_project_hub_clicked();
 
     void on_pushButton_system_settings_clicked();
@@ -89,7 +99,6 @@ private slots:
     void on_radioButton_log_error_clicked();
 
     void on_pushButton_about_clicked();
-
     //项目页面
     void on_action_create_project_triggered();
 
@@ -102,7 +111,6 @@ private slots:
     void on_pushButton_project_delete_ok_clicked();
 
     void on_pushButton_project_delete_cancel_clicked();
-
     //任务页第一页
     void on_comboBox_city_activated(int index);
 
@@ -157,12 +165,34 @@ private slots:
     void on_radioButton_camera_format_bmp_clicked();
 
     void on_radioButton_camera_format_raw_clicked();
+    //参数模板页
+    void on_pushButton_template_query_clicked();
 
-    void on_pushButton_test_clicked();
+    void on_pushButton_template_add_clicked();
 
+    void on_pushButton_template_delete_clicked();
+
+    void on_pushButton_template_reset_clicked();
+
+    void on_pushButton_template_camera_param_server_save_clicked();
+
+    void on_pushButton_template_camera_param_server_delete_clicked();
+
+    void on_pushButton_template_camera_param_add_key_clicked();
+
+    void on_pushButton_template_camera_param_delete_key_clicked();
+
+    void on_pushButton_template_camera_param_setting_clicked();
+
+    void on_spinBox_template_car_speed_valueChanged(int arg1);
+
+    void on_doubleSpinBox_template_points_accuracy_valueChanged(double arg1);
+
+    //设备管理界面
+    void on_pushButton_log_info_clicked();
 
 private:
-    friend class ChildWidget;
+    friend class ChildWidget;//允许派生类访问
     Ui::MainWindow ui;
     void _retranslate();//更新文本翻译
 
@@ -170,9 +200,14 @@ private:
     void UpdateCitySubwayInfo(const QString& dirPathCity);
     void UpdateCameraFormat(const QString &format);
     void SetCameraFormat(const QString &format);
-    QJsonArray parameterTemplatesInfo; //参数模板数组信息
+
+    int _currentParamTemplateId{-1};
+
     void UpdateLayoutParamTemplate();
+
     void CurrentParamTemplateChanged(int id);
+    QJsonObject GetParamTemplate();
+    void SetParamTemplate(QJsonObject param);
 
 signals:
     void languageChanged();

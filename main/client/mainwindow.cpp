@@ -36,7 +36,7 @@ MainWindow::MainWindow(QWidget* parent)
     //系统设置界面
 #pragma region settings系统设置数据界面
     //#网络设置
-    gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();//192.200.1.20
+    gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();//192.200.1.20"ws://localhost:8080"
     ui.lineEdit_network_url->setText(gWebWidget->url);
     gWebWidget->isAutoReconnect = gSettings->value("network/AutoReconnect", true).toBool();
     ui.radioButton_network_reconnect_on->setChecked(gWebWidget->isAutoReconnect);
@@ -94,7 +94,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui.ProjectsWidgetContents->setColumnStretch(1, 1);
     ui.ProjectsWidgetContents->setColumnStretch(2, 1);
 
-    connect(&gControl, &CoreControl::onProjectClicked, this, &MainWindow::onEnterProjectClicked);
+    connect(&gControl, &MainControl::onProjectClicked, this, &MainWindow::onEnterProjectClicked);
 
 // #PageTask任务页
     UpdateCitySubwayInfo(":assets/docs/city");
@@ -103,7 +103,7 @@ MainWindow::MainWindow(QWidget* parent)
     ui.comboBox_parameter_templates->setModel(&paramNamesModel);
     ui.LayoutParamTemplate->setColumnStretch(0, 1);
     ui.LayoutParamTemplate->setColumnStretch(1, 1);
-    connect(&gControl, &CoreControl::onParamTemplateClicked, this, &MainWindow::CurrentParamTemplateChanged);
+    connect(&gControl, &MainControl::onParamTemplateClicked, this, &MainWindow::CurrentParamTemplateChanged);
     UpdateLayoutParamTemplate();
 #pragma endregion
 
@@ -159,6 +159,29 @@ void MainWindow::SetLogLevel(LogLevel level)
     }
 }
 
+void MainWindow::onEnableChanged(bool enable)
+{
+    qDebug() <<"MainWindow" << "模块已经加载,指令控制状态"<<enable;
+    if(enable){
+        ui.pushButton_network_not_connect->hide();//首页网络连接状态显示
+    }else{
+        ui.pushButton_network_not_connect->show();
+    }
+}
+
+void MainWindow::onSignIn(QJsonObject obj)
+{
+    int type = obj.value("type").toInt();
+    if( type != static_cast<int>(SessionType::Server)){
+        ToolTip::ShowText(tr("客户端连接的类型是%1,与服务端设备类型:2 不一样").arg(type),-1);
+    }
+
+    if(gShare.GetVersion() != obj.value("version").toString()){
+        ToolTip::ShowText(tr("客户端%1与服务端%2版本不一样").arg(gShare.GetVersion(),obj.value("version").toString()),-1);
+    }
+    gShare.info = obj; //同步服务端的信息
+}
+
 void MainWindow::GotoHomePage() {
     qDebug() << "#Window::GotoHomePage()";
     ui.MainStackedWidget->setCurrentWidget(ui.PageHome);
@@ -186,7 +209,23 @@ void MainWindow::onEnterProjectClicked(const FileInfoDetails &project) {
     }
 }
 
-void MainWindow::onShowMessage(const QString& message, LogLevel level) {
+void MainWindow::onShowMessage(const QString& message,  double level) {
+    qDebug() <<"信息等级:"<< int(level);
+    if (message.isNull()) {
+        qWarning() << "信息等级Received null message";
+        return;
+    }
+    // 使用地址检查
+    qDebug() << "Debug 3: message 地址:" << &message;
+    if (message.isEmpty()) {
+        qWarning() << "信息等级Received empty message";
+    }
+    qDebug() << message;
+    //网络通信的异步性：网络数据通常在临时缓冲区中，当网络回调函数执行完毕后，这些缓冲区可能被释放或重用。
+    onShowMessage(message,static_cast<LogLevel>(level));//不使用const引用而是值传递
+}
+void MainWindow::onShowMessage(const QString& message, LogLevel level)
+{
     QString timestamp = QDateTime::currentDateTime().toString("hh:mm:ss");
     QString levelStr;
     QColor color;
@@ -205,10 +244,11 @@ void MainWindow::onShowMessage(const QString& message, LogLevel level) {
         color = QColor(128, 128, 128);// 灰色
         break;
     }
-    qDebug() << int(level) << message << color.name();
+    qDebug() <<"信息等级:"<< int(level);
+    qDebug() << message;// << color.name();
+    //此处第一次会奔溃 随机,在服务器第一次启动, 使用debug模式的跑的时候概率大
     // ui->plainTextEdit_log->appendPlainText(QString("[%1] %2 %3").arg(timestamp).arg(levelStr).arg(message));
     ui.plainTextEdit_log->appendHtml(QString("<span style='color: %1'>[%2] %3 %4</span>").arg(color.name(), timestamp, levelStr, message));
-
 }
 
 void MainWindow::changeEvent(QEvent* event) {
@@ -260,6 +300,7 @@ void MainWindow::onSocketError(QAbstractSocket::SocketError error)
     ToolTip::ShowText(tr("网络错误"),errorString);
     ui.pushButton_network_connect->setText(tr("连接"));
 }
+
 
 void MainWindow::on_action_goto_home_triggered() {
     GotoHomePage();
@@ -345,7 +386,7 @@ void MainWindow::on_radioButton_language_en_US_toggled(bool checked) {
         if (g_translator.load(QString(":/i18n/%1").arg(en_US))) {
             qApp->installTranslator(&g_translator);
         } else {
-            onShowMessage(tr("fail language switch:%1").arg(en_US), LogLevel::Warning);
+            // onShowMessage(tr("fail language switch:%1").arg(en_US), LogLevel::Warning);
         }
     } else {
         qApp->removeTranslator(&g_translator);
@@ -829,7 +870,7 @@ void MainWindow::on_radioButton_car_forward_clicked()
         obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
         QByteArray data;
         obj["data"] = data.toStdString().c_str();
-        Session session(sModuleSerial, "SetParamsByCode", obj);
+        Session session(sModuleSerial, "SetParameterByCode", obj);
         if (gControl.SendAndWaitResult(session)) {
             gControl.carDirection = true;
         } else {
@@ -847,7 +888,7 @@ void MainWindow::on_radioButton_car_backward_clicked()
         obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
         QByteArray data;
         obj["data"] = data.toStdString().c_str();
-        Session session(sModuleSerial, "SetParamsByCode", obj);
+        Session session(sModuleSerial, "SetParameterByCode", obj);
         if (gControl.SendAndWaitResult(session)) {
             gControl.carDirection = false;
         } else {
@@ -1027,7 +1068,12 @@ void MainWindow::on_doubleSpinBox_template_points_accuracy_valueChanged(double a
     ui.label_max_diameter_tips->setText(tr("最大隧道直径%1m").arg(diameter, 0, 'f', 2));
 }
 #pragma endregion
-
+#pragma region Page设备管理页
+void MainWindow::on_pushButton_log_info_clicked()
+{
+    ui.MainStackedWidget->setCurrentWidget(ui.PageLog);
+}
+#pragma endregion
 void MainWindow::_retranslate()
 {
     qDebug()<<"void MainWindow::retranslate() 更新语言显示,主要是ui文件,和一些qss的文本";
@@ -1185,8 +1231,3 @@ void MainWindow::SetParamTemplate(QJsonObject param)
     ui.doubleSpinBox_template_scanner_height->setValue(param[JSON_SCAN_HEIGHT].toDouble());
     ui.comboBox_template_camera->setCurrentText(param[Json_CameraTemplate].toString());
 }
-
-
-
-
-

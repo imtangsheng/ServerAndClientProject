@@ -79,6 +79,11 @@ void CameraWidget::handle_binary_message(const QByteArray &bytes)
 
 }
 
+void CameraWidget::onEnableChanged(bool enable)
+{
+    qDebug() <<_module()<< "模块已经加载,指令控制状态"<<enable;
+}
+
 void CameraWidget::initUi(const Session &session)
 {
     QJsonObject obj = session.result.toObject();

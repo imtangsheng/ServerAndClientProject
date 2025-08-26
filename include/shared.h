@@ -15,6 +15,7 @@
 #define gSigSent share::Shared::instance().sigSent
 #define gSettings share::Shared::GetConfigSettings()
 
+
 //定义模块名称 对非的插件类适用
 constexpr auto sModuleScanner = "scanner";
 constexpr auto sModuleCamera = "camera";
@@ -85,7 +86,9 @@ public:
         //handler->setParent(this);//QObject::setParent: Cannot set parent, new parent is in a different thread
         return true;
     }
-
+    QStringList GetHandlerList() {
+        return handlers.keys();
+    }
 #pragma region InvokeMethod
     /**
 		* @brief 使用宏定义自动生成映射
@@ -139,4 +142,14 @@ signals:
 
 
 }//end namespace share
+
+//向所有ws的客户端推送消息
+inline void PushClients(const QString& method, const QJsonValue& params, const QString& module) {
+    emit gSigSent(Session::RequestString(module, method, params));
+}
+//向指定的ws的客户端发送消息
+inline void PushSessionResponse(const Session& session, const QJsonValue& result, const QString& message) {
+    emit gSigSent(session.ResponseString(result, message), session.socket);
+}
+
 #endif

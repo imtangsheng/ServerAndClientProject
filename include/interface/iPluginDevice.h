@@ -35,16 +35,16 @@ public:
         qDebug() << "IPluginDevice()析构函数被调用";
     }
 
-    virtual QString _module() const = 0;//记录当前设备模块名称 必要用于注册设备
+    virtual QString GetModuleName() const = 0;//记录当前设备模块名称 必要用于注册设备
     double state_{-1};//记录设备状态值,int类型,double类型用于json数据网络传输
     QJsonObject config_;//设备配置参数 json格式
     TaskState taskState{ TaskState::TaskState_Waiting };//任务状态
 
-    Q_INVOKABLE virtual Result activate(QJsonObject param) { return true; } //激活设备,注册服务
+    Q_INVOKABLE virtual Result Activate_(QJsonObject param, bool again = false) { return true; } //激活设备,注册服务 或者重新激活
     // 基本操作接口 默认设计的是首先要执行一次,执行初始化变量赋值等操作
     virtual Result initialize() {
         if (!translator.load(":/" + name() + "/" + zh_CN)) {
-            LOG_ERROR(tr("Failed to load PluginDevice language file:%1").arg(": / " + name() + " / " + zh_CN));
+            LOG_ERROR(tr("加载插件语言失败:%1").arg(": / " + name() + " / " + zh_CN));
         }
         if (gShare.language == zh_CN) {
             emit gShare.signal_translator_load(translator, true);
@@ -57,10 +57,10 @@ public:
             }
             });
 
-        return LoadConfigFromFile(ConfigFilePath());//加载配置文件到 params_
+        return LoadConfigFromFile(name() + ".json");//加载配置文件到 params_
 
         //注册设备控制模块 该为设备验证后注册服务
-        //return gShare.RegisterHandler(_module(), this);
+        //return gShare.RegisterHandler(GetModuleName(), this);
     }
 
     virtual Result disconnect() = 0; // 断开连接
@@ -81,7 +81,7 @@ public:
             stateHandlers[currentState].contains(event)) {
             return stateHandlers[currentState][event](data);
         }
-        return Result(false, "Invalid state transition");
+        return Result(false, "无效的状态或事件");
     }
 public slots:
     virtual void initUi(const Session& session) = 0;//初始化UI,返回配置信息
@@ -89,7 +89,7 @@ public slots:
         config_ = session.params.toObject();
         Result result = WriteJsonFile(ConfigFilePath(), config_);
         if (!result) {
-            LOG_WARNING(tr("%1 save params config file error:%1").arg(name()).arg(result.message));
+            LOG_WARNING(tr("%1 保存参数错误:%2").arg(name()).arg(result.message));
         }
         gShare.on_send(result, session);
     }

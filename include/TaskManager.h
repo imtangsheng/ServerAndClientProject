@@ -100,6 +100,7 @@ inline QString GetLineType(int index) {
 #define Json_MeasurementRate "MeasurementRate" //测量速率
 #define Json_SplitAfterLines "SplitAfterLines" //分块线数
 #define Json_Resolution "Resolution" //分辨率
+#define Json_Quality "Quality" //测量质量,扫描仪用户界面上参数
 #define Json_NumCols "NumCols" //列数 扫描线数,到达此数会停止扫描
 
 static inline const QString cProjectNameSuffix = ".nfproj";//项目文件名后缀

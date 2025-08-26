@@ -15,7 +15,7 @@ class WaitDialog : public QDialog,public SessionFilterable
     Q_OBJECT
 
 public:
-    explicit WaitDialog(Session* session = nullptr,QWebSocket* client = nullptr,quint8 sTimeout = 30,QWidget *parent = nullptr);
+    explicit WaitDialog(Session* session = nullptr,QWebSocket* client = nullptr,QString info=QString(),quint8 sTimeout = 30,QWidget *parent = nullptr);
     ~WaitDialog();
 
 

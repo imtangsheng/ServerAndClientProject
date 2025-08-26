@@ -16,17 +16,18 @@ void ChildWidget::initialize()
         connect(GetButtonDeviceManager(),&QRadioButton::clicked,mainWindow,[&]{
             mainWindow->ui.StackedWidgetDeviceItems->setCurrentWidget(GetWidgetDeviceManager());
         });
-        setDeviceState(true);//离线状态显示
+        onEnableChanged(false);//离线状态显示
         //采集界面
         mainWindow->ui.LayoutRealtimeMonitoring->addWidget(GetWidgetAcquisitionMonitor());
     }
 }
 
-void ChildWidget::setDeviceState(bool offline)
+void ChildWidget::onEnableChanged(bool enable)
 {
+    bool isOffline = !enable;
     switch (deviceType) {
     case Trolley:
-        if(offline){
+        if(isOffline){
             mainWindow->ui.widget_device_trolley_is_connected->hide();
             mainWindow->ui.widget_device_trolley_not_connection->show();
         }else{
@@ -35,7 +36,7 @@ void ChildWidget::setDeviceState(bool offline)
         }
         break;
     case Scanner:
-        if(offline){
+        if(isOffline){
             mainWindow->ui.widget_device_scanner_is_connected->hide();
             mainWindow->ui.widget_device_scanner_not_connection->show();
         }else{
@@ -44,7 +45,7 @@ void ChildWidget::setDeviceState(bool offline)
         }
         break;
     case Camera:
-        if(offline){
+        if(isOffline){
             mainWindow->ui.widget_device_camera_is_connected->hide();
             mainWindow->ui.widget_device_network_not_connection->show();
         }else{

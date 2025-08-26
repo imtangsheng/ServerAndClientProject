@@ -1,55 +1,55 @@
-#include <QFile>
+﻿#include <QFile>
 #include <QDir>
 #include <QFileInfo>
 #include <QLockFile>
 
 inline static Result ReadJsonFile(const QString& filePath, QJsonObject& json) {
     QFile configFile(filePath);
-    // ���Դ��ļ�
+    // 尝试打开文件
     if (!configFile.open(QIODevice::ReadOnly)) {
-        return Result::Failure(QObject::tr("Failed to open file: %1").arg(filePath));
+        return Result::Failure(QObject::tr("打开文件'%1'失败").arg(filePath));
     }
-    // ��ȡJSON�ļ�����
+    // 读取JSON文件内容
     QByteArray data = configFile.readAll();
     configFile.close();
-    // ��ȡ������JSON����
+    // 读取并解析JSON数据
     QJsonParseError parseError;
     QJsonDocument jsonDoc = QJsonDocument::fromJson(data, &parseError);
     if (parseError.error != QJsonParseError::NoError) {
-        return Result::Failure(QObject::tr("JSON file parse error:%2").arg(filePath).arg(parseError.errorString()));
+        return Result::Failure(QObject::tr("文件'%1'解析错误:%2").arg(filePath).arg(parseError.errorString()));
     }
 
     if (jsonDoc.isNull() || !jsonDoc.isObject()) {
-        return Result::Failure(QObject::tr("file is not a valid JSON object: %1").arg(filePath));
+        return Result::Failure(QObject::tr("解析的文件不是目标object类型,文件路径: %1").arg(filePath));
     }
     json = jsonDoc.object();
     return true;
 }
 
 inline static Result WriteJsonFile(const QString& filePath, const QJsonObject& json) {
-    // ��鲢����Ŀ¼
+    // 检查并创建目录
     QFileInfo fileInfo(filePath);
     QString dirPath = fileInfo.path();
     QDir dir(dirPath);
     if (!dir.exists()) {
         if (!dir.mkpath(dirPath)) {
-            return Result::Failure(QObject::tr("Failed to create directory: %1").arg(dirPath));
+            return Result::Failure(QObject::tr("创建文件'%1'失败").arg(dirPath));
         }
     }
-    // ����JSON�ĵ�
+    // 创建JSON文档
     QJsonDocument doc(json);
     QByteArray jsonData = doc.toJson(QJsonDocument::Indented);
 
-    // д���ļ���ʹ��QLockFileȷ���ļ�д��Ļ����ԣ�
+    // 写入文件（使用QLockFile确保文件写入的互斥性）
     QLockFile lockFile(filePath + ".lock");
     if (!lockFile.lock()) {
-        return Result::Failure(QObject::tr("Failed to lock file: %1").arg(filePath + ".lock"));
+        return Result::Failure(QObject::tr("文件加锁'%1'失败,可能被占用").arg(filePath + ".lock"));
     }
-    // д���ļ�,ʹ�þ���·��,���Ŀ¼�����ڻ��޷�д��
+    // 写入文件,使用绝对路径,如果目录不存在会无法写入
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         lockFile.unlock();
-        QString errorMsg = QObject::tr("Failed to open file: %1 error:%2").arg(filePath).arg(file.errorString());
+        QString errorMsg = QObject::tr("文件'%1'打开失败,错误信息:%2").arg(filePath).arg(file.errorString());
         file.close();
         return Result::Failure(errorMsg);
     }
@@ -57,24 +57,24 @@ inline static Result WriteJsonFile(const QString& filePath, const QJsonObject& j
     file.close();
     lockFile.unlock();
     if (bytesWritten == -1) {
-        QString errorMsg = QObject::tr("Failed to write file: %1 error:%2").arg(filePath).arg(file.errorString());
+        QString errorMsg = QObject::tr("文件'%1'写入失败,错误信息:%2").arg(filePath).arg(file.errorString());
         return Result::Failure(errorMsg);
     }
     return true;
 }
 
-// 6.9 �汾���ļ��ж�ȡjsonֵ
+// 6.9 版本的文件中读取json值
 inline static Result GetJsonValue(const QString& path, QJsonValue& value) {
-    QFile file(path);// 1. �� JSON �ļ�
+    QFile file(path);// 1. 打开 JSON 文件
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return Result::Failure(QObject::tr("Failed to open file:%1 Error is:%2").arg(path, file.errorString()));
+        return Result::Failure(QObject::tr("文件'%1'打开失败,错误信息:%2").arg(path, file.errorString()));
     }
-    QByteArray jsonData = file.readAll();// 2. ��ȡ�ļ�����
+    QByteArray jsonData = file.readAll();// 2. 读取文件内容
     file.close();
-    QJsonParseError parseError;// 3. ʹ�� QJsonValue::fromJson ����
+    QJsonParseError parseError;// 3. 使用 QJsonValue::fromJson 解析
     value = QJsonValue::fromJson(jsonData, &parseError);
-    if (parseError.error != QJsonParseError::NoError) {// 4. ����������
-        return Result::Failure(QObject::tr("JSON parsing failed:%1 Error is:%2 At offset:%3").arg(path, parseError.errorString()).arg(parseError.offset));
+    if (parseError.error != QJsonParseError::NoError) {// 4. 检查解析错误
+        return Result::Failure(QObject::tr("文件'%1'解析失败,错误信息:%2 位置:%3").arg(path, parseError.errorString()).arg(parseError.offset));
     }
     return true;
 }
@@ -87,6 +87,6 @@ inline static Result GetJsonValue(const QString& path, QJsonObject& obj) {
         obj = value.toObject();
         return true;
     } else {
-        return Result::Failure(QObject::tr("JSON parsing is %1 Not Object:%2").arg(value.type(), QJsonValue::Object));
+        return Result::Failure(QObject::tr("读取的类型是'%1',不是目标类型:%2").arg(value.type(), QJsonValue::Object));
     }
 }

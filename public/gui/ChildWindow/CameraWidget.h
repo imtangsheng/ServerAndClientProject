@@ -28,6 +28,7 @@ public:
 
     void handle_binary_message(const QByteArray &bytes);
 public slots:
+    void onEnableChanged(bool enable=true) final;
     void initUi(const Session& session) final;
     void onDeviceStateChanged(double state,QString message) final;
     void onConfigChanged(QJsonObject config);

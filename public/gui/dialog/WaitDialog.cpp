@@ -1,7 +1,7 @@
 #include "WaitDialog.h"
 #include "ui_WaitDialog.h"
 
-WaitDialog::WaitDialog(Session* session,QWebSocket* client, quint8 sTimeout,QWidget *parent)
+WaitDialog::WaitDialog(Session* session,QWebSocket* client,QString info, quint8 sTimeout,QWidget *parent)
     : QDialog(parent),session(session),pClient(client),sMaxTimeout(sTimeout)
     , ui(new Ui::WaitDialog)
 {
@@ -10,6 +10,8 @@ WaitDialog::WaitDialog(Session* session,QWebSocket* client, quint8 sTimeout,QWid
     setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog); // 设置无边框
     // setAttribute(Qt::WA_TranslucentBackground); // 设置背景透明
     // setAttribute(Qt::WA_DeleteOnClose);
+    if(!info.isEmpty())
+    ui->label_show->setText(info);
 }
 
 WaitDialog::~WaitDialog()
