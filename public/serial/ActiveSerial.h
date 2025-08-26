@@ -7,24 +7,20 @@
 #include "iSerialPort.h"
 using namespace serial;
 
-//向所有ws的客户端推送消息
-inline void PushCilents(const QString& method, const QJsonValue& params, const QString& module = g_module_name) {
-    emit gSigSent(Session::RequestString(module, method, params));
-}
-//向指定的ws的客户端发送消息
-inline void PushSessionResponse(const Session& session,const QJsonValue& result, const QString& message) {
-    emit gSigSent(session.ResponseString(result, message), session.socket);
-}
-
 #define g_serial_session SerialSession::instance()
 // 定义回调函数类型（支持异步回调函数lambda）
 using CallbackFunctionCode = std::function<void(const QJsonValue&, const QString&)>;
 
 //默认的转发函数 智能指针[session=std::make_shared<Session>(session)] 确保即使原始session被销毁，lambda中的session副本仍然有效
 static CallbackFunctionCode CallbackDefault(const Session& session) {
-    return [&session](const QJsonValue& result, const QString& message) {
-        PushSessionResponse(session, result, message);
-        };
+    //必须保证 lambda 内部捕获的对象生命周期足够长，或者用智能指针捕获对象副本。
+    //auto sessionPtr = QSharedPointer<Session>::create(session);
+    //return [sessionPtr](const QJsonValue& result, const QString& message) {
+    //    PushSessionResponse(*sessionPtr, result, message);
+    //};
+    return [session = std::make_shared<Session>(session)](const QJsonValue& result, const QString& message) {
+        PushSessionResponse(*session, result, message);
+    };
 }
 class SerialSession
 {
@@ -35,7 +31,7 @@ public:
     }
     QMutex mutex;
     //QMap<FunctionCodeType, QList<Session>> sessionMap;
-    QMap<FunctionCodeType, QList<CallbackFunctionCode>> sessionCallbackMap;
+    QMap<FunctionCodeType, QList<QSharedPointer<CallbackFunctionCode>>> sessionCallbackMap;
     bool addSession(FunctionCodeType code, const Session& session) {
         QMutexLocker locker(&mutex);
         //if (!sessionMap.contains(code)) {
@@ -45,11 +41,12 @@ public:
         return addSession(code, CallbackDefault(session));
     }
     bool addSession(FunctionCodeType code, const CallbackFunctionCode& callback) {
-        QMutexLocker locker(&mutex);
+        //QMutexLocker locker(&mutex);
         //if (!sessionCallbackMap.contains(code)) {
         //    sessionCallbackMap[code] = QList<CallbackFunctionCode>();
         //}
-        sessionCallbackMap[code].append(callback);
+        auto cbPtr = QSharedPointer<CallbackFunctionCode>::create(callback);
+        sessionCallbackMap[code].append(cbPtr);
         return true;
     }
     void HandleTrolleySession(FunctionCodeType code, QJsonValue result, QString message) {
@@ -57,8 +54,8 @@ public:
         QMutexLocker locker(&mutex);
         if (auto it = sessionCallbackMap.find(code); it != sessionCallbackMap.end()) {//结构化绑定（C++17）
             // it 是迭代器，it->second 是 QList<CallbackFunctionCode>
-            for (auto& call : it.value()) {// 这里 it->second 等价于 it.value()
-                call(result, message);
+            for (auto& callPtr : it.value()) {// 这里 it->second 等价于 it.value()
+                if (callPtr) (*callPtr)(result, message);
             }
             sessionCallbackMap.erase(it);// STL 和 Qt 容器中通过迭代器删除元素的标准方法
         }

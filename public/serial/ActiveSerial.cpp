@@ -33,7 +33,7 @@ static void RecvMileageData(qint64 id,const MileageInfo& left,const MileageInfo&
             obj.insert("right_mileage_symbol", right.symbol);
             obj.insert("right_mileage_pulse", right.pulse);
             obj.insert("right_mileage_time", right.time);
-            PushCilents(SUBSCRIBE_METHOD(Mileage), obj);
+            PushClients(SUBSCRIBE_METHOD(Mileage), obj, sModuleSerial);
         }
     }
 }
@@ -85,7 +85,7 @@ static void RecvSingleMileageData(qint64 id, const MileageInfo& data) {
             obj.insert("mileage_symbol", data.symbol);
             obj.insert("mileage_pulse", data.pulse);
             obj.insert("mileage_time", data.time);
-            PushCilents(SUBSCRIBE_METHOD(Mileage), obj);
+            PushClients(SUBSCRIBE_METHOD(Mileage), obj, sModuleSerial);
         }
     }
 }
@@ -114,7 +114,7 @@ static void RecvCameraPositionData(const CloverTriggerInfo& data) {
         obj.insert("time", data.time);
         obj.insert("actual_position", data.GetActualPosition());
         obj.insert("feedback", data.feedback);
-        PushCilents(SUBSCRIBE_METHOD(CameraPosition), obj);
+        PushClients(SUBSCRIBE_METHOD(CameraPosition), obj,sModuleSerial);
         if (data.feedback == 0) {
             LOG_ERROR(QObject::tr("Camera trigger id:%1 camera:%2 position:%3 time:%4 feedback:%5 error").arg(data.id).arg(data.camera_id).arg(data.position).arg(data.time).arg(data.feedback));
         }
@@ -150,7 +150,7 @@ void ActiveSerial::start(const Session& session) {
     g_serial_session.addSession(CAMERA_START_STOP, session);
 #endif // DEVICE_TYPE_CAR
 #elif defined(DEVICE_TYPE_CAR)
-    gSerial->WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00：启动小车 01：启动并清除里程
+    WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00：启动小车 01：启动并清除里程
     g_serial_session.addSession(CAR_STARTUP, session);
 #else
     gShare.on_send(Result::Failure(tr("The device type is not defined")), session);
@@ -382,7 +382,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         default:
             break;
         }
-        PushCilents(SUBSCRIBE_METHOD(CarKey), key_value);
+        PushClients(SUBSCRIBE_METHOD(CarKey), key_value, sModuleSerial);
     }return true;
     case 0xFD://扫描仪CAN指令上传 待测试
     {
