@@ -16,7 +16,7 @@ public:
     // 基本数据定义
     QString GetModuleName() const final;    // 设备名称
     // 基本操作接口
-    Q_INVOKABLE Result Activate_(QJsonObject param, bool again = false) final;//激活设备,注册加载初始化等操作
+    Q_INVOKABLE Result Activate_(QJsonObject param) final;//激活设备,注册加载初始化等操作
     Result initialize() final;
     Result disconnect() final;
     QString name() const final;    // 设备名称

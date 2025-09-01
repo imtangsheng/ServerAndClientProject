@@ -40,7 +40,7 @@ public:
     QJsonObject config_;//设备配置参数 json格式
     TaskState taskState{ TaskState::TaskState_Waiting };//任务状态
 
-    Q_INVOKABLE virtual Result Activate_(QJsonObject param, bool again = false) { return true; } //激活设备,注册服务 或者重新激活
+    Q_INVOKABLE virtual Result Activate_(QJsonObject param) { return true; } //激活设备,注册服务 或者重新激活
     // 基本操作接口 默认设计的是首先要执行一次,执行初始化变量赋值等操作
     virtual Result initialize() {
         if (!translator.load(":/" + name() + "/" + zh_CN)) {

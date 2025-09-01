@@ -14,7 +14,7 @@ public:
     ~CameraPlugin() override;
 
     // 基本数据定义
-    QString _module() const override;    // 设备名称
+    QString GetModuleName() const override;    // 设备名称
     // 基本操作接口
     Result initialize() override;
     Result disconnect() override;

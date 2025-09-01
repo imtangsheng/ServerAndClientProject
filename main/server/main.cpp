@@ -1,4 +1,3 @@
-
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include "UserServer.h"
@@ -28,9 +27,10 @@ int main(int argc, char* argv[])
 	// 打印Qt的C++版本
 	QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
 	qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
-	qDebug() << "Software version:" << __DATE__ << " " << __TIME__ << "Qt version : " << QT_VERSION_STR << "C++ version : " << __cplusplus;
-    gShare.InitConfigSettings(appDir.absolutePath(), "server");//初始化配置文件路径,名称
-    gShare.sessiontype_ = int(SessionType::Server);
+	qDebug() << "软件运行时间: " << __DATE__ << " " << __TIME__ << "Qt 版本:" << QT_VERSION_STR << "C++ 版本:" << __cplusplus;
+	gShare.sessiontype_ = int(SessionType::Server);
+    gShare.awake(appDir.absolutePath(), "server");//初始化配置文件路径,名称
+    
     // 设置语言
 	QString language = gSettings->value("language").toString();
 	if (language.isEmpty()) {
@@ -46,7 +46,9 @@ int main(int argc, char* argv[])
 		}
 	});
 	UserServer user(&app);
-    user.initialize(port);
+    user.initialize(port,12346);//因为80端口给http代理,故使用其他http的端口
+	qDebug() << "WebSocket server listening on port" << port;
+	gShare.RegisterHandler(user.module_, &user);
 	QObject::connect(&user, &UserServer::closed, &app, &QCoreApplication::quit);
 
 	return app.exec();

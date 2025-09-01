@@ -21,7 +21,7 @@ public:
      * @brief 初始化用户服务
      * @param port 端口号<em>默认8080</em>
      */
-    void initialize(quint16 port);
+    void initialize(quint16 port_ws=8080, quint16 port_http=80);
     /**
      * @brief 获取用户服务实例
      * @return 用户服务实例指针

@@ -35,6 +35,7 @@ static const QString en_US = "en_US";
 namespace share {
     Q_NAMESPACE
         enum ModuleName {
+        trolley,
         serial,
         scanner,
         camera,

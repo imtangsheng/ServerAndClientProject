@@ -13,9 +13,9 @@ WebSocketServer::WebSocketServer(quint16 port, QObject* parent)
 	else {
 		//qCritical() << tr("Fails to WebSocketServer listen port:%1,please check whether the port is occupied!").arg(port);
 		//Q_ASSERT(false, "WebSocketServer::listen", "please check whether the port is occupied!"); // Release 模式下不崩溃 使用Q_ASSERT_X
-		qFatal() << tr("Fails to WebSocketServer listen port:%1,please check whether the port is occupied!").arg(port);//会直接终止程序
+		qFatal() << tr("服务端口:%1 启动失败,请检查是否被占用或者应用程序已经存在!").arg(port);//会直接终止程序
 	}
-	qDebug() << tr("server start port:") << port << " source by:" << typeid(this).name();
+	qDebug() << tr("服务端口:") << port << " 类名称:" << typeid(this).name();
 }
 
 /**
@@ -59,6 +59,7 @@ void WebSocketServer::SentMessageToClients(const QString& message) {
 	}
 }
 
+
 void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclient)
 {
 	qDebug() <<"#Sent:size is"<< message.size()<< QThread::currentThread();
@@ -82,7 +83,7 @@ void WebSocketServer::handleBinarySent(const QByteArray& message, QObject* wscli
 	static QMutex mutex_socket;
 	QMutexLocker locker(&mutex_socket);
 	if (message.isEmpty()) return;
-	if (socket) { socket->sendTextMessage(message); } else {
+	if (socket) { socket->sendBinaryMessage(message); } else {
 		for (QPointer<QWebSocket> client : clients) {
 			client->sendBinaryMessage(message);
 		}
@@ -94,7 +95,7 @@ void WebSocketServer::handleLogMessageSent(const QString& message, LogLevel leve
 	// 创建JSON数组并添加消息内容和日志级别
 	//QJsonArray array;array.append(message);array.append(double(level));
 	QJsonArray array = { message, double(level) };
-	QString msg = Session::RequestString(0, sModuleUser, "show_log_message", array);
+	QString msg = Session::RequestString(0, sModuleUser, "onShowMessage", array);
 	SentMessageToClients(msg);
 }
 
@@ -119,12 +120,12 @@ void WebSocketServer::verify_device_type(const QString& message)
 	if (!newSocket) return;
 	QJsonDocument doc = QJsonDocument::fromJson(message.toUtf8());
     if (doc.isNull()) {//向客户端发送错误信息
-		newSocket->sendTextMessage(Session::RequestString(1, "user","error",tr("Invalid JOSN Data:%1").arg(message)));
+		newSocket->sendTextMessage(Session::RequestString(1, "user","error",tr("无效的JOSN数据:%1").arg(message)));
 		return;
 	}
 	Session resp(doc.object());
 	if (resp.method != "login") {
-		QString error_message = tr("Please log in first, you need to verify the device connection by %1 Don't login").arg(resp.method);
+		QString error_message = tr("请先登录,请求方法: %1,然后进行其他操作").arg(resp.method);
 		newSocket->sendTextMessage(resp.ErrorString(1, error_message));
 		return;
 	}
@@ -137,6 +138,9 @@ void WebSocketServer::verify_device_type(const QString& message)
 			clients.remove(newSocket);
 			});
         deviceType = SessionType::Client;
+		foreach( auto mod, gShare.GetHandlerList()) {//模块初始化信息,界面信息初始化
+			newSocket->sendTextMessage(Session::RequestString(mod, "onEnableChanged", QJsonArray{ true }));
+		}
 		SentMessageToClients();//发送之前缓存信息
 		break;
 	default:
@@ -145,7 +149,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 			others.remove(newSocket);
 		});
 		deviceType = SessionType::Other;
-		SentMessageToClients(Session::RequestString(1, sModuleUser, "login_new_session", QJsonArray{ double(deviceType)}));
+		SentMessageToClients(Session::RequestString(sModuleUser, "login_new_session", QJsonArray{ double(deviceType)}));
 		break;
 	}
 	// 移除首次验证的槽函数，避免重复验证
@@ -154,8 +158,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 	connect(newSocket, &QWebSocket::textMessageReceived, this, &WebSocketServer::handle_text_message);
 	//返回消息,验证设备版本号是否一致
 	//handleMessageSent()
-	QJsonArray array{ double(deviceType),gShare.GetVersion()};
-	newSocket->sendTextMessage(Session::RequestString(1, sModuleUser, "login_verify", array));
+	newSocket->sendTextMessage(Session::RequestString(sModuleUser, "onSignIn", QJsonArray{ gShare.info }));
 }
 
 
@@ -168,7 +171,7 @@ void WebSocketServer::handle_text_message(const QString& message)
 	qDebug() << "#[SendTo]" << pClient->peerAddress().toString() << "[Message]" << message.size() << QThread::currentThread();;
 	QJsonDocument jsonDoc = QJsonDocument::fromJson(message.toUtf8());
 	if (jsonDoc.isNull() || !jsonDoc.isObject()) {//向客户端发送错误信息
-		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("Invalid JOSN Data:%1").arg(message.size())));
+		pClient->sendTextMessage(Session::RequestString(1, "user", "error", tr("无效的JOSN数据:%1").arg(message.size())));
 	}
 	//Result result = gController.invoke(jsonDoc.object(), pClient);
 	Result result = share::Shared::instance().invoke(jsonDoc.object(), sender());

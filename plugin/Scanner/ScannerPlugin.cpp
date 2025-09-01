@@ -35,17 +35,16 @@ QString ScannerPlugin::GetModuleName() const
     return moduleName;
 }
 
-Result ScannerPlugin::Activate_(QJsonObject param, bool again)
+Result ScannerPlugin::Activate_(QJsonObject param)
 {
-    //是否已经激活过
-    if (!again) { //不需要再次激活 已经连接了,直接返回已经激活
-        if (gFaroCtrl->isConnect()) {
-            RegisterServerHandler();
-            return true;
-        }
+    //判断是否连接,此处设备只有一个,不用对比ip是否一样,直接判断
+    if (gFaroCtrl->isConnect()) {
+        RegisterServerHandler();
+        return true;
     }
+    //检测是否更换ip地址了
     QString ip = param.value("ip").toString();
-    if (!ip.isEmpty()) {
+    if (gFaroCtrl->ip != ip && !ip.isEmpty()) {
         gFaroCtrl->ip = ip;
     }
     if (!TryConnect()) {

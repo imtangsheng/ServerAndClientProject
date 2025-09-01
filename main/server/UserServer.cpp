@@ -12,7 +12,8 @@ static QPointer<WebSocketServer> gWebSocketServer;
 static Result UpdateProjectDir(const QString& path_project, QJsonObject& data) {
     QDir dir(path_project);
     if (!dir.exists()) {
-        QString msg = QObject::tr("#TaskManager:Directory does not exist:%1").arg(path_project);
+        //dir.mkpath(".");
+        QString msg = QObject::tr("#项目:路径不存在%1").arg(path_project);
         LOG_WARNING(msg);
         return Result::Failure(msg);
     }
@@ -60,11 +61,10 @@ static Result UpdateProjectDir(const QString& path_project, QJsonObject& data) {
 
 UserServer::UserServer(QObject* parent) : QObject(parent) {
     module_ = share::Shared::GetModuleName(share::ModuleName::user);
-    gShare.RegisterHandler(module_, this);
     //connect(&gShare, &share::ShareLib::signal_language_changed, this, &UserServer::onLanguageChanged);
     //语言翻译文件加载
     if (!translator.load(":/i18n/" + zh_CN)) {
-        LOG_ERROR(tr("Failed to load language:%1").arg(gShare.language));
+        LOG_ERROR(tr("加载语言错误:%1").arg(gShare.language));
     }
     if (gShare.language == zh_CN) {
         emit gShare.signal_translator_load(translator, true);
@@ -83,12 +83,12 @@ UserServer::~UserServer() {
     qDebug() << "UserServer::~UserServer()";
 };
 
-void UserServer::initialize(quint16 port) {
+void UserServer::initialize(quint16 port_ws, quint16 port_http) {
     gHttpServer = new HttpServer();
-    if (!gHttpServer->StartServer(80)) {
-        LOG_ERROR(tr("Failed to start HTTP server"));
+    if (!gHttpServer->StartServer(port_http)) {
+        LOG_ERROR(tr("启动HTTP服务失败,端口号:%1").arg(port_http));
     }
-    gWebSocketServer = new WebSocketServer(port, this);
+    gWebSocketServer = new WebSocketServer(port_ws, this);
     gWebSocketServer->initialize();
     //connect(gWebSocketServer, &WebSocketServer::closed, &app, &QCoreApplication::quit);
 
@@ -109,7 +109,7 @@ void UserServer::initialize(quint16 port) {
 void UserServer::onDeviceStateChanged(Session session) {
     qDebug() << "UserServer::onDeviceStateChanged";
     for (auto& plugin : gManagerPlugin->m_plugins) {
-        session.module = plugin.ptr->_module();
+        session.module = plugin.ptr->GetModuleName();
         session.params = QJsonArray{ {plugin.ptr->state_,"state"} };//double 类型传输值 message用于显示信息
         gShare.on_session(session.GetRequest(), session.socket);
     }

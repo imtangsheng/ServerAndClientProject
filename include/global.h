@@ -115,7 +115,7 @@ struct Session {
     QJsonValue params;///< @brief  请求参数,如果是一个数组,则反射动态调用槽函数，可以为空;否则调用默认的带完整请求的槽函数 可选
     QJsonValue result;///< @brief 执行的结果 可选
     QString message;///< @brief 执行的消息 可选
-    QVariant context;///< @brief  上下文信息 可选
+    // QVariant context;///< @brief  上下文信息 可选 保留
 
     // 默认构造函数
     Session() = default; // 默认构造函数
@@ -132,7 +132,7 @@ struct Session {
         if (json.contains("params")) params = json["params"];
         if (json.contains("result")) result = json["result"];
         if (json.contains("message")) message = json["message"].toString("");
-        if (json.contains("context")) context = json["context"].toVariant();
+        // if (json.contains("context")) context = json["context"].toVariant();
     }
     //使用请求体参数构造函数
     Session(const QString& module, const QString& method, const QJsonValue& params = QJsonValue()){

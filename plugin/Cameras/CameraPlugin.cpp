@@ -27,14 +27,14 @@ CameraPlugin::CameraPlugin() {
 //    //qCritical() << "Camera initialization failed:" << e.what();
 //#endif
     IPluginDevice::initialize();
-    gShare.RegisterHandler(_module(), this);
+    gShare.RegisterHandler(GetModuleName(), this);
 }
 
 CameraPlugin::~CameraPlugin() {
     qDebug() << "#PluginCamera~CameraPlugin()";
 }
 
-QString CameraPlugin::_module() const {
+QString CameraPlugin::GetModuleName() const {
     return g_plugin_module_name;
 }
 Result CameraPlugin::initialize() {
@@ -70,7 +70,7 @@ void CameraPlugin::initUi(const Session& session) {
     emit gSigSent(session.ResponseString(obj, tr("succeed")), session.socket);
 
     //onConfigChanged();//界面参数变化主动获取更新
-    emit gSigSent(Session::RequestString(2, _module(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
+    emit gSigSent(Session::RequestString(2, GetModuleName(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
 }
 
 
@@ -127,7 +127,7 @@ void CameraPlugin::trigger(const Session& session) {
 }
 
 void CameraPlugin::onConfigChanged() {
-    emit gSigSent(Session::RequestString(2, _module(), "onConfigChanged", QJsonArray{ config_ }));
+    emit gSigSent(Session::RequestString(2, GetModuleName(), "onConfigChanged", QJsonArray{ config_ }));
 }
 
 void CameraPlugin::GetUpdateFrameInfo(const Session& session) {

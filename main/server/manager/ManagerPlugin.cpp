@@ -120,7 +120,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	pluginData.loader = loader;
 	pluginData.ptr = plugin;
 	pluginData.json = jsonFile;
-	m_plugins.insert(pluginName, pluginData);
+	m_plugins.insert(plugin->GetModuleName(), pluginData);
 	qInfo() << "Plugin loaded:" << pluginName << "version:" << plugin->version() << "name:" << plugin->name();
 	return Result::Success();
 }
@@ -173,8 +173,9 @@ void ManagerPlugin::Activate(const Session& session) {
 	if (!m_plugins.contains(name)) {
 		qWarning() << "插件不存在" << name;
 		gShare.on_send(-1, session);
+		return;
 	}
-	gShare.on_send(m_plugins.value(name).ptr->activate(param), session);
+	gShare.on_send(m_plugins.value(name).ptr->Activate_(param), session);
 
 }
 
