@@ -5,9 +5,9 @@
  */
 #ifndef MAINCONTROL_H
 #define MAINCONTROL_H
+#include <QSet>
 
 #include <QtWebSockets/QWebSocket>
-#include <QSet>
 
 inline QWidget *MainBackgroundWidget;
 // #include "TaskManager.h"
@@ -29,6 +29,7 @@ public:
     }
 
     bool carDirection{true};//1是向前,0是向后
+
 
     QSet<QPointer<QWebSocket>> sockets; // 自动去重
     void sendTextMessage(const QString &message);

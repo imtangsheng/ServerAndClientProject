@@ -2,8 +2,8 @@
 #define LINECHARTVIEW_H
 
 /*QtCharts 模块依赖于 QtCore 和 QtGui。确保你的代码中显式或隐式包含了这些模块*/
-#include <QtCore>
-#include <QtGui> // ✅ 正确引入 QtCharts 中的类
+// #include <QtCore>
+// #include <QtGui> // ✅ 正确引入 QtCharts 中的类
 #include <QChartView>
 #include <QChart>
 #include <QLineSeries>
@@ -36,7 +36,7 @@ protected:
         painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing);
         // 4. 获取绘图区域信息
         QRectF plotArea = chart()->plotArea();  // 图表数据绘制区域
-        QRectF chartRect = rect();               // 整个视图区域
+        // QRectF chartRect = rect();               // 整个视图区域
 
         // 获取系统默认字体并适当调整
         QFont font = this->font(); // 获取视图的字体
@@ -45,7 +45,7 @@ protected:
         // 获取字体度量信息
         QFontMetricsF fm(font);
 
-        qDebug() <<"LineChartView:图表数据绘制区域 整个视图区域"<< plotArea << chartRect;
+        // qDebug() <<"LineChartView:图表数据绘制区域 整个视图区域"<< plotArea << chartRect;
         // 5. 绘制X轴标题（水平显示）
         if (!xTitle.isEmpty()) {
             // 计算文本实际需要的空间

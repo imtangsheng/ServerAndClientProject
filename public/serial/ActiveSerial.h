@@ -11,13 +11,14 @@ using namespace serial;
 // 定义回调函数类型（支持异步回调函数lambda）
 using CallbackFunctionCode = std::function<void(const QJsonValue&, const QString&)>;
 
-//默认的转发函数 智能指针[session=std::make_shared<Session>(session)] 确保即使原始session被销毁，lambda中的session副本仍然有效
+//默认的转发函数 智能指针[session=std::make_shared<Session>(session)] 共享所有权,确保即使原session被销毁，lambda中的session副本仍然有效
 static CallbackFunctionCode CallbackDefault(const Session& session) {
     //必须保证 lambda 内部捕获的对象生命周期足够长，或者用智能指针捕获对象副本。
-    //auto sessionPtr = QSharedPointer<Session>::create(session);
-    //return [sessionPtr](const QJsonValue& result, const QString& message) {
-    //    PushSessionResponse(*sessionPtr, result, message);
-    //};
+    //return *std::make_shared<CallbackFunctionCode>(
+    //    [session = std::make_shared<Session>(session)](const QJsonValue& result, const QString& message) {
+    //        PushSessionResponse(*session, result, message);
+    //    }
+    //);
     return [session = std::make_shared<Session>(session)](const QJsonValue& result, const QString& message) {
         PushSessionResponse(*session, result, message);
     };
@@ -30,47 +31,34 @@ public:
         return instance;
     }
     QMutex mutex;
-    //QMap<FunctionCodeType, QList<Session>> sessionMap;
-    QMap<FunctionCodeType, QList<QSharedPointer<CallbackFunctionCode>>> sessionCallbackMap;
+    //容器存储智能指针的 std::function 没有意义,只保留最新的会话回调函数指针(使用智能指针副本，保证对象生命周期)。
+    QMap<FunctionCodeType, CallbackFunctionCode> sessionCallbackMap;
     bool addSession(FunctionCodeType code, const Session& session) {
         QMutexLocker locker(&mutex);
-        //if (!sessionMap.contains(code)) {
-        //    sessionMap[code] = QList<Session>();
-        //}
-        //sessionMap[code].append(session);
-        return addSession(code, CallbackDefault(session));
+        return AddSessionCallbackImpl(code, CallbackDefault(session));// !这里没有锁,但被第一个函数调用时，锁仍然持有
     }
     bool addSession(FunctionCodeType code, const CallbackFunctionCode& callback) {
-        //QMutexLocker locker(&mutex);
-        //if (!sessionCallbackMap.contains(code)) {
-        //    sessionCallbackMap[code] = QList<CallbackFunctionCode>();
-        //}
-        auto cbPtr = QSharedPointer<CallbackFunctionCode>::create(callback);
-        sessionCallbackMap[code].append(cbPtr);
-        return true;
+        QMutexLocker locker(&mutex);
+        return AddSessionCallbackImpl(code, callback);// 调用私有实现
     }
-    void HandleTrolleySession(FunctionCodeType code, QJsonValue result, QString message) {
+    void HandleSessionCallback(FunctionCodeType code, QJsonValue result, QString message) {
         //处理回调
         QMutexLocker locker(&mutex);
-        if (auto it = sessionCallbackMap.find(code); it != sessionCallbackMap.end()) {//结构化绑定（C++17）
-            // it 是迭代器，it->second 是 QList<CallbackFunctionCode>
-            for (auto& callPtr : it.value()) {// 这里 it->second 等价于 it.value()
-                if (callPtr) (*callPtr)(result, message);
-            }
-            sessionCallbackMap.erase(it);// STL 和 Qt 容器中通过迭代器删除元素的标准方法
+        if (sessionCallbackMap.contains(code)) {
+            CallbackFunctionCode callback = sessionCallbackMap[code];//拷贝，然后删除(引用不能)
+            sessionCallbackMap.remove(code);
+            locker.unlock();// 释放锁后再执行回调 执行回调（无锁状态）
+            callback(result, message);//在锁外执行回调,避免死锁,也可以在锁内执行,开销很小,同时也可以使用智能指针避免拷贝函数对象副本
         }
-        // 处理会话    
-        //if (sessionMap.contains(code)) {
-        //    for (const Session& session : sessionMap[code]) {
-        //        //gShare.on_send(true, session);
-        //        emit gSigSent(session.ResponseString(result, message), session.socket);
-        //    }
-        //    sessionMap.remove(code);
-        //}
     }
 private:
     SerialSession() = default;
     ~SerialSession() = default;
+    bool AddSessionCallbackImpl(FunctionCodeType code, const CallbackFunctionCode& callback) {
+        // 实际的实现，由公有函数加锁后调用
+        sessionCallbackMap[code] = callback;//QSharedPointer<CallbackFunctionCode>::create(callback);
+        return true;
+    }
 };
 
 class ActiveSerial : public SerialPortTemplate
@@ -85,7 +73,6 @@ public:
 
     /*继承基类方法*/
     Result SetConfig(const QJsonObject& config);
-    QStringList device_id_list;
 
     /**设备名称,可以根据设备名称获取对应的资源文件(可避免同名)
     Q_NAMESPACE 必须在命名空间内部  后面必须跟 Q_ENUM_NS 或其他 Qt 元对象宏

@@ -85,15 +85,25 @@ void WebSocketWidget::onTextMessageReceived(const QString &message)
 	}
 }
 
-void WebSocketWidget::onBinaryMessageReceived(const QByteArray &message)
+/**使用值传递 Qt 会对 QByteArray 进行写时复制（copy-on-write）优化，所以值传递的开销通常不会很大
+ * 数据小于10MB，使用默认的COW机制即可 (只有在修改时才会开始复制,否则只是引用)
+ * 10MB-100MB，考虑使用QSharedPointer
+ * 100MB，考虑使用内存映射或流式处理
+ **/
+void WebSocketWidget::onBinaryMessageReceived(QByteArray message)
 {
     qDebug() << "WebSocketWidget::onBinaryMessageReceived" <<message.size();
+    // QByteArray &mutableMessage = const_cast<QByteArray&>(message);
+    //QDataStream readStream(message);
+    //quint8 invoke;
+    //QByteArray bytes;
+    //readStream >> invoke;
+    //readStream >> bytes;
+    //qDebug() << "WebSocketWidget::onBinaryMessageReceived bytes" <<bytes.size();
+    //gShare.handlerBinarySession[share::ModuleName(invoke)](message);
 
-    QDataStream readStream(message);
-    quint8 invoke;
-    QByteArray bytes;
-    readStream >> invoke;
-    readStream >> bytes;
-    qDebug() << "WebSocketWidget::onBinaryMessageReceived bytes" <<bytes.size();
+    quint8 invoke = message[0];
+    message.remove(0, 1);  // 移除第一个字节
+    qDebug() << "WebSocketWidget::onBinaryMessageReceived bytes" << message.size();
     gShare.handlerBinarySession[share::ModuleName(invoke)](message);
 }

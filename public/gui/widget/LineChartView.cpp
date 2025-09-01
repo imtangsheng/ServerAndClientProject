@@ -1,7 +1,7 @@
 #include "LineChartView.h"
 
 static constexpr int AxisXMax = 5;
-static constexpr int AxisYmax = 10;
+static constexpr int AxisYMax = 10;
 static constexpr int AxisTickCount = 6;
 
 void LineChartView::init()
@@ -16,7 +16,7 @@ void LineChartView::init()
     chart()->addAxis(axisX, Qt::AlignBottom);
     /*Y轴初始化*/
     axisY = new QValueAxis(this);
-    axisY->setRange(0, AxisYmax);
+    axisY->setRange(0, AxisYMax);
     axisY->setTickCount(AxisTickCount);
     axisY->setMinorTickCount(AxisTickCount);
     axisY->setLabelFormat("%0.2f");
@@ -78,10 +78,23 @@ void LineChartView::init()
 void LineChartView::append(const double &time, const double &mileage)
 {
     // if(!chart()) return;
+    qDebug() << "append" << time << mileage;
     lineSeriesUpper->append(time,mileage);
     lineSeriesLower->append(time,0);
-    axisX->setMax(time);
-    axisY->setMax(mileage);
+
+    static double MaxTime = AxisXMax;
+    static double MaxMileage = AxisYMax;
+    while(time > MaxTime){
+        MaxTime += AxisXMax;
+        axisX->setMax(MaxTime);
+        qDebug() << "set" << time;
+    }
+    while(mileage > MaxMileage){
+        MaxMileage += AxisYMax;
+        axisY->setMax(MaxMileage);
+         qDebug() << "set" << mileage;
+    }
+
 }
 
 void LineChartView::clear()
@@ -89,5 +102,5 @@ void LineChartView::clear()
     lineSeriesUpper->clear();
     lineSeriesLower->clear();
     axisX->setMax(AxisXMax);
-    axisY->setMax(AxisYmax);
+    axisY->setMax(AxisYMax);
 }

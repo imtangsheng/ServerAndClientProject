@@ -531,6 +531,7 @@ void MainWindow::on_action_create_project_triggered()
     }
 }
 
+#include<QPropertyAnimation>
 void MainWindow::on_checkBox_project_sort_clicked(bool checked)
 {
     qDebug() << "#MainWindow::on_checkBox_project_sort_clicked(bool checked)" <<checked;

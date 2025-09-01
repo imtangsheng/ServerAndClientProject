@@ -29,7 +29,7 @@ set(DEVICE_FILES
 )
 
 set(CORE_FILES
-    core/core_control.h core/core_control.cpp
+    core/MainControl.h core/MainControl.cpp
     core/ChildWidget.cpp
 )
 

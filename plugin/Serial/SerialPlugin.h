@@ -14,8 +14,9 @@ public:
 	SerialPlugin();
 	~SerialPlugin() override;
     // 基本数据定义
-    QString _module() const override;    // 设备名称
+    QString GetModuleName() const override;    // 设备名称
     // 基本操作接口
+    Q_INVOKABLE Result Activate_(QJsonObject param) final;//激活设备,注册加载初始化等操作
     Result initialize() override;
     Result disconnect() override;
     QString name() const override;    // 设备名称
@@ -39,15 +40,14 @@ public slots:
     //3.slot通过信号触发	约25-40x	最慢的调用方式
     //#SDK接口方法
     void scan(const Session& session);
-    void open(const Session& session);
     void start(const Session& session);
     void stop(const Session& session);
     
     void GetInfoByCode(const Session& session);//根据指令获取信息
-    void SetParamsByCode(const Session& session);//设置小车参数
+    void SetParameterByCode(const Session& session);//设置小车参数
     //#界面操作接口
     void onConfigChanged() const;
-    void SetParams(const Session& session);
+    void SetConfig(const Session& session);
 
 private:
     /* data */

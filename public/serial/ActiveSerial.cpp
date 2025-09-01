@@ -3,6 +3,7 @@
 //定义上传数据处理函数
 #pragma region FunctionCodeUploadDataHandler//上传数据处理函数
 #ifdef DEVICE_TYPE_CAR
+#include "public/utils/car_mileage_correction.h"
 /*里程数据处理函数
 * @param id 里程数据ID
 * @param left 左里程数据
@@ -11,30 +12,35 @@
 static void RecvMileageData(qint64 id,const MileageInfo& left,const MileageInfo& right) {
     static QString header = "ID\tLeftMileage\tLeftTime\tLeftTimeRaw\tRightMileage\tRightTime\tRightTimeRaw\n";
     static SavaDataFile mileage(QString("%1/mileage.txt").arg(kTaskDirCarName),header);
-    //里程数据
+
     if (gTaskState == TaskState::TaskState_Running && mileage.initialize()) {
         //里程数据
         QString str = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7\n").arg(id)
-            .arg((left.symbol ? -1 : 1) * left.pulse * speed_multiplier) //左里程数据
+            .arg((left.symbol ? -1 : 1) * left.pulse) //左里程数据
             .arg(gScannerCarTimeSync.GetScanner(left.time)) //推算的扫描仪时间
             .arg(left.time) //小车时间
-            .arg((right.symbol ? -1 : 1) * right.pulse * speed_multiplier) //右里程数据
+            .arg((right.symbol ? -1 : 1) * right.pulse) //右里程数据
             .arg(gScannerCarTimeSync.GetScanner(right.time)) //推算的扫描仪时间
             .arg(right.time) //小车时间
             ;
         mileage.WriteLine(str);
-        //里程数据 推送到订阅的客户端
-        if (id % kMileageUpdateInterval == 0) {
-            QJsonObject obj;
-            obj.insert("id", id);
-            obj.insert("left_mileage_symbol", left.symbol);
-            obj.insert("left_mileage_pulse", left.pulse);
-            obj.insert("left_mileage_time", left.time);
-            obj.insert("right_mileage_symbol", right.symbol);
-            obj.insert("right_mileage_pulse", right.pulse);
-            obj.insert("right_mileage_time", right.time);
-            PushClients(SUBSCRIBE_METHOD(Mileage), obj, sModuleSerial);
-        }
+    }
+}
+
+/*单里程数据 兼容前单里程的数据,默认不使用单里程数据,双里程数据中右里程数据为0
+* @param id 里程数据ID
+* @param data 里程数据
+*/
+static void RecvSingleMileageData(qint64 id, const MileageInfo& data) {
+    static QString header = "ID\tMileage\tTime\tTimeRaw\n";
+    static SavaDataFile single_mileage_file(QString("%1/singleMileage.txt").arg(kTaskDirCarName), header);
+    //单里程数据
+    if (gTaskState == TaskState_Running && single_mileage_file.initialize()) {
+        QString str = QString("%1\t%2\t%3\t%4\n").arg(id)
+            .arg((data.symbol ? -1 : 1) * data.pulse) //里程数据
+            .arg(gScannerCarTimeSync.GetScanner(data.time)) //推算的扫描仪时间
+            .arg(data.time); //小车时间
+        single_mileage_file.WriteLine(str);
     }
 }
 /*倾角计数据
@@ -74,19 +80,10 @@ static void RecvSingleMileageData(qint64 id, const MileageInfo& data) {
     //单里程数据
     if (gTaskState == TaskState_Running && single_mileage_file.initialize()) {
         QString str = QString("%1\t%2\t%3\t%4\n").arg(id)
-            .arg((data.symbol ? -1 : 1) * data.pulse * speed_multiplier) //里程数据
+            .arg((data.symbol ? -1 : 1) * data.pulse * g_mileage_multiplier) //里程数据
             .arg(gScannerCarTimeSync.GetScanner(data.time)) //推算的扫描仪时间
             .arg(data.time); //小车时间
         single_mileage_file.WriteLine(str);
-        //单里程数据 推送到订阅的客户端
-        if (id % kMileageUpdateInterval == 0) {
-            QJsonObject obj;
-            obj.insert("id", id);
-            obj.insert("mileage_symbol", data.symbol);
-            obj.insert("mileage_pulse", data.pulse);
-            obj.insert("mileage_time", data.time);
-            PushClients(SUBSCRIBE_METHOD(Mileage), obj, sModuleSerial);
-        }
     }
 }
 #endif // DEVICE_TYPE_CAR
@@ -346,7 +343,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         result = obj;
     }break;
 
-    /**自动上传的数据格式,直接return不回复**/
+    /**自动上传的数据格式,return 不回复**/
     case 0xEF://倾角信息上传 倾角计的量程为正负 15 度。
     {
         InclinometerInfo inclinometer;
@@ -355,13 +352,33 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     }return true;
     case 0xF8://默认只支持双里程数据
     {
-        static MileageInfo  left_mileage{0};
-        static MileageInfo  right_mileage{0};
-        stream >> left_mileage.symbol >> left_mileage.pulse >> left_mileage.time;
-        stream >> right_mileage.symbol >> right_mileage.pulse >> right_mileage.time;
-        RecvMileageData(mileage_count_, left_mileage, right_mileage);//里程数据的任务处理
+        static MileageInfo left;
+        static MileageInfo right;
+        stream >> left >> right;
+        if (left.symbol != right.symbol) {
+            LOG_ERROR(tr("[#错误]左右里程数据符号不一致:%1").arg(left.symbol));
+        }
+        struMileage mileage = MileageCorrector::instance().Correct(left.time, left.pulse, right.time, right.pulse);
+        MileageInfo  mileage_info(left.symbol,mileage.pulse,mileage.time);
+        mileage_info.pulse = mileage_info.pulse * g_mileage_multiplier;
+        //里程数据 推送到订阅的客户端
+        //if (id % kMileageUpdateInterval == 0) {
+        //二进制数据 发送
+        static quint8 invoke = share::ModuleName::trolley;
+        QByteArray bytes;
+        QDataStream out(&bytes, QIODevice::WriteOnly);
+        out << invoke << code << g_mileage_count << mileage_info;
+        qDebug() << "data.size" << bytes.size();
+        emit gShare.sigSentBinary(bytes);//推送二进制数据
 
-        mileage_count_++;
+        //}
+
+        RecvSingleMileageData(g_mileage_count,mileage_info);
+        left.pulse = left.pulse * g_mileage_multiplier;
+        right.pulse = right.pulse * g_mileage_multiplier;
+        RecvMileageData(g_mileage_count, left, right);//里程数据的任务处理
+
+        g_mileage_count++;
     }return true;
     case 0xFC://按键信息上传 保留处理
     {
@@ -422,8 +439,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     {
         MileageInfo mileage{};
         stream >> mileage.symbol >> mileage.pulse >> mileage.time;
-        RecvSingleMileageData(mileage_count_, mileage);
-        mileage_count_++;
+        g_mileage_count++;
     }return true;
 #endif // DEVICE_TYPE_CAR
 #ifdef DEVICE_TYPE_CAMERA
@@ -496,6 +512,6 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     }
 #pragma endregion
     //如何对应到具体的请求?
-    SerialSession::instance().HandleTrolleySession(code, result, message);
+    SerialSession::instance().HandleSessionCallback(code, result, message);
     return true;
 };
