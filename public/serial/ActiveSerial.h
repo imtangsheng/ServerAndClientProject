@@ -8,19 +8,17 @@
 using namespace serial;
 
 #define g_serial_session SerialSession::instance()
-// 定义回调函数类型（支持异步回调函数lambda）
-using CallbackFunctionCode = std::function<void(const QJsonValue&, const QString&)>;
 
-//默认的转发函数 智能指针[session=std::make_shared<Session>(session)] 共享所有权,确保即使原session被销毁，lambda中的session副本仍然有效
-static CallbackFunctionCode CallbackDefault(const Session& session) {
+//默认的转发函数 智能指针[session=std::make_shared<Session>(session)] 共享所有权,确保即使原 session被销毁，lambda中的 session副本仍然有效
+static CallbackResult CallbackDefault(const Session& session) {
     //必须保证 lambda 内部捕获的对象生命周期足够长，或者用智能指针捕获对象副本。
-    //return *std::make_shared<CallbackFunctionCode>(
+    //return *std::make_shared<CallbackResult>(
     //    [session = std::make_shared<Session>(session)](const QJsonValue& result, const QString& message) {
     //        PushSessionResponse(*session, result, message);
     //    }
     //);
-    return [session = std::make_shared<Session>(session)](const QJsonValue& result, const QString& message) {
-        PushSessionResponse(*session, result, message);
+    return [session = std::make_shared<Session>(session)](const qint8 &result,const QJsonValue& value) {
+        PushSessionResponse(*session, result,value);
     };
 }
 class SerialSession
@@ -32,31 +30,31 @@ public:
     }
     QMutex mutex;
     //容器存储智能指针的 std::function 没有意义,只保留最新的会话回调函数指针(使用智能指针副本，保证对象生命周期)。
-    QMap<FunctionCodeType, CallbackFunctionCode> sessionCallbackMap;
+    QMap<FunctionCodeType, CallbackResult> sessionCallbackMap;
     bool addSession(FunctionCodeType code, const Session& session) {
         QMutexLocker locker(&mutex);
         return AddSessionCallbackImpl(code, CallbackDefault(session));// !这里没有锁,但被第一个函数调用时，锁仍然持有
     }
-    bool addSession(FunctionCodeType code, const CallbackFunctionCode& callback) {
+    bool addSession(FunctionCodeType code, const CallbackResult& callback) {
         QMutexLocker locker(&mutex);
         return AddSessionCallbackImpl(code, callback);// 调用私有实现
     }
-    void HandleSessionCallback(FunctionCodeType code, QJsonValue result, QString message) {
+    void HandleSessionCallback(FunctionCodeType code,qint8 flag, QJsonValue result) {
         //处理回调
         QMutexLocker locker(&mutex);
         if (sessionCallbackMap.contains(code)) {
-            CallbackFunctionCode callback = sessionCallbackMap[code];//拷贝，然后删除(引用不能)
+            CallbackResult callback = sessionCallbackMap[code];//拷贝，然后删除(引用不能)
             sessionCallbackMap.remove(code);
             locker.unlock();// 释放锁后再执行回调 执行回调（无锁状态）
-            callback(result, message);//在锁外执行回调,避免死锁,也可以在锁内执行,开销很小,同时也可以使用智能指针避免拷贝函数对象副本
+            callback(flag,result);//在锁外执行回调,避免死锁,也可以在锁内执行,开销很小,同时也可以使用智能指针避免拷贝函数对象副本
         }
     }
 private:
     SerialSession() = default;
     ~SerialSession() = default;
-    bool AddSessionCallbackImpl(FunctionCodeType code, const CallbackFunctionCode& callback) {
+    bool AddSessionCallbackImpl(FunctionCodeType code, const CallbackResult& callback) {
         // 实际的实现，由公有函数加锁后调用
-        sessionCallbackMap[code] = callback;//QSharedPointer<CallbackFunctionCode>::create(callback);
+        sessionCallbackMap[code] = callback;//QSharedPointer<CallbackResult>::create(callback);
         return true;
     }
 };

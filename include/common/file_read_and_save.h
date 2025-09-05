@@ -20,7 +20,7 @@ inline static Result ReadJsonFile(const QString& filePath, QJsonObject& json) {
     }
 
     if (jsonDoc.isNull() || !jsonDoc.isObject()) {
-        return Result::Failure(QObject::tr("解析的文件不是目标object类型,文件路径: %1").arg(filePath));
+        return Result::Failure(QObject::tr("解析的文件不是目标 object类型,文件路径: %1").arg(filePath));
     }
     json = jsonDoc.object();
     return true;
@@ -29,10 +29,10 @@ inline static Result ReadJsonFile(const QString& filePath, QJsonObject& json) {
 inline static Result WriteJsonFile(const QString& filePath, const QJsonObject& json) {
     // 检查并创建目录
     QFileInfo fileInfo(filePath);
-    QString dirPath = fileInfo.path();
+    QString dirPath = fileInfo.absolutePath();
     QDir dir(dirPath);
     if (!dir.exists()) {
-        if (!dir.mkpath(dirPath)) {
+        if (!dir.mkpath(".")) {  // 创建目录（包括所有必要的父目录）
             return Result::Failure(QObject::tr("创建文件'%1'失败").arg(dirPath));
         }
     }
@@ -46,7 +46,7 @@ inline static Result WriteJsonFile(const QString& filePath, const QJsonObject& j
         return Result::Failure(QObject::tr("文件加锁'%1'失败,可能被占用").arg(filePath + ".lock"));
     }
     // 写入文件,使用绝对路径,如果目录不存在会无法写入
-    QFile file(filePath);
+    QFile file(fileInfo.absoluteFilePath());
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         lockFile.unlock();
         QString errorMsg = QObject::tr("文件'%1'打开失败,错误信息:%2").arg(filePath).arg(file.errorString());

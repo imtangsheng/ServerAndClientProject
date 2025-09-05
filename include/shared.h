@@ -77,7 +77,9 @@ public:
 
     QString appPath{ "../" };
     QJsonObject info;//程序应用信息
-    QSharedPointer<QSettings> RegisterSettings;//注册表设置,使用invokeMethod方法调用函数
+    QSharedPointer<QSettings> RegisterSettings;//注册表设置,使用 invokeMethod方法调用函数
+    bool isCarDriving{ false };//判断小车的行驶状态
+
     QMap<ModuleName, BinarySessionHandler> handlerBinarySession;
     void awake(const QString& path, const QString& appName);
     // 注册处理器实例
@@ -100,7 +102,7 @@ public:
         Session session(json);
         if (!handlers.contains(session.module)) {
             qWarning() << "Module not found:" << session.module;
-            return Result(false, session.ErrorString(-1, tr("设备模块未找到:%1").arg(session.module)));
+            return Result(false, session.Finished(-1, tr("设备模块未找到:%1").arg(session.module)));
         }
         session.socket = client; //Q_INVOKABLE 使方法可以通过信号与槽机制、或者通过 QMetaObject::invokeMethod 等方式动态调用
         return invoke(session);
@@ -149,8 +151,8 @@ inline void PushClients(const QString& method, const QJsonValue& params, const Q
     emit gSigSent(Session::RequestString(module, method, params));
 }
 //向指定的ws的客户端发送消息
-inline void PushSessionResponse(const Session& session, const QJsonValue& result, const QString& message) {
-    emit gSigSent(session.ResponseString(result, message), session.socket);
+inline void PushSessionResponse(const Session& session,const qint8& code, const QJsonValue& result) {
+    emit gSigSent(session.Finished(code,result) , session.socket);
 }
 
 #endif

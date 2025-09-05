@@ -70,22 +70,7 @@ static void RecvScannerTimeData() {//扫描仪时间数据
         scanner_time_file.WriteLineAndFlush(str);
     }
 }
-/*单里程数据 兼容前单里程的数据,默认不使用单里程数据,双里程数据中右里程数据为0
-* @param id 里程数据ID
-* @param data 里程数据
-*/
-static void RecvSingleMileageData(qint64 id, const MileageInfo& data) {
-    static QString header = "ID\tMileage\tTime\tTimeRaw\n";
-    static SavaDataFile single_mileage_file(QString("%1/singleMileage.txt").arg(kTaskDirCarName), header);
-    //单里程数据
-    if (gTaskState == TaskState_Running && single_mileage_file.initialize()) {
-        QString str = QString("%1\t%2\t%3\t%4\n").arg(id)
-            .arg((data.symbol ? -1 : 1) * data.pulse * g_mileage_multiplier) //里程数据
-            .arg(gScannerCarTimeSync.GetScanner(data.time)) //推算的扫描仪时间
-            .arg(data.time); //小车时间
-        single_mileage_file.WriteLine(str);
-    }
-}
+
 #endif // DEVICE_TYPE_CAR
 
 #ifdef DEVICE_TYPE_CAMERA
@@ -200,8 +185,12 @@ Result ActiveSerial::OnStarted(CallbackResult callback) {
 #endif // DEVICE_TYPE_CAR
 #elif defined(DEVICE_TYPE_CAR)
     WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00：启动小车 01：启动并清除里程
-    g_serial_session.addSession(CAR_STARTUP, [callback](const QJsonValue& result, const QString&) {
-        callback(result.toInt(-1) == RESULT_SUCCESS ? true : false);
+    g_serial_session.addSession(CAR_STARTUP, [callback](const qint8& i8result,const QJsonValue& value) {
+        if(i8result == RESULT_SUCCESS){
+            gShare.isCarDriving = true;
+        }
+        if (callback)
+        return callback(i8result,value);
         });
 #else
     LOG_ERROR(tr("The device type is not defined"));
@@ -227,8 +216,12 @@ Result ActiveSerial::OnStopped(CallbackResult callback) {
         }
         });
 #else
-    g_serial_session.addSession(CAR_STOP, [callback](const QJsonValue& result, const QString&) {
-        callback(result.toInt(-1) == RESULT_SUCCESS ? true : false);
+    g_serial_session.addSession(CAR_STOP, [callback](const qint8& i8result, const QJsonValue& value) {
+        if (i8result == RESULT_SUCCESS) {
+            gShare.isCarDriving = false;
+        }
+        if(callback)
+        return callback(i8result, value);
         });
 #endif // DEVICE_TYPE_CAMERA
 #elif defined(DEVICE_TYPE_CAMERA)
@@ -248,25 +241,25 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     //if (data.isEmpty()) return;
     QDataStream stream(data);
     stream.setByteOrder(QDataStream::LittleEndian);  // 设置字节序
-    QJsonValue result; QString message;
+    QJsonValue value;
 
 #pragma region FunctionCode
     /*第一部分:命令执行的回复,需要响应请求,break后统一处理
-    * 第二部分:获取数据的回复,需要解析数据,然后break响应请求,或者return直接返回
-    * 第三部分:自动上传的数据格式,直接return不回复
+    * 第二部分:获取数据的回复,需要解析数据,然后 break响应请求,或者 return 直接返回
+    * 第三部分:自动上传的数据格式,直接 return 不回复
     */
     switch (code) {
 #ifdef DEVICE_TYPE_CAR
     case SCANER_SET_AUTOMATION_TIME:
-        //[[fallthrough]];  // C++17特性，明确表示故意fall through
-    case CAR_SCANER_PWR_CTRL:
-    case CAR_SET_ENCODER_USAGE:
-    case CAR_SET_START_STOP_BUTTON_MODE:
+        //[[fallthrough]];  // C++17特性，明确表示故意 fall through
     case CAR_STARTUP:
     case CAR_STOP:
     case CAR_CHANGING_OVER:
     case CAR_SET_SPEED:
     case CAR_RESET_TOTAL_MILEAGE:
+    case CAR_SCANER_PWR_CTRL:
+    case CAR_SET_ENCODER_USAGE:
+    case CAR_SET_START_STOP_BUTTON_MODE:
 #endif // DEVICE_TYPE_CAR
 #ifdef DEVICE_TYPE_CAMERA
     case CAMERA_START_STOP:
@@ -278,23 +271,22 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     case CAMERA_SET_MOTOR_POSITION:
     case CAMERA_SET_TRIGGER_POSITION:
 #endif // DEVICE_TYPE_CAMERA
-        stream >> u8result;
-        result = u8result;
+        stream >> i8result;
         break;
 #ifdef DEVICE_TYPE_CAR
     case SCANER_GET_AUTOMATION_TIME:
     {
-        quint64 autotime;
-        stream >> autotime >> gScannerCarTimeSync.car;
+        quint64 autotimer;
+        stream >> autotimer >> gScannerCarTimeSync.car;
         //获取扫描仪时间失败,返回0 应该执行任务回调
-        if (autotime == 0) {
+        if (autotimer == 0) {
             LOG_ERROR(tr("Failed to get scanner time"));
-            result = false;
+            i8result = -1;
             return false;
         }
-        gScannerCarTimeSync.scanner = autotime;
+        gScannerCarTimeSync.scanner = autotimer;
         RecvScannerTimeData();//扫描仪时间数据的任务处理
-        result = true;
+        i8result = 0;
     }return true;
     case CAR_GET_MSG:
     {
@@ -313,13 +305,14 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         obj.insert("speed_min", info_.speed_min);
         obj.insert("speed_max", info_.speed_max);
         obj.insert("time", info_.time);
-        result = obj;
+        value = obj;
     }break;
     case CAR_GET_TOTAL_MILEAGE:
     {
         static qint64 total_mileage{ 0 }; //小车总里程 单位为米
         stream >> total_mileage;
-        result = total_mileage;
+        value = total_mileage;
+        i8result = 0;
     }break;
     case CAR_GET_BATTERY_MSG:
     {
@@ -340,7 +333,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         obj.insert("right_battery_remainingCapacity", right_battery_info_.remainingCapacity);
         obj.insert("right_battery_fullChargeCapacity", right_battery_info_.fullChargeCapacity);
         obj.insert("right_battery_cycleCount", right_battery_info_.cycleCount);
-        result = obj;
+        value = obj;
     }break;
 
     /**自动上传的数据格式,return 不回复**/
@@ -500,7 +493,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     {
         quint8 type;
         stream >> type;
-        result = type;//由界面设置设备类型
+        value = type;//由界面设置设备类型
         if ((kSupportedSerialDevices & type) == 0) {
             LOG_ERROR(tr("The device type that is currently set is inconsistent with the device type that is currently supported!"));
         }
@@ -512,6 +505,6 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     }
 #pragma endregion
     //如何对应到具体的请求?
-    SerialSession::instance().HandleSessionCallback(code, result, message);
+    SerialSession::instance().HandleSessionCallback(code,i8result, value);
     return true;
 };

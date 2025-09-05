@@ -53,7 +53,7 @@ void Shared::on_send(const Result& result, const Session& session) {
     if (result) {
         on_session(session.ResponseString(result.code, result.message), session.socket);
     } else {
-        on_session(session.ErrorString(result.code, result.message), session.socket);
+        on_session(session.Finished(result.code, result.message), session.socket);
     }
 }
 
@@ -73,7 +73,7 @@ Result Shared::invoke(const Session& session) {
         int paramCount = array.size();
         if (paramCount > 10) { // QMetaObject::invokeMethod 最多支持 10 个参数
             qWarning() << "Too many parameters for invokeMethod!";
-            return Result(false, session.ErrorString(-2, tr("最多支持 10 个参数")));
+            return Result(false, session.Finished(-2, tr("最多支持 10 个参数")));
         }
         QGenericArgument* argv = new QGenericArgument[paramCount];  // 动态分配参数数组
         /*[issues #1]如果 tempStorage 是局部变量，可能在 invokeMethod 执行前销毁，导致 argv[i] 指向无效内存。推荐将 tempStorage 提升为成员变量或确保其生命周期*/
@@ -101,7 +101,7 @@ Result Shared::invoke(const Session& session) {
                 tempStorage.append(param.toObject()); argv[i] = QGenericArgument("QJsonObject", reinterpret_cast<const void*>(&tempStorage.last()));
             } else {
                 delete[] argv;tempStorage.clear();  // 释放内存
-                return Result(false, session.ErrorString(-2, tr("发送的参数类型是不支持的参数类型")));
+                return Result(false, session.Finished(-2, tr("发送的参数类型是不支持的参数类型")));
             }
         }
         switch (paramCount) {
@@ -128,7 +128,7 @@ Result Shared::invoke(const Session& session) {
     }
     if (!success)//如果未找到调用的方法,返回失败,支持函数重载
     {
-        return Result(false, session.ErrorString(-3, tr("方法调用失败,请检测模块%1的方法:%2使用的参数是否正确").arg(session.module,session.method)));
+        return Result(false, session.Finished(-3, tr("方法调用失败,请检测模块%1的方法:%2使用的参数是否正确").arg(session.module,session.method)));
     }
     return true;
 }
@@ -165,12 +165,12 @@ QFuture<Result> Shared::invoke_async(const Session& session) {
             if (success) {
                 promise->addResult(Result(true, "成功"));// 成功时返回结果
             } else {
-                emit sigSent(session.ErrorString(-2, tr("调用失败")), session.socket);
+                emit sigSent(session.Finished(-2, tr("调用失败")), session.socket);
                 qWarning() << "Failed to invoke handler" << session.module;
                 promise->addResult(Result(false, "调用失败"));// 成功时返回结果
             }
         } catch (const std::exception& e) {
-            emit sigSent(session.ErrorString(-2, e.what()), session.socket);
+            emit sigSent(session.Finished(-2, e.what()), session.socket);
             qWarning() << "Failed to invoke handler" << e.what();
             promise->addResult(Result(false, e.what()));// 成功时返回结果
         }

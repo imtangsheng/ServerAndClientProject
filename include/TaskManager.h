@@ -117,6 +117,10 @@ inline static const QString cKeyData{ "data" };
 inline static const QString cKeyContent{ "content" };
 
 constexpr const char* kTimeFormat = "yyyy-MM-dd HH:mm:ss";//任务的时间格式
+inline QString GetCurrentDateTime(){
+    return QDateTime::currentDateTime().toString(kTimeFormat);
+}
+
 struct FileInfoDetails
 {
     QString name; //名称 对应 key cKeyName
@@ -143,7 +147,7 @@ struct FileInfoDetails
         path = obj[cKeyPath].toString();
         data = obj[cKeyData].toObject();
     }
-    QDateTime getTime() const {
+    QDateTime getTime() const {//用于时间排序等功能
         return QDateTime::fromString(data.value(JSON_CREATE_TIME).toString(), kTimeFormat);
     }
 
@@ -152,7 +156,7 @@ struct FileInfoDetails
 #define gTaskManager TaskManager::instance()
 
 //记录当前的项目和执行的任务信息
-extern SHAREDLIB_EXPORT FileInfoDetails* gProjectFileInfo;//当前正在执行的项目信息(客户端使用)
+extern SHAREDLIB_EXPORT  QSharedPointer<FileInfoDetails> gProjectFileInfo;//当前正在执行的项目信息(客户端使用)
 extern SHAREDLIB_EXPORT FileInfoDetails* gTaskFileInfo;//当前正在执行的任务信息
 inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
 
@@ -183,7 +187,7 @@ inline static QString GetProjectName(const QString& name) {
 }
 
 inline static QString GetProjectPath(const QString& name) {
-    return gTaskManager.data[cKeyPath].toString() + "/" + name;
+    return gTaskManager.data.value(cKeyPath).toString("../data") + "/" + name;
 }
 inline static bool GetProjectName(const QString& path, QString& name) {
     name = QFileInfo(path).baseName();

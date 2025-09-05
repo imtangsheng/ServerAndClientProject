@@ -109,7 +109,7 @@ public:
 
 protected:
     QSerialPort *serialPort;
-    quint8 u8result{ 0 };//缓存的执行结果,用于执行指令
+    qint8 i8result{ 0 };//缓存的执行结果,用于执行指令 -1 为失败 0 为成功 其他为错误码
     QString lastError;//0 正常, 非0为错误
     
     QByteArray buffer_;
@@ -155,8 +155,8 @@ protected:
 
         // 进行CRC校验 
         qsizetype crcPos = frameEnd - CRC_BYTE_LEN;//帧尾前2字节
-        QByteArray crc = receivedData.mid(crcPos, CRC_BYTE_LEN);// 截取从frameStart开始到frameEnd结束的数据（包含帧尾）
-        qDebug() << "crc is" << CRC16(receivedData.mid(frameStart, crcPos - frameStart));
+        QByteArray crc = receivedData.mid(crcPos, CRC_BYTE_LEN);// 截取从 frameStart开始到 frameEnd结束的数据（包含帧尾）
+        qDebug() << "CRC校验值是:" << CRC16(receivedData.mid(frameStart, crcPos - frameStart)).toHex();
         if (crc != CRC16(receivedData.mid(frameStart,crcPos-frameStart))) {
             LOG_ERROR(tr("Buffer Data CRC %1 not match:%2").arg(crc.toHex().toUpper(), receivedData.toHex().toUpper()));
             return false;

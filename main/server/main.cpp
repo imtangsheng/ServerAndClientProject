@@ -4,52 +4,52 @@
 
 int main(int argc, char* argv[])
 {
-	QCoreApplication app(argc, argv);
-	QCoreApplication::setApplicationName("WebSocketServer");
-	QCoreApplication::setApplicationVersion("1.0");
-	// 安装消息处理钩子，重定向QDebug输出
+    QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("WebSocketServer");
+    QCoreApplication::setApplicationVersion("1.0");
+    // 安装消息处理钩子，重定向QDebug输出
 #ifdef QT_NO_DEBUG
-	gLog.init("../logs/", "log", static_cast<LogLevel>(gSettings->value("LogLevel", +LogLevel::Warning).toInt()), false);
-	gLog.InstallMessageHandler();
+    gLog.init("../logs/", "log", static_cast<LogLevel>(gSettings->value("LogLevel", +LogLevel::Warning).toInt()), false);
+    gLog.InstallMessageHandler();
 #else
-	gLog.init("../logs/", "log", LogLevel::Debug, true);
+    gLog.init("../logs/", "log", LogLevel::Debug, true);
 #endif // QT_DEBUG
-	QCommandLineParser parser;
-	parser.setApplicationDescription("QtWebSockets server");
-	parser.addHelpOption();
-	QCommandLineOption portOption(QStringList() << "p" << "port",
-		QCoreApplication::translate("main", "Port for server [default: 8080]."),
-		QCoreApplication::translate("main", "port"), QLatin1String("8080"));
-	parser.addOption(portOption);
-	parser.process(app);
+    QCommandLineParser parser;
+    parser.setApplicationDescription("QtWebSockets server");
+    parser.addHelpOption();
+    QCommandLineOption portOption(QStringList() << "p" << "port",
+        QCoreApplication::translate("main", "Port for server [default: 8080]."),
+        QCoreApplication::translate("main", "port"), QLatin1String("8080"));
+    parser.addOption(portOption);
+    parser.process(app);
 
-	int port = parser.value(portOption).toInt();
-	// 打印Qt的C++版本
-	QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
-	qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
-	qDebug() << "软件运行时间: " << __DATE__ << " " << __TIME__ << "Qt 版本:" << QT_VERSION_STR << "C++ 版本:" << __cplusplus;
-	gShare.sessiontype_ = int(SessionType::Server);
+    int port = parser.value(portOption).toInt();
+    // 打印Qt的C++版本
+    QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
+    qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
+    qDebug() << "软件运行时间: " << __DATE__ << " " << __TIME__ << "Qt 版本:" << QT_VERSION_STR << "C++ 版本:" << __cplusplus;
+    gShare.sessiontype_ = int(SessionType::Server);
     gShare.awake(appDir.absolutePath(), "server");//初始化配置文件路径,名称
     
     // 设置语言
-	QString language = gSettings->value("language").toString();
-	if (language.isEmpty()) {
-		QString locale = QLocale::system().name();
-		language = QLocale(locale).name();
-	}
+    QString language = gSettings->value("language").toString();
+    if (language.isEmpty()) {
+        QString locale = QLocale::system().name();
+        language = QLocale(locale).name();
+    }
     gShare.language = language;
-	QObject::connect(&gShare, &share::Shared::signal_translator_load, &app, [&app](QTranslator& translator,bool isLoad) {
-		if (isLoad) {
-			app.installTranslator(&translator);
-		} else {
-			app.removeTranslator(&translator);
-		}
-	});
-	UserServer user(&app);
+    QObject::connect(&gShare, &share::Shared::signal_translator_load, &app, [&app](QTranslator& translator,bool isLoad) {
+        if (isLoad) {
+            app.installTranslator(&translator);
+        } else {
+            app.removeTranslator(&translator);
+        }
+    });
+    UserServer user(&app);
     user.initialize(port,12346);//因为80端口给http代理,故使用其他http的端口
-	qDebug() << "WebSocket server listening on port" << port;
-	gShare.RegisterHandler(user.module_, &user);
-	QObject::connect(&user, &UserServer::closed, &app, &QCoreApplication::quit);
+    qDebug() << "WebSocket server listening on port" << port;
+    gShare.RegisterHandler(user.module_, &user);
+    QObject::connect(&user, &UserServer::closed, &app, &QCoreApplication::quit);
 
-	return app.exec();
+    return app.exec();
 }

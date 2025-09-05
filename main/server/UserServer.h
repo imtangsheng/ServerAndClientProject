@@ -44,10 +44,10 @@ public slots:
     void GetTaskData(const Session& session);// 获取所有的任务数据信息
     void AddNewProject(const Session& session);// 添加新的项目
     void DeleteProject(const Session& session);
-    void AddTaskAsCurrent(const Session& session);//将任务添加并设置为当前任务。
+    void AddCurrentTask(const Session& session);//将任务添加并设置为当前任务。
     void DeleteTask(const Session& session); //删除任务
-    void acquisition_begins(const Session& session);
-    void acquisition_end(const Session& session);
+    void onStart(const Session& session, bool isContinue = false);
+    void onStop(const Session& session, bool isContinue = false);
 
     /**
      * @brief 关闭用户服务

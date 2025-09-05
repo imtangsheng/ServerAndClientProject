@@ -42,7 +42,7 @@ struct Result
     int code{ -1 }; //错误码,0为成功
     QString message{ "" };
     Result(int i, const QString& msg = "") :code(i), message(msg) {}
-    Result(bool s = true, const QString& msg = "") :message(msg) {
+    Result(bool s=true, const QString& msg = "") :message(msg) {
         if (s) { code = 0; }
     }//隐式构造函数调用
     static Result Success(const QString& msg = "") { return Result(true, msg); }
@@ -56,7 +56,7 @@ Q_DECLARE_METATYPE(Result)
 //qRegisterMetaType<Result>("Result");
 
 // 定义回调函数类型（支持异步回调函数lambda）
-using CallbackResult = std::function<void(Result)>;
+using CallbackResult = std::function<void(const qint8&, const QJsonValue&)>;
 
 /**定义一个原子类的结构体**/
 #include <QAtomicInteger>
@@ -109,7 +109,7 @@ struct AtomicPtr
 struct Session {
     qint64 id{ 0 };///< @brief 请求ID 可选
     int code{ 0 };///< @brief 执行的错误码,非0为执行异常 可选
-    QPointer<QObject> socket;///< @brief 请求的socket 可选
+    QPointer<QObject> socket;///< @brief 请求的 socket 可选
     QString module{ "" }; ///< @brief 可选
     QString method;///< @brief 需要调用的函数,槽等 必须
     QJsonValue params;///< @brief  请求参数,如果是一个数组,则反射动态调用槽函数，可以为空;否则调用默认的带完整请求的槽函数 可选
@@ -145,8 +145,8 @@ struct Session {
     static QString RequestString(qint64 id, const QString& module, const QString& method, const QJsonValue& params) {
         return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
     }
-    QString ErrorString(int errorCode, const QString& message) const {
-        return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"message", message} });
+    QString Finished(qint8 errorCode, const QJsonValue& value = QString()) const {
+        return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"result", value} });
     }
     QString ResponseString(const QJsonValue& ExecutionResult,const QString& ExecutionMessage = QString()) const {
         return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });

@@ -126,7 +126,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 	Session resp(doc.object());
 	if (resp.method != "login") {
 		QString error_message = tr("请先登录,请求方法: %1,然后进行其他操作").arg(resp.method);
-		newSocket->sendTextMessage(resp.ErrorString(1, error_message));
+		newSocket->sendTextMessage(resp.Finished(1, error_message));
 		return;
 	}
 	// 设备类型验证和分类
