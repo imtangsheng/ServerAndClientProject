@@ -103,7 +103,7 @@ void CameraPlugin::scan(const Session& session) {
     if (result) {
         emit gSigSent(session.ResponseString(gCameraSDK->GetDeviceIdList(),tr("succeed")));
     } else {
-        emit gSigSent(session.ErrorString(result.code, result.message));
+        emit gSigSent(session.Finished(result.code, result.message));
     }
 }
 

@@ -9,7 +9,7 @@ MainControl::MainControl(QObject *parent) : QObject(parent)
 
 void MainControl::onEnableChanged(bool enable)
 {
-    qDebug() <<module_<< "模块已经加载,指令控制状态"<<enable;
+    qDebug() <<module_<< "#MainControl::模块已经加载,指令控制状态"<<enable;
 }
 
 void MainControl::sendTextMessage(const QString &message)
@@ -23,19 +23,22 @@ void MainControl::sendTextMessage(const QString &message)
 
 Result MainControl::SendAndWaitResult(Session &session,QString info, quint8 sTimeout)
 {
+    Result ret;
     for (const auto& client : std::as_const(sockets)) {//标准 C++，避免容器分离
         if (client == nullptr) {  // 检查 QPointer 是否有效
             continue;
         }
         WaitDialog wait(&session,client,info,sTimeout);
         if(wait.init() || wait.exec() == QDialog::Accepted){
-            continue;//QDialog::Accepted
+            if(session) continue;//QDialog::Accepted
+            ret = false;
         }else{
             //QDialog::Rejected
             qDebug() <<"#SessionFail:"  <<session.GetRequest();
+            ret = false;
         }
     }
-    return true;
+    return ret;
 }
 
 void MainControl::SetBackgroudAcrylicEffect(QWidget *dialog)

@@ -32,6 +32,7 @@ CameraWidget::CameraWidget(MainWindow *parent)
 
     //初始获取图片格式指令 ,需要缓存
     // SentMessageToClients(Session::RequestString(1, sModuleUser, "login_new_session", QJsonArray{ double(deviceType)}));
+    initialize();
 }
 
 CameraWidget::~CameraWidget()
@@ -42,6 +43,12 @@ CameraWidget::~CameraWidget()
 
 void CameraWidget::initialize()
 {
+    //mainWindow->ui.WidgetCameraFormat->show();
+    connect(mainWindow->ui.radioButton_camera_format_jpg, &QRadioButton::clicked,ui->radioButton_camera_format_jpg,&QRadioButton::clicked);
+    connect(mainWindow->ui.radioButton_camera_format_jpeg, &QRadioButton::clicked, ui->radioButton_camera_format_jpeg, &QRadioButton::clicked);
+    connect(mainWindow->ui.radioButton_camera_format_png, &QRadioButton::clicked, ui->radioButton_camera_format_png, &QRadioButton::clicked);
+    connect(mainWindow->ui.radioButton_camera_format_bmp, &QRadioButton::clicked, ui->radioButton_camera_format_bmp, &QRadioButton::clicked);
+    connect(mainWindow->ui.radioButton_camera_format_raw, &QRadioButton::clicked, ui->radioButton_camera_format_raw,&QRadioButton::clicked);
 
 }
 
@@ -49,6 +56,49 @@ QString CameraWidget::_module() const
 {
     static QString module = share::Shared::GetModuleName(share::ModuleName::camera);
     return module;
+}
+
+void CameraWidget::UpdateTaskConfigSync(QJsonObject &content)
+{
+   qDebug() <<"#CameraWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
+}
+
+
+void CameraWidget::UpdateCameraFormat(const QString &format)
+{
+    // QString formatLower = format.toLower(); //可以转为小写再比较
+    if (format.compare("jpg", Qt::CaseInsensitive) == 0) {
+        mainWindow->ui.radioButton_camera_format_jpg->setChecked(true);
+        ui->radioButton_camera_format_jpg->setChecked(true);
+    } else if (format.compare("jpeg", Qt::CaseInsensitive) == 0) {
+        mainWindow->ui.radioButton_camera_format_jpeg->setChecked(true);
+        ui->radioButton_camera_format_jpeg->setChecked(true);
+    } else if (format.compare("png", Qt::CaseInsensitive) == 0) {
+        mainWindow->ui.radioButton_camera_format_png->setChecked(true);
+        ui->radioButton_camera_format_png->setChecked(true);
+    } else if (format.compare("bmp", Qt::CaseInsensitive) == 0) {
+        mainWindow->ui.radioButton_camera_format_bmp->setChecked(true);
+        ui->radioButton_camera_format_bmp->setChecked(true);
+    } else if (format.compare("raw", Qt::CaseInsensitive) == 0) {
+        mainWindow->ui.radioButton_camera_format_raw->setChecked(true);
+        ui->radioButton_camera_format_raw->setChecked(true);
+    } else {
+        mainWindow->ui.radioButton_camera_format_jpg->setChecked(true);
+        ui->radioButton_camera_format_jpg->setChecked(true);
+    }
+    mainWindow->ui.label_task_acquistion_camera_format->setText(format);
+}
+
+Result CameraWidget::SetCameraFormat(const QString &format)
+{
+    qDebug() <<"CameraWidget::SetCameraFormat(const QString &"<<format;
+    //Session session(_module(), "SetCameraFormat", format);
+    //if(gControl.SendAndWaitResult(session)){
+    //}else{
+    //    ToolTip::ShowText(tr("设置相机照片格式%1失败").arg(format),-1);
+    //}
+    mainWindow->ui.label_task_acquistion_camera_format->setText(format);
+    return true;
 }
 
 void CameraWidget::ShowMessage(const QString &msg)
@@ -408,5 +458,40 @@ void CameraWidget::on_pushButton_serial_names_set_clicked()
     obj[CAMERA_KEY_PORTNAME] = serialName;
     Session session({ {"id", 11}, {"module", sModuleUser}, {"method", "SetRegisterSettings"}, {"params", obj} });
     gControl.SendAndWaitResult(session);
+}
+
+
+void CameraWidget::on_radioButton_camera_format_jpg_clicked()
+{
+    mainWindow->ui.radioButton_camera_format_jpg->setChecked(true);
+    SetCameraFormat("jpg");
+}
+
+
+void CameraWidget::on_radioButton_camera_format_jpeg_clicked()
+{
+    mainWindow->ui.radioButton_camera_format_jpeg->setChecked(true);
+    SetCameraFormat("jpeg");
+}
+
+
+void CameraWidget::on_radioButton_camera_format_png_clicked()
+{
+    mainWindow->ui.radioButton_camera_format_png->setChecked(true);
+    SetCameraFormat("png");
+}
+
+
+void CameraWidget::on_radioButton_camera_format_bmp_clicked()
+{
+    mainWindow->ui.radioButton_camera_format_bmp->setChecked(true);
+    SetCameraFormat("bmp");
+}
+
+
+void CameraWidget::on_radioButton_camera_format_raw_clicked()
+{
+    mainWindow->ui.radioButton_camera_format_raw->setChecked(true);
+    SetCameraFormat("raw");
 }
 

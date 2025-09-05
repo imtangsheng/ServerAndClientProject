@@ -39,7 +39,7 @@ private:
     explicit MainControl(QObject* parent = nullptr);
     QString module_;
 signals:
-    void onProjectClicked(const FileInfoDetails &project);
+    void onProjectClicked();
     void onParamTemplateClicked(int id);
 
 public slots:

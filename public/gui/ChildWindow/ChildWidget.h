@@ -31,7 +31,7 @@ public:
 
     virtual void initialize();
     bool isInitUi{false};
-
+    virtual void UpdateTaskConfigSync(QJsonObject &content) = 0;//同步更新任务配置相关
 
     void stop();//停止任务执行
 public slots:
@@ -41,7 +41,7 @@ public slots:
     virtual void onDeviceStateChanged(double state,QString message){
         qDebug() <<"[#IWidget]"<<deviceType <<"state:" <<state << message;
         onEnableChanged(false);
-    };//设备登录状态显示
+    }//设备登录状态显示
 protected:
     MainWindow* mainWindow{nullptr};  // 保存主窗口指针
     //设备管理界面

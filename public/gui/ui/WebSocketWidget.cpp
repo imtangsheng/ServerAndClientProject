@@ -73,7 +73,7 @@ void WebSocketWidget::onTextMessageReceived(const QString &message)
     Session session(jsonDoc.object());session.socket = sender();
     for(auto &filter:gSessionFilter){
         if(filter && filter->filter(session)){
-            qDebug() <<" 消息被过滤器处理,不再继续默认处理";
+            // qDebug() <<" 消息被过滤器处理,不再继续默认处理";
             return;
         };
     }

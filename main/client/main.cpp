@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     gShare.sessiontype_ = static_cast<int>(SessionType::Client);
     MainWindow window;
 
-    gShare.RegisterHandler(sModuleUser, &window);
+    gShare.RegisterHandler(window._module, &window);
     window.show();
 
     return app.exec();

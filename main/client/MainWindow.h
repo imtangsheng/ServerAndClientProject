@@ -17,9 +17,10 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    Ui::MainWindow ui;
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    FileInfoDetails currentProjectItem{};
+    QString _module;
     QList<ProjectItemCheckBox*> projectItemWidget;//用于显示项目,排序和删除的操作
     void AddProjectWidget(FileInfoDetails project);
     void UpdateLayoutProjectWidget();
@@ -37,12 +38,10 @@ protected:
     void changeEvent(QEvent *event) override;
 protected slots:
     void GotoHomePage();
-    void onEnterProjectClicked(const FileInfoDetails& project);
-
+    void onEnterProjectClicked();
     void onConnectSocket();
     void onDisconnectSocket();
     void onSocketError(QAbstractSocket::SocketError error);    // 新增错误处理槽
-protected:
 
 private slots:
     void on_action_goto_home_triggered();
@@ -50,6 +49,8 @@ private slots:
     void on_action_stop_triggered();
     //首页界面
     void on_pushButton_test_clicked();
+
+    void on_pushButton_network_not_connect_clicked();
 
     void on_pushButton_project_hub_clicked();
 
@@ -134,15 +135,23 @@ private slots:
 
     void on_pushButton_task_param_first_page_next_step_clicked();
 
-    void on_pushButton_tsak_param_first_page_cancel_clicked();
+    void on_pushButton_task_param_first_page_cancel_clicked();
     //任务参数设置第二页
     void on_comboBox_parameter_templates_activated(int index);
 
+    void on_horizontalScrollBar_task_car_travel_speed_valueChanged(int value);
+
+    void on_spinBox_task_car_travel_speed_valueChanged(int arg1);
+
+    void on_doubleSpinBox_task_scanner_accuracy_valueChanged(double arg1);
+
+    void on_spinBox_task_car_travel_speed_editingFinished();
+
     void on_pushButton_task_param_last_page_previous_step_clicked();
 
-    void on_pushButton_task_param_last_page_next_step_prestart_clicked();
-
     void on_pushButton_task_param_last_page_cancel_clicked();
+
+    void on_pushButton_task_param_last_page_create_new_task_clicked();
     //任务参数全局 响应变化
     void on_radioButton_car_obstacle_avoidance_enabled_clicked();
 
@@ -156,15 +165,6 @@ private slots:
 
     void on_radioButton_car_backward_clicked();
 
-    void on_radioButton_camera_format_jpg_clicked();
-
-    void on_radioButton_camera_format_jpeg_clicked();
-
-    void on_radioButton_camera_format_png_clicked();
-
-    void on_radioButton_camera_format_bmp_clicked();
-
-    void on_radioButton_camera_format_raw_clicked();
     //参数模板页
     void on_pushButton_template_query_clicked();
 
@@ -191,15 +191,14 @@ private slots:
     //设备管理界面
     void on_pushButton_log_info_clicked();
 
+
+
 private:
-    friend class ChildWidget;//允许派生类访问
-    Ui::MainWindow ui;
+
     void _retranslate();//更新文本翻译
 
     QJsonObject citySubwayInfo; //城市地铁线路站点信息
     void UpdateCitySubwayInfo(const QString& dirPathCity);
-    void UpdateCameraFormat(const QString &format);
-    void SetCameraFormat(const QString &format);
 
     int _currentParamTemplateId{-1};
 
@@ -211,6 +210,7 @@ private:
 
 signals:
     void languageChanged();
+    void sigTaskConfigChanged(QJsonObject &obj);
 };
 
 #endif

@@ -8,7 +8,7 @@ ChildWidget::ChildWidget(MainWindow *parent)
 
 void ChildWidget::initialize()
 {
-    qDebug() <<"#ChildWidget::initialize()";
+    qDebug() <<_module()<<"#ChildWidget::initialize()";
     if(mainWindow){
         //设备管理界面
         int index = mainWindow->ui.StackedWidgetDeviceItems->addWidget(GetWidgetDeviceManager());
@@ -19,6 +19,8 @@ void ChildWidget::initialize()
         onEnableChanged(false);//离线状态显示
         //采集界面
         mainWindow->ui.LayoutRealtimeMonitoring->addWidget(GetWidgetAcquisitionMonitor());
+        // 连接的是派生类函数 可用 lambda 表达式显示调用
+        connect(mainWindow, &MainWindow::sigTaskConfigChanged,this, &ChildWidget::UpdateTaskConfigSync,Qt::DirectConnection);
     }
 }
 

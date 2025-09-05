@@ -20,10 +20,14 @@ public:
     /*iController API 设备控制的接口方法*/
     void initialize() final;
     QString _module() const final;
+    void UpdateTaskConfigSync(QJsonObject &content) final;
 
     // QJsonObject parameter; //统一的相机配置参数界面json对象
     // QJsonObject task; //执行任务的时候的参数
     // QJsonObject general;//通用配置参数
+    void UpdateCameraFormat(const QString &format);
+    Result SetCameraFormat(const QString &format);
+
     void ShowMessage(const QString& msg);
 
     void handle_binary_message(const QByteArray &bytes);
@@ -70,6 +74,16 @@ private slots:
     void on_toolButton_image_clicked();
 
     void on_pushButton_serial_names_set_clicked();
+
+    void on_radioButton_camera_format_jpg_clicked();
+
+    void on_radioButton_camera_format_jpeg_clicked();
+
+    void on_radioButton_camera_format_png_clicked();
+
+    void on_radioButton_camera_format_bmp_clicked();
+
+    void on_radioButton_camera_format_raw_clicked();
 
 private:
 

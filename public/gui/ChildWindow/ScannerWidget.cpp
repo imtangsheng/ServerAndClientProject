@@ -32,6 +32,17 @@ QString ScannerWidget::_module() const
     return module;
 }
 
+void ScannerWidget::UpdateTaskConfigSync(QJsonObject &content)
+{
+    qDebug() <<"# ScannerWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
+    if(!general.isEmpty())
+    {
+        content[JSON_SCAN_HEIGHT] =  general.value(JSON_SCAN_HEIGHT).toDouble();
+        content[JSON_SCAN_SN] = general.value(JSON_SCAN_SN).toString();
+    }
+
+}
+
 
 void ScannerWidget::ShowMessage(const QString &msg)
 {

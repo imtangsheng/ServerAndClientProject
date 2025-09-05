@@ -284,9 +284,9 @@ int FaroControl::SetParameters(QJsonObject param) {
 
     scanCtrl->RemoteScanStoragePath = faro::FaroSring(dir.absolutePath());//(gTaskFileInfo->path + "/" + kTaskDirPointCloudName);
 
-    int resolution = param.value(Json_Resolution).toString("4").toInt();// Only the following values are permitted: 1, 2, 4, 5, 8, 10, 16, 20, 32
+    int resolution = param.value(Json_Resolution).toInt(4);// Only the following values are permitted: 1, 2, 4, 5, 8, 10, 16, 20, 32
     scanCtrl->Resolution = resolution;
-    scanCtrl->MeasurementRate = param.value(Json_MeasurementRate).toString("8").toInt();//Possible values: 1, 2, 4, 8. 法如操作界面的质量属性 quality
+    scanCtrl->MeasurementRate = param.value(Json_MeasurementRate).toInt(8);//Possible values: 1, 2, 4, 8. 法如操作界面的质量属性 quality
     scanCtrl->NoiseCompression = 1;//Possible values: 1, 2, 4. 
     //scanCtrl->HorizontalAngleMin = 0;
     //scanCtrl->HorizontalAngleMax = 360;

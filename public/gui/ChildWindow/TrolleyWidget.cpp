@@ -50,6 +50,18 @@ QString TrolleyWidget::_module() const
     return module;
 }
 
+void TrolleyWidget::UpdateTaskConfigSync(QJsonObject &content)
+{
+    qDebug() << "#TrolleyWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
+    //小车是否使用额定里程,满足该里程自动停止任务
+    isUseRatedMileage = mainWindow->ui.radioButton_task_car_rated_mileage_on->isChecked();
+    if (isUseRatedMileage) {
+        carRatedMileage  = mainWindow->ui.spinBox_task_car_rated_mileage->value();
+        content[JSON_CAR_RATED_MILEAGE] = carRatedMileage ;
+    }
+
+}
+
 
 void TrolleyWidget::test()
 {
@@ -121,12 +133,6 @@ void TrolleyWidget::handle_binary_message(const QByteArray &bytes)
 }
 
 
-// void TrolleyWidget::onEnableChanged(bool enable)
-// {
-//     qDebug() <<_module()<< "模块已经加载,指令控制状态"<<enable;
-//     ChildWidget::onEnableChanged(enable);
-// }
-
 void TrolleyWidget::initUi(const Session &session)
 {
     QJsonObject obj = session.result.toObject();
@@ -173,12 +179,6 @@ QWidget *TrolleyWidget::GetWidgetAcquisitionMonitor()
     return ui->AcquisitionMonitor;
 }
 
-// void TrolleyWidget::paintEvent(QPaintEvent *event)
-// {
-//     qDebug()<<"TrolleyWidget::paintEvent";
-
-// }
-
 void TrolleyWidget::retranslate_ui()
 {
     retranslate();
@@ -211,7 +211,7 @@ void TrolleyWidget::on_pushButton_save_clicked()
     // config_["task"] = task;
     // config_["params"] = parameter;
     config_["general"] = general;
-    Session session({ {"id", 11}, {"module", _module()}, {"method", "SaveConfig"}, {"params", config_} });
+    Session session(_module(),"SaveConfig",config_);
     gControl.SendAndWaitResult(session);
 }
 
@@ -242,7 +242,6 @@ void TrolleyWidget::on_pushButton_open_clicked()
     if(!gControl.SendAndWaitResult(session)){
         ToolTip::ShowText(tr("设备打开串口失败:%1").arg(session.message), -1);
     }
-    // config_["port"] = port;
 }
 
 void TrolleyWidget::on_comboBox_car_param_templates_activated(int index)
@@ -362,6 +361,7 @@ void TrolleyWidget::on_comboBox_speed_multiplier_activated(int index)
 void TrolleyWidget::on_radioButton_mileage_set_on_clicked()
 {
     qDebug() << "TrolleyWidget::on_radioButton_mileage_set_on_clicked()";
+    /*ToDo 待定,未支持发送额定里程,到达目标后停止,或者前进后退多少再停止,如果使用检测位置,这个精度无法保证,手动检测*/
 }
 
 
@@ -369,14 +369,3 @@ void TrolleyWidget::on_radioButton_mileage_set_off_clicked()
 {
     qDebug() << "TrolleyWidget::on_radioButton_mileage_set_off_clicked()";
 }
-
-
-void TrolleyWidget::on_spinBox_car_mileage_set_max_value_editingFinished()
-{
-
-}
-
-
-
-
-

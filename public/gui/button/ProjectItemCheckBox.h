@@ -19,7 +19,7 @@ public:
     // QString text;
     bool isChecked();
     void SetChecked(bool checked);
-
+    void onCurrentProjectChanged();
 private:
     Ui::ProjectItemCheckBox *ui;
 
@@ -29,8 +29,8 @@ protected:
         SetChecked(true);
     }
     void mouseDoubleClickEvent(QMouseEvent *event) final{
+        onCurrentProjectChanged();
         SetChecked(true);
-        emit gControl.onProjectClicked(project);
     }
 };
 

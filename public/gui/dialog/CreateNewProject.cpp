@@ -34,18 +34,19 @@ void CreateNewProject::on_pushButton_Accepted_clicked() {
     QJsonObject &content = project.data;
     content[JSON_PROJECT_NAME] = name;
     content[JSON_PROJECT_VERSION] = share::Shared::GetVersion();
-    content[JSON_CREATER] = ui->lineEdit_creator->text();
+    content[JSON_CREATOR] = ui->lineEdit_creator->text();
     content[JSON_LINE_NAME] = ui->lineEdit_project_route->text();
-    content[JSON_CREATE_TIME] = QDateTime::currentDateTime().toString(kTimeFormat);
+    content[JSON_CREATE_TIME] = GetCurrentDateTime();
     content[JSON_NOTE] = ui->textEdit_remark->toPlainText();
 
-    Session session({ {"id", Session::NextId()}, {"module", sModuleUser}, {"method", "AppNewProject"}, {"params", project.ToJsonObject()}});
-    if(gControl.SendAndWaitResult(session)) {
+    Session session(sModuleUser, "AddNewProject",project.ToJsonObject());
+    if(gControl.SendAndWaitResult(session,"创建新项目",-1)) {
         accept();
     } else {
         qWarning() << session.result;
-        ToolTip::ShowText(tr("Create New Project"),session.result.toString());
+        ToolTip::ShowText(tr("提示:创建新项目失败"),session.result.toString());
         return;
+        // reject();
     }
 }
 

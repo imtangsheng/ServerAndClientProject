@@ -74,7 +74,7 @@
         <file>assets/ProjectHub/search_checked.png</file>
         <file>assets/ProjectHub/sort_checked.png</file>
         <file>../../assets/png/checked.png</file>
-        <file>../../assets/docs/city/广州.json</file>
-        <file>../../assets/docs/city/深圳.json</file>
+        <file>assets/docs/city/guangzhou.json</file>
+        <file>assets/docs/city/shenzhen.json</file>
     </qresource>
 </RCC>

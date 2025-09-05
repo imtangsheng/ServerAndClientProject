@@ -19,13 +19,13 @@ public:
     /*iController API 设备控制的接口方法*/
     void initialize() final;
     QString _module() const final;
-
+    void UpdateTaskConfigSync(QJsonObject &content) final;
     void test();
     void ShowMessage(const QString& msg);
     QJsonObject params;
 
-    bool isRatedMileage{false}; //小车额定里程值,满足此条件,则结束任务
-    int carRatedMileage;
+    bool isUseRatedMileage{false}; //小车额定里程值,使用标志,满足此条件,则结束任务
+    int carRatedMileage;//小车额定里程值,满足此条件,则结束任务
 
     double lastTime;
     double lastMileag;

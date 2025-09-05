@@ -9,8 +9,6 @@ QPointer<WebSocketWidget>gWebWidget;
 #include"ChildWindow/CameraWidget.h"
 #include"ChildWindow/ScannerWidget.h"
 
-
-
 QPointer<TrolleyWidget>gTrolley;
 #define SAFE_TROLLEY_CALL(expr) \
     ((gTrolley) ? (gTrolley->expr) : false)
@@ -21,7 +19,7 @@ QPointer<ScannerWidget>gScanner;
 QDateTime gSearchStartDateTime;
 
 MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent) {
+    : QMainWindow(parent),_module(sModuleUser) {
     ui.setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint);//无边框和标题栏
     MainBackgroundWidget = ui.MainStackedWidget;
@@ -47,7 +45,11 @@ MainWindow::MainWindow(QWidget* parent)
 
     //#设备启用 /*界面控件显示 加载模块*/
     if (gSettings->value("device/trolley", true).toBool()) gTrolley = new TrolleyWidget(this);
-    if (gSettings->value("device/camera", true).toBool()) gCamera = new CameraWidget(this);
+    if (gSettings->value("device/camera", true).toBool()) {
+        gCamera = new CameraWidget(this);
+    }else{
+        ui.WidgetCameraFormat->hide();//相机不存在,隐藏照片格式设置
+    }
     if (gSettings->value("device/scanner", true).toBool()) gScanner = new ScannerWidget(this);
     //#默认中文界面 如果为英语,首先需要触发一次,所以使用改变信号
     if (gSettings->value("language",zh_CN).toString() == en_US) {
@@ -136,7 +138,7 @@ void MainWindow::UpdateLayoutProjectWidget() {
 }
 
 bool MainWindow::UpdateProjects() {
-    Session session(sModuleUser, "GetTaskData", "");//关机函数执行
+    Session session(_module, "GetTaskData", "");//关机函数执行
     if(!gControl.SendAndWaitResult(session)){
         return false;
     }
@@ -152,7 +154,7 @@ bool MainWindow::UpdateProjects() {
 
 void MainWindow::SetLogLevel(LogLevel level)
 {
-    Session session(sModuleUser,"onLogLevelChanged",+level);
+    Session session(_module,"onLogLevelChanged",+level);
     if(gControl.SendAndWaitResult(session)){
         gLog.logLevel =level;
         gSettings->setValue("LogLevel",+level);
@@ -187,26 +189,19 @@ void MainWindow::GotoHomePage() {
     ui.MainStackedWidget->setCurrentWidget(ui.PageHome);
 }
 
-void MainWindow::onEnterProjectClicked(const FileInfoDetails &project) {
-    qDebug() << "#Window::onEnterProjectClicked(QJsonObject project)"<<project.ToJsonObject();
-    ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskHome);
-    if(ui.MainStackedWidget->currentWidget() != ui.PageProjectHub){
+void MainWindow::onEnterProjectClicked() {//此处值应是全局项目值
+    // qDebug() << "#Window::onEnterProjectClicked(QJsonObject project)"<<gProjectFileInfo->ToJsonObject();
+    ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskHome); 
+    if (ui.stackedWidget_task_param->currentWidget() != ui.page_task_param_first) {//显示任务参数设置第一页
+        ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_first);
+    }
+
+    if(ui.MainStackedWidget->currentWidget() != ui.PageProjectHub){//显示项目主页
         ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub);
     }
     ui.label_current_task_name->hide();
-    ui.label_current_project_name->setText(tr("当前项目:%1").arg(project.name));
+    ui.label_current_project_name->setText(tr("当前项目:%1").arg(gProjectFileInfo->name));
     ui.lineEdit_task_param_content_name->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss"));
-
-    static bool needUpdateCameraFormat{true};
-    if(needUpdateCameraFormat){
-        Session session(sModuleCamera, "GetCameraFormat", "");
-        if(gControl.SendAndWaitResult(session)){
-            UpdateCameraFormat(session.result.toString());
-            needUpdateCameraFormat = false;
-        }else{
-            ToolTip::ShowText(tr("获取相机照片格式失败"),-1);
-        }
-    }
 }
 
 void MainWindow::onShowMessage(const QString& message,  double level) {
@@ -260,7 +255,7 @@ void MainWindow::changeEvent(QEvent* event) {
 }
 
 void MainWindow::onConnectSocket() {
-    gWebWidget->socket->sendTextMessage(Session::RequestString(Session::NextId(),sModuleUser,"login",gShare.sessiontype_));
+    gWebWidget->socket->sendTextMessage(Session::RequestString(Session::NextId(),_module,"login",gShare.sessiontype_));
     gWebWidget->reconnectTimer.stop();
 
     ui.pushButton_network_connect->setText(tr("断开"));
@@ -309,21 +304,59 @@ void MainWindow::on_action_goto_home_triggered() {
 void MainWindow::on_action_start_triggered()
 {
     qDebug() << "#Window::on_action_start_triggered()";
+    //如果执行完任务,需要重新进入当前设置
+    // if(gTaskFileInfo){
+        Session session(_module, "onStart");
+        if(!gControl.SendAndWaitResult(session)) {
+            qWarning() <<"开始任务失败:" << session.message;
+            ToolTip::ShowText(tr("提示:开始任务失败"),session.message);
+            return;
+        }
+    //     ui.pushButton_acquisition_start->hide();
+    // }else {
+    //     if(gProjectFileInfo)
+    //     onEnterProjectClicked();//创建任务
+    // }
+
 }
 
 void MainWindow::on_action_stop_triggered()
 {
     qDebug() << "#Window::on_action_stop_triggered()";
+    // 结束后,重置状态
+    Session session(_module, "onStop");
+    if(!gControl.SendAndWaitResult(session)) {
+        qWarning() <<"停止任务失败:" << session.message;
+        ToolTip::ShowText(tr("提示:停止任务失败"),session.message);
+        return;
+    }
+    // ui.pushButton_acquisition_start->show();
+    // ui.pushButton_acquisition_start->setText(tr("创建任务"));
+    // gTaskFileInfo = nullptr;
 }
 
 void MainWindow::on_pushButton_test_clicked()
+{
+    QJsonObject obj;
+    obj["test"] = "main";
+    emit sigTaskConfigChanged(obj);
+    qDebug() << "#MainWindow::on_pushButton_test_clicked()"<<obj;
+}
+
+void MainWindow::on_pushButton_network_not_connect_clicked()
 {
 
 }
 
 
 void MainWindow::on_pushButton_project_hub_clicked() {
-    ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub);
+    static bool isNeedUpdate = true;
+    if (isNeedUpdate && UpdateProjects()) {
+        isNeedUpdate = false;
+    }
+    ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub); //项目库页面
+    ui.StackedWidgetProjectHub->setCurrentWidget(ui.ProjectHome);//所有项目页
+
 }
 
 
@@ -353,11 +386,8 @@ void MainWindow::on_pushButton_data_copy_clicked() {
 
 
 void MainWindow::on_pushButton_project_start_clicked() {
-    ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub);
-    static bool isNeedUpdate = true;
-    if(isNeedUpdate && UpdateProjects()){
-        isNeedUpdate = false;
-    }
+
+
 }
 
 
@@ -367,7 +397,7 @@ void MainWindow::on_toolButton_alarm_clicked() {
 
 
 void MainWindow::on_pushButton_shutdown_clicked() {
-    Session session(sModuleUser, "shutdown", QJsonArray());//关机函数执行
+    Session session(_module, "shutdown", QJsonArray());//关机函数执行
     gControl.SendAndWaitResult(session);
 }
 
@@ -392,7 +422,7 @@ void MainWindow::on_radioButton_language_en_US_toggled(bool checked) {
         qApp->removeTranslator(&g_translator);
         gSettings->setValue("language", zh_CN);
     }
-    gControl.sendTextMessage(Session::RequestString(Session::NextId(),sModuleUser,"onLanguageChanged",QJsonArray{checked ? en_US : zh_CN}));
+    gControl.sendTextMessage(Session::RequestString(Session::NextId(),_module,"onLanguageChanged",QJsonArray{checked ? en_US : zh_CN}));
     emit languageChanged();
 }
 
@@ -420,7 +450,7 @@ void MainWindow::on_radioButton_startup_auto_off_clicked() {
 
 void MainWindow::on_radioButton_startup_auto_off_toggled(bool checked) {
     if(!checked) gSettings->setValue("AutoStartup", true);
-    Session session(sModuleUser,"onAutoStartedClicked",checked);
+    Session session(_module,"onAutoStartedClicked",checked);
     gControl.SendAndWaitResult(session);
 }
 
@@ -481,7 +511,7 @@ void MainWindow::on_radioButton_car_warning_off_clicked()
 void MainWindow::on_radioButton_car_warning_off_toggled(bool checked)
 {
     if(!checked) gSettings->setValue("CarWarning", true);
-    Session session(sModuleUser,"onCarWarningClicked",checked);
+    Session session(_module,"onCarWarningClicked",checked);
     gControl.SendAndWaitResult(session);
 }
 
@@ -521,13 +551,16 @@ void MainWindow::on_action_create_project_triggered()
 {
     CreateNewProject dialog(this);
     if(dialog.exec() == QDialog::Accepted){
-        currentProjectItem = dialog.project;
-        //添加json数据
+        FileInfoDetails project = dialog.project;
+        //添加 json数据
         QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-        projects[currentProjectItem.name] = currentProjectItem.ToJsonObject();
+        projects[project.name] = project.ToJsonObject();
         gTaskManager.data[cKeyContent] = projects;
-        this->AddProjectWidget(currentProjectItem);
-        this->onEnterProjectClicked(currentProjectItem);
+        this->AddProjectWidget(project);
+        gProjectFileInfo.reset(new FileInfoDetails(project));// 释放当前对象，接管新对象
+        this->onEnterProjectClicked();
+    }else{
+        qDebug() << "MainWindow::on_action_create_project_triggered() failed!";
     }
 }
 
@@ -596,7 +629,7 @@ void MainWindow::on_pushButton_project_delete_ok_clicked()
     foreach (auto button, projectItemWidget) {
         if (button->isChecked()) {
             //gTaskManager.DeleteProject(button->project.name);
-            Session session(sModuleUser, "DeleteProject", button->project.ToJsonObject());
+            Session session(_module, "DeleteProject", button->project.ToJsonObject());
             if (gControl.SendAndWaitResult(session)) {
                 projectItemWidget.removeOne(button);
             }else {
@@ -729,13 +762,14 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
         return;
     }
     // 检查文件名合法性
-    static QRegularExpression regex("[\\\\/:*?\"<>|]"); // Windows文件名非法字符
+    static QRegularExpression regex("[\\\\/:*?\"<>|]'"); // Windows文件名非法字符[\\\\/:*?\"<>|],海康照片非法''`~!@#$%^&*
     if(name.contains(regex)){
         ToolTip::ShowText(tr("任务名称包含非法字符（\\ / : * ? \" < > |）"));
         return;
     }
-
+    gTaskFileInfo = new FileInfoDetails;
     gTaskFileInfo->name = name;
+    gTaskFileInfo->path = gProjectFileInfo->path + "/"+ name;
     gTaskFileInfo->data[JSON_TASK_NAME] = name;
     QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
     content[JSON_DEVICE_TYPE] = __DEVICE_TYPE__;
@@ -749,6 +783,7 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
     content[JSON_TMP_BETWEEN_NAME] = ui.comboBox_task_param_between_name_before->currentText() + "-" + ui.comboBox_task_param_between_name_after->currentText();
     content[JSON_TMP_LINE_TYPE] = GetLineType(ui.comboBox_task_param_line_type->currentIndex());
 
+    //云图预备处理需要,起始环号和里程是隧道实际对应的实际值(隧道标记有)
     content[JSON_START_RING] = ui.spinBox_task_param_starting_ring_number->value();
     content[JSON_START_MILEAGE] = ui.spinBox_task_param_start_mileage->value();
     content[JSON_SEGMENT_WIDE] = ui.doubleSpinBox_task_param_segment_width->value();
@@ -759,7 +794,7 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_last);
 }
 
-void MainWindow::on_pushButton_tsak_param_first_page_cancel_clicked()
+void MainWindow::on_pushButton_task_param_first_page_cancel_clicked()
 {
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.ProjectHome);//取消返回项目选择
 }
@@ -777,46 +812,113 @@ void MainWindow::on_comboBox_parameter_templates_activated(int index)
 
     gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
 
-    ui.doubleSpinBox_scanner_accuracy->setValue(param.value(JSON_ACCURACY).toDouble());
-    ui.spinBox_car_travel_speed->setValue(param.value(JSON_SPEED).toInt());
+    ui.doubleSpinBox_task_scanner_accuracy->blockSignals(true);
+    ui.doubleSpinBox_task_scanner_accuracy->setValue(param.value(JSON_ACCURACY).toDouble());
+    ui.doubleSpinBox_task_scanner_accuracy->blockSignals(false);
+
+    ui.spinBox_task_car_travel_speed->blockSignals(true);
+    ui.spinBox_task_car_travel_speed->setValue(param.value(JSON_SPEED).toInt());
+    ui.spinBox_task_car_travel_speed->blockSignals(false);
 }
 
+void MainWindow::on_horizontalScrollBar_task_car_travel_speed_valueChanged(int value)
+{
+    QJsonObject param = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    uint8_t resolution = param.value(Json_Resolution).toInt(4);
+    uint8_t measurementRate = param.value(Json_MeasurementRate).toInt(8);
+    double accuracy = GetAccuracy(value,resolution,measurementRate);
+    // 断开信号连接
+    ui.doubleSpinBox_task_scanner_accuracy->blockSignals(true);
+    ui.doubleSpinBox_task_scanner_accuracy->setValue(accuracy);
+    ui.doubleSpinBox_task_scanner_accuracy->blockSignals(false);
+
+    ui.spinBox_task_car_travel_speed->blockSignals(true);
+    ui.spinBox_task_car_travel_speed->setValue(value);
+    ui.spinBox_task_car_travel_speed->blockSignals(false);
+}
+
+void MainWindow::on_spinBox_task_car_travel_speed_valueChanged(int arg1)
+{
+    qDebug() << "MainWindow::on_spinBox_car_travel_speed_valueChanged(int "<<arg1;
+    QJsonObject param = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    uint8_t resolution = param.value(Json_Resolution).toInt(4);
+    uint8_t measurementRate = param.value(Json_MeasurementRate).toInt(8);
+    double accuracy = GetAccuracy(arg1,resolution,measurementRate);
+    // 断开信号连接
+    ui.doubleSpinBox_task_scanner_accuracy->blockSignals(true);
+    ui.doubleSpinBox_task_scanner_accuracy->setValue(accuracy);
+    ui.doubleSpinBox_task_scanner_accuracy->blockSignals(false);
+
+    ui.horizontalScrollBar_task_car_travel_speed->blockSignals(true);
+    ui.horizontalScrollBar_task_car_travel_speed->setValue(arg1);
+    ui.horizontalScrollBar_task_car_travel_speed->blockSignals(false);
+}
+
+
+void MainWindow::on_doubleSpinBox_task_scanner_accuracy_valueChanged(double arg1)
+{
+    qDebug() << "MainWindow::on_doubleSpinBox_scanner_accuracy_valueChanged(double "<<arg1;
+    QJsonObject param = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    uint8_t resolution = param.value(Json_Resolution).toInt(4);
+    uint8_t measurementRate = param.value(Json_MeasurementRate).toInt(8);
+    int maxSpeed = GetMaxSpeed(arg1,resolution,measurementRate);
+    if(maxSpeed < ui.spinBox_task_car_travel_speed->value()){
+        ui.spinBox_task_car_travel_speed->blockSignals(true);
+        ui.spinBox_task_car_travel_speed->setValue(maxSpeed);
+        ui.spinBox_task_car_travel_speed->blockSignals(false);
+    }
+}
+
+
+void MainWindow::on_spinBox_task_car_travel_speed_editingFinished()
+{
+    qDebug() << "MainWindow::on_spinBox_car_travel_speed_editingFinished()";
+
+}
 
 void MainWindow::on_pushButton_task_param_last_page_previous_step_clicked() {
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_first);
 }
 
-
-void MainWindow::on_pushButton_task_param_last_page_next_step_prestart_clicked() {
-    QString name = ui.comboBox_parameter_templates->currentText().trimmed(); // 移除首尾空格
-    if(name.isEmpty()){
-        ToolTip::ShowText(tr("请先选中参数模板"));
-        return;
-    }
-
-    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
-    content[JSON_TEMPLATE] = name;
-    content[JSON_ACCURACY] = ui.doubleSpinBox_scanner_accuracy->value();
-    content[JSON_SPEED] = ui.spinBox_car_travel_speed->value();
-    content[JSON_DIRECTION] = GetCarDirection(gControl.carDirection); //0后退 1 前进
-
-    if (gTrolley) {
-        bool isRatedMileageOn = ui.radioButton_car_rated_mileage_on->isChecked();
-        gTrolley->isRatedMileage = isRatedMileageOn;
-        if (isRatedMileageOn) {
-            int carRatedMileageValue = ui.spinBox_car_rated_mileage->value();
-            content[JSON_CAR_RATED_MILEAGE] = carRatedMileageValue;
-            gTrolley->carRatedMileage = carRatedMileageValue;
-        }
-    }
-
-    gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
-    ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskAcquisition);
-}
-
-
 void MainWindow::on_pushButton_task_param_last_page_cancel_clicked() {
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.ProjectHome);
+}
+
+void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
+    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    QString name = ui.comboBox_parameter_templates->currentText().trimmed(); // 移除首尾空格
+    if(!name.isEmpty()){
+        content[JSON_TEMPLATE] = name;
+    }
+    content[JSON_ACCURACY] = ui.doubleSpinBox_task_scanner_accuracy->value();
+    content[JSON_SPEED] = ui.spinBox_task_car_travel_speed->value();
+    content[JSON_DIRECTION] = GetCarDirection(gControl.carDirection); //0后退 1 前进
+
+
+    emit sigTaskConfigChanged(content);//更新参数
+    content[JSON_CREATE_TIME] = GetCurrentDateTime();
+    gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
+
+
+    Session session(_module, "AddCurrentTask",gTaskFileInfo->ToJsonObject());
+    if(!gControl.SendAndWaitResult(session)) {
+        qWarning() <<"创建新任务失败:" << session.message;
+        ToolTip::ShowText(tr("提示:创建新任务失败"),session.message);
+        return;
+    }
+    //进入任务采集界面 使用信号槽连接,变化才有值,故使用手动设置
+    ui.pushButton_acquisition_start->setText(tr("开始采集"));
+    ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskAcquisition);
+    ui.label_acquisition_project_name->setText(gProjectFileInfo->name);
+    ui.label_acquisition_task_name->setText(gTaskFileInfo->name);
+    ui.label_acquisition_tunnel_diameter->setText(QString("%1mm").arg(content.value(JSON_DIAMETER).toDouble(), 'f', 1));
+    ui.label_task_param_line_type->setText(ui.comboBox_task_param_line_type->currentText());
+    ui.label_task_param_interval_name->setText(content.value(JSON_TMP_BETWEEN_NAME).toString());
+    ui.label_task_param_creation_time->setText(content.value(JSON_CREATE_TIME).toString());
+
+    ui.label_task_acquisition_car_speed->setText(QString::number(content.value(JSON_SPEED).toInt()));
+    ui.label_task_acquistion_car_direction->setText(content.value(JSON_DIRECTION).toInt() ? tr("前") : tr("后"));
+    ui.label_task_qcquition_scanner_accuracy->setText(QString::number(content.value(JSON_ACCURACY).toDouble(), 'f', 2));
 }
 
 
@@ -846,7 +948,7 @@ void MainWindow::on_radioButton_car_obstacle_avoidance_close_clicked()
 
 void MainWindow::on_radioButton_realtime_parsing_enabled_clicked()
 {
-    Session session(sModuleUser, "SetRealtimeParsing", true);
+    Session session(_module, "SetRealtimeParsing", true);
     if (gControl.SendAndWaitResult(session)) {
     } else {
         ToolTip::ShowText(tr("设置实时解析失败"), -1);
@@ -856,7 +958,7 @@ void MainWindow::on_radioButton_realtime_parsing_enabled_clicked()
 
 void MainWindow::on_radioButton_realtime_parsing_off_clicked()
 {
-    Session session(sModuleUser, "SetRealtimeParsing", false);
+    Session session(_module, "SetRealtimeParsing", false);
     if (gControl.SendAndWaitResult(session)) {
     } else {
         ToolTip::ShowText(tr("设置实时解析失败"), -1);
@@ -871,7 +973,7 @@ void MainWindow::on_radioButton_car_forward_clicked()
         obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
         QByteArray data;
         obj["data"] = data.toStdString().c_str();
-        Session session(sModuleSerial, "SetParameterByCode", obj);
+        Session session(gTrolley->_module(), "SetParameterByCode", obj);
         if (gControl.SendAndWaitResult(session)) {
             gControl.carDirection = true;
         } else {
@@ -889,7 +991,7 @@ void MainWindow::on_radioButton_car_backward_clicked()
         obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
         QByteArray data;
         obj["data"] = data.toStdString().c_str();
-        Session session(sModuleSerial, "SetParameterByCode", obj);
+        Session session(gTrolley->_module(), "SetParameterByCode", obj);
         if (gControl.SendAndWaitResult(session)) {
             gControl.carDirection = false;
         } else {
@@ -899,35 +1001,6 @@ void MainWindow::on_radioButton_car_backward_clicked()
     }
 }
 
-
-void MainWindow::on_radioButton_camera_format_jpg_clicked()
-{
-    SetCameraFormat("jpg");
-}
-
-
-void MainWindow::on_radioButton_camera_format_jpeg_clicked()
-{
-    SetCameraFormat("jpeg");
-}
-
-
-void MainWindow::on_radioButton_camera_format_png_clicked()
-{
-    SetCameraFormat("png");
-}
-
-
-void MainWindow::on_radioButton_camera_format_bmp_clicked()
-{
-    SetCameraFormat("bmp");
-}
-
-
-void MainWindow::on_radioButton_camera_format_raw_clicked()
-{
-    SetCameraFormat("raw");
-}
 
 /**参数模板页面操作**/
 void MainWindow::on_pushButton_template_query_clicked()
@@ -1106,7 +1179,8 @@ void MainWindow::UpdateCitySubwayInfo(const QString& dirPathCity)
             continue;
         }
         QJsonObject obj = doc.object();
-        QJsonArray lines_array = obj["l"].toArray();
+        filename = obj.value("s").toString();//vs编译器不能识别中文
+        QJsonArray lines_array = obj.value("l").toArray();
         QJsonArray subway_lines;
         foreach(auto line_ref,lines_array) {
             QJsonObject line = line_ref.toObject();
@@ -1135,26 +1209,6 @@ void MainWindow::UpdateCitySubwayInfo(const QString& dirPathCity)
     ui.comboBox_city->clear();
     ui.comboBox_city->addItem(tr("自定义"));
     ui.comboBox_city->addItems(citySubwayInfo.keys());
-}
-
-void MainWindow::UpdateCameraFormat(const QString &format)
-{
-    // QString formatLower = format.toLower(); //可以转为小写再比较
-    if(format.compare("jpg", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_jpg->setChecked(true);
-    else if(format.compare("jpeg", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_jpeg->setChecked(true);
-    else if(format.compare("png", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_png->setChecked(true);
-    else if(format.compare("bmp", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_bmp->setChecked(true);
-    else if(format.compare("raw", Qt::CaseInsensitive) == 0) ui.radioButton_camera_format_raw->setChecked(true);
-    else ui.radioButton_camera_format_jpg->setChecked(true);
-}
-
-void MainWindow::SetCameraFormat(const QString &format)
-{
-    Session session(sModuleCamera, "SetCameraFormat", format);
-    if(gControl.SendAndWaitResult(session)){
-    }else{
-        ToolTip::ShowText(tr("设置相机照片格式%1失败").arg(format),-1);
-    }
 }
 
 void MainWindow::UpdateLayoutParamTemplate()
@@ -1211,9 +1265,9 @@ QJsonObject MainWindow::GetParamTemplate()
     param[JSON_DIAMETER] = ui.doubleSpinBox_template_tunnel_diameter->value();
     param[JSON_SPEED] = ui.spinBox_template_car_speed->value();
     param[JSON_ACCURACY] = ui.doubleSpinBox_template_points_accuracy->value();
-    param[Json_MeasurementRate] = ui.comboBox_template_scanner_MeasurementRate->currentText();//int类型
+    param[Json_MeasurementRate] = ui.comboBox_template_scanner_MeasurementRate->currentText().toInt();//int类型
     param[Json_SplitAfterLines] = ui.spinBox_template_scanner_SplitAfterLines->value();
-    param[Json_Resolution] = ui.comboBox_template_scanner_Resolution->currentText();
+    param[Json_Resolution] = ui.comboBox_template_scanner_Resolution->currentText().toInt();
     param[JSON_SCAN_HEIGHT] = ui.doubleSpinBox_template_scanner_height->value();
     param[Json_CameraTemplate] = ui.comboBox_template_camera->currentText();
 
@@ -1226,9 +1280,9 @@ void MainWindow::SetParamTemplate(QJsonObject param)
     ui.comboBox_template_tunnel_type->setCurrentText(param[Json_TunnelType].toString());
     ui.doubleSpinBox_template_tunnel_diameter->setValue(param[JSON_DIAMETER].toDouble());
     ui.spinBox_template_car_speed->setValue(param[JSON_SPEED].toInt());
-    ui.comboBox_template_scanner_MeasurementRate->setCurrentText(param[Json_MeasurementRate].toString());//int类型
+    ui.comboBox_template_scanner_MeasurementRate->setCurrentText(QString::number(param[Json_MeasurementRate].toInt()));//int类型
     ui.spinBox_template_scanner_SplitAfterLines->setValue(param[Json_SplitAfterLines].toInt());
-    ui.comboBox_template_scanner_Resolution->setCurrentText(param[Json_Resolution].toString());//int类型
+    ui.comboBox_template_scanner_Resolution->setCurrentText(QString::number(param[Json_Resolution].toInt()));//int类型
     ui.doubleSpinBox_template_scanner_height->setValue(param[JSON_SCAN_HEIGHT].toDouble());
     ui.comboBox_template_camera->setCurrentText(param[Json_CameraTemplate].toString());
 }

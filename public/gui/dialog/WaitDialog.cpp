@@ -7,7 +7,7 @@ WaitDialog::WaitDialog(Session* session,QWebSocket* client,QString info, quint8 
 {
     ui->setupUi(this);
     // init();
-    setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog); // 设置无边框
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog | Qt::WindowStaysOnTopHint); // 设置无边框
     // setAttribute(Qt::WA_TranslucentBackground); // 设置背景透明
     // setAttribute(Qt::WA_DeleteOnClose);
     if(!info.isEmpty())
@@ -43,6 +43,7 @@ Result WaitDialog::init()
     timer.setInterval(1000);
     connect(&timer,&QTimer::timeout,this,&WaitDialog::update_timeout);
     timer.start();
+    qDebug() << "等待界面开始计时";
     return false;
 }
 
@@ -60,7 +61,7 @@ Result WaitDialog::filter(Session &recv)
         hasRuselt.message = recv.message;
         ui->label_show->setText(hasRuselt.message);
         accept();
-        qDebug()<<"会设置dialog的result为QDialog::Accepted（值为1）";
+        // qDebug()<<"会设置dialog的result为QDialog::Accepted（值为1）";
         return Result(true,recv.message);
     }else{
         qWarning() << session->id << session->module <<session->method;
