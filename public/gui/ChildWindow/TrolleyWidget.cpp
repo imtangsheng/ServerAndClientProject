@@ -50,6 +50,12 @@ QString TrolleyWidget::_module() const
     return module;
 }
 
+Result TrolleyWidget::SetTaskParameter(QJsonObject &data)
+{
+    qint32 speed = data.value(JSON_SPEED).toInt();
+    return SetSpeed(speed);
+}
+
 void TrolleyWidget::UpdateTaskConfigSync(QJsonObject &content)
 {
     qDebug() << "#TrolleyWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
@@ -91,27 +97,50 @@ void TrolleyWidget::ShowMessage(const QString &msg)
     qDebug() <<"ShowMessage:"<< msg;
 }
 
-void TrolleyWidget::AddMileage(double time, double mileage,bool backward)
+void TrolleyWidget::AddMileage(quint8 symbol,double mileage, qint64 time_us) const
 {
-    qDebug() <<"AddMileage:"<< time<< mileage;
-    qint8 flag = backward ? -1:1;
-    double speed = 0;
-    if(lastTime > 0){
-         speed = ((mileage - lastMileag) / (time - lastTime)) * 3600;//单位m/h
+    double time_s = time_us / 1000000.0; //us->s
+    qDebug() <<"AddMileage:"<< time_s<< mileage;//10us m bug切换方向中,里程是返回的绝对值,所以会减小
+    qint8 flag = symbol ? -1:1;
+    double car_speed = 0.00;
+    double car_mileage = 0;
+    qint64 car_time = 0;
+    static qint64 car_time_start;//小车行走的时间 us
+    static double car_mileage_start; //小车行走的距离
+    static double lastTime{0};
+    static double lastMileage{0};
+    //显示更新时间 10秒没有更新则判断需要重新计算
+    static qint64 latency = QDateTime::currentMSecsSinceEpoch();
+    qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+    qint64 delay = currentTime - latency;
+    latency = currentTime;
+
+    if(lastTime <= 0 || delay > 10000){
+        car_time_start = time_s;
+        car_mileage_start = mileage;
+    } else {
+        car_speed = flag * ((mileage - lastMileage) / (time_s - lastTime)) * 3600;//单位m/h
+        car_mileage = mileage - car_mileage_start;
+        car_time = time_s - car_time_start;
     }
 
     if(gTaskState == TaskState::TaskState_Running){
-        ui->ChartView_mileage_monitor->append(time,mileage);
-        // ui->label_car_task_mileage->setText();
+        ui->label_update_delay->setText(QString("%1").arg(delay));//ms
+        ui->label_update_delay->update();
+        ui->ChartView_mileage_monitor->append(time_s,mileage);
+        ui->label_car_task_speed->setText(QString::number(car_speed,'f',2));
+        ui->label_car_task_time->setText(QString::number(car_time));
+        ui->label_car_task_mileage->setText(QString::number(car_mileage, 'f', 2));
+
     }else{
-        ui->ChartView_mileage_info->append(time,mileage);
-        ui->doubleSpinBox_car_speed->setValue(speed*flag);
-        ui->doubleSpinBox_car_time->setValue(time);
-        ui->doubleSpinBox_car_mileage->setValue(mileage*flag);
+        ui->ChartView_mileage_info->append(time_s,mileage);
+        ui->doubleSpinBox_car_speed->setValue(car_speed);
+        ui->doubleSpinBox_car_time->setValue(car_time);
+        ui->doubleSpinBox_car_mileage->setValue(car_mileage);
     }
 
-    lastTime = time;
-    lastMileag = mileage;
+    lastTime = time_s;
+    lastMileage = mileage;
 }
 
 void TrolleyWidget::handle_binary_message(const QByteArray &bytes)
@@ -121,10 +150,10 @@ void TrolleyWidget::handle_binary_message(const QByteArray &bytes)
     switch (code) {
     case 0xF8:{
         quint64 id;
-        MileageInfo  mileage;
-        stream >> id >>mileage;
-        //1000000.0 单位us转s
-        AddMileage(mileage.time/1000000,mileage.pulse ,mileage.symbol==0);
+        quint8 symbol;
+        double mileage; qint64 time;
+        stream >> id >> symbol >> mileage >> time;
+        AddMileage(symbol,mileage,time);
         }break;
     default:
         qWarning() << _module()<< "二进制数据模块代码未支持:"<<code;
@@ -190,19 +219,6 @@ void TrolleyWidget::showEvent(QShowEvent *)
 
 }
 
-void TrolleyWidget::retranslate()
-{
-    static QString time = tr("Time (s)");
-    static QString mileage = tr("Mileage (m)");
-    ui->ChartView_mileage_monitor->xTitle = time;
-    ui->ChartView_mileage_monitor->yTitle = mileage;
-
-    ui->ChartView_mileage_info->xTitle = time;
-    ui->ChartView_mileage_info->yTitle = mileage;
-    // 触发更新
-    update();
-}
-
 
 void TrolleyWidget::on_pushButton_save_clicked()
 {
@@ -259,7 +275,9 @@ void TrolleyWidget::on_pushButton_start_clicked()
     Session session(_module(), "SetParameterByCode", obj);
     if (!gControl.SendAndWaitResult(session)) {
         ToolTip::ShowText(tr("启动小车失败"), -1);
+        return;
     }
+    ui->ChartView_mileage_info->init();
 }
 
 
@@ -268,7 +286,7 @@ void TrolleyWidget::on_pushButton_stop_clicked()
     //00：停止小车 01：停止并清除里程
     QJsonObject obj;
     obj["code"] = serial::CAR_STOP;;
-    QByteArray data = QByteArray(1, static_cast<char>(0x00));//00：启动小车 01：启动并清除里程
+    QByteArray data = QByteArray(1, static_cast<char>(0x00));//01清除里程
     obj["data"] = QString(data.toHex());
     Session session(_module(), "SetParameterByCode", obj);
     if (!gControl.SendAndWaitResult(session)) {
@@ -279,37 +297,16 @@ void TrolleyWidget::on_pushButton_stop_clicked()
 void TrolleyWidget::on_radioButton_Direction_Drive_clicked()
 {
     // 改变行驶方向向前
-    if (gControl.carDirection == false) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
-        QJsonObject obj;
-        obj["code"] = serial::CAR_CHANGING_OVER;//serial::CAR_CHANGING_OVER;
-        // QByteArray data;
-        // obj["data"] = data.toStdString().c_str();
-        Session session(_module(), "SetParameterByCode", obj);
-        if (gControl.SendAndWaitResult(session)) {
-            gControl.carDirection = true;
-        } else {
-            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
-            ui->radioButton_Direction_Drive->setChecked(false);
-        }
-    }
+    if(!SetDirection(01))
+        ui->radioButton_Direction_Drive->setChecked(false);
 }
 
 
 void TrolleyWidget::on_radioButton_Direction_Reverse_clicked()
 {
-    if (gControl.carDirection == true) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
-        QJsonObject obj;
-        obj["code"] = serial::CAR_CHANGING_OVER;//serial::CAR_CHANGING_OVER;
-        QByteArray data;
-        obj["data"] = data.toStdString().c_str();
-        Session session(_module(), "SetParameterByCode", obj);
-        if (gControl.SendAndWaitResult(session)) {
-            gControl.carDirection = false;
-        } else {
-            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
-            ui->radioButton_Direction_Reverse->setChecked(false);
-        }
-    }
+    // if (gControl.carDirection == true) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
+    if(!SetDirection(00))
+        ui->radioButton_Direction_Reverse->setChecked(false);
 }
 
 void TrolleyWidget::on_horizontalScrollBar_car_travel_speed_valueChanged(int value)
@@ -332,18 +329,7 @@ void TrolleyWidget::on_spinBox_car_travel_speed_valueChanged(int arg1)
 void TrolleyWidget::on_pushButton_set_car_speed_clicked()
 {
     qint16 speed = ui->spinBox_car_travel_speed->value();
-    QJsonObject obj;
-    obj["code"] = serial::CAR_SET_SPEED;
-    QByteArray data;
-    QDataStream stream(&data,QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);  // 设置字节序
-    stream << speed;
-    obj["data"] = QString(data.toHex());
-    qDebug() <<"obj:"<< obj;
-    Session session(_module(), "SetParameterByCode", obj);
-    if (!gControl.SendAndWaitResult(session)) {
-        ToolTip::ShowText(tr("设置行驶速度失败"), -1);
-    }
+    SetSpeed(speed);
 }
 
 
@@ -368,4 +354,57 @@ void TrolleyWidget::on_radioButton_mileage_set_on_clicked()
 void TrolleyWidget::on_radioButton_mileage_set_off_clicked()
 {
     qDebug() << "TrolleyWidget::on_radioButton_mileage_set_off_clicked()";
+}
+
+
+void TrolleyWidget::retranslate()
+{
+    static QString time = tr("Time (s)");
+    static QString mileage = tr("Mileage (m)");
+    ui->ChartView_mileage_monitor->xTitle = time;
+    ui->ChartView_mileage_monitor->yTitle = mileage;
+
+    ui->ChartView_mileage_info->xTitle = time;
+    ui->ChartView_mileage_info->yTitle = mileage;
+    // 触发更新
+    update();
+}
+
+Result TrolleyWidget::SetSpeed(qint16 speed)
+{
+    if(speed < 50 || speed > 5500){
+        ToolTip::ShowText(tr("设置的行驶速度超过范围:%1-%2,当前设置%3").arg(50,5500,speed), -1);
+        return false;
+    }
+    QJsonObject obj;
+    obj["code"] = serial::CAR_SET_SPEED;
+    QByteArray data;
+    QDataStream stream(&data,QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);  // 设置字节序
+    stream << speed;
+    obj["data"] = QString(data.toHex());
+    qDebug() <<"obj:"<< obj;
+    Session session(_module(), "SetParameterByCode", obj);
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(tr("设置行驶速度失败"), -1);
+        return false;
+    }
+    return true;
+}
+
+Result TrolleyWidget::SetDirection(qint8 direction)
+{
+        QJsonObject obj;
+        obj["code"] = serial::CAR_CHANGING_OVER;//serial::CAR_CHANGING_OVER;
+        QByteArray data;
+        data.append(direction);
+        obj["data"] = QString(data.toHex());
+        Session session(_module(), "SetParameterByCode", obj);
+        if (!gControl.SendAndWaitResult(session)) {
+            // gControl.carDirection = false;
+            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
+            // ui->radioButton_Direction_Reverse->setChecked(false);
+            return false;
+        }
+        return true;
 }

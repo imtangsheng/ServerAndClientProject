@@ -19,9 +19,10 @@ public:
 
     QString ip;
     QString flsDir;
+    Atomic<int> ret;//法如执行反馈结果错误码  ErrorNumbers :int 在头文件中定义错误信息枚举
     bool isConnect();
-    int Connect() const;
-    int SetParameters(QJsonObject param);
+    int Connect();
+    Result SetParameters(QJsonObject param);
     int ScanStart();//螺旋扫描下,启动但不记录数据
     int ScanRecord();//螺旋扫描下,开始记录数据
     int ScanPause();
@@ -31,6 +32,10 @@ public:
 
     void SetScanCompletedCallback(const ScanCompletedCallback& callback);
     int errorNumbers = 0;
+
+    //直接调用 使用回调函数在执行特定顺序的任务
+    Result OnStarted(CallbackResult callback = nullptr);
+    Result OnStopped(CallbackResult callback = nullptr);
 
     QAtomicInteger<bool> isNextStopToggled = false;//The next stop triggers完成一个文件,判断是否停止的标志
     QFileSystemWatcher watcher;

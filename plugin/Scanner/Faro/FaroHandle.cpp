@@ -240,5 +240,5 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     ret = WriteJsonFile(outfilepath, out);
     if (!ret) { LOG_ERROR(ret.message); return; }
     session.result = out;
-    gShare.on_session(session.ResponseString(out, tr("测量相机焦距成功")) , session.socket);
+    gShare.on_session(session.ResponseSuccess(out, tr("测量相机焦距成功")) , session.socket);
 }

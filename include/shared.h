@@ -152,7 +152,10 @@ inline void PushClients(const QString& method, const QJsonValue& params, const Q
 }
 //向指定的ws的客户端发送消息
 inline void PushSessionResponse(const Session& session,const qint8& code, const QJsonValue& result) {
-    emit gSigSent(session.Finished(code,result) , session.socket);
+    if (Result(code))
+        emit gSigSent(session.ResponseSuccess(result), session.socket);
+    else
+        emit gSigSent(session.Finished(code,result.toString()) , session.socket);
 }
 
 #endif

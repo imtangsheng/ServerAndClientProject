@@ -49,7 +49,8 @@ Result WaitDialog::init()
 
 Result WaitDialog::filter(Session &recv)
 {
-    qDebug() <<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<< "WaitDialog::HandleFilter:"<<recv.message;
+    qDebug() <<QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz")<< "WaitDialog::HandleFilter:"
+             <<recv.GetRequest() << "返回结果:" <<recv.code <<recv.result;
     if(recv.id == session->id && recv.module == session->module && recv.method == session->method){
         session->code = recv.code;
         session->result = recv.result;
@@ -58,8 +59,9 @@ Result WaitDialog::filter(Session &recv)
         loop.quit();
 
         hasRuselt = true;
-        hasRuselt.message = recv.message;
-        ui->label_show->setText(hasRuselt.message);
+        if(recv.code != 0){
+            ui->label_show->setText(recv.message);
+        }
         accept();
         // qDebug()<<"会设置dialog的result为QDialog::Accepted（值为1）";
         return Result(true,recv.message);

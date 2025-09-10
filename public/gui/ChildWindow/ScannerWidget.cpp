@@ -32,6 +32,16 @@ QString ScannerWidget::_module() const
     return module;
 }
 
+Result ScannerWidget::SetTaskParameter(QJsonObject &data)
+{
+    Session session(_module(), "SetParameter", data);
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(tr("设置参数失败"), -1);
+        return Result::Failure(tr("设置参数失败"));
+    }
+    return Result();
+}
+
 void ScannerWidget::UpdateTaskConfigSync(QJsonObject &content)
 {
     qDebug() <<"# ScannerWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
@@ -515,10 +525,6 @@ void ScannerWidget::on_pushButton_ScanStop_clicked()
 void ScannerWidget::on_pushButton_ScanSetParameter_clicked()
 {
     parameter["dir"] = gShare.info.value("dir").toString() + "/config/faro/test";
-    Session session(_module(), "SetParameter", parameter);
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(tr("设置参数失败"), -1);
-    }
+    SetTaskParameter(parameter);
 }
 

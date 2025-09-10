@@ -79,7 +79,7 @@ public:
     static QString DeviceName() {
         //static QMetaEnum metaEnum = QMetaEnum::fromType<SerialDeviceType>();
         //return metaEnum.valueToKey(kSupportedSerialDevices);
-        return QVariant::fromValue(kSupportedSerialDevices).toString();
+        return QVariant::fromValue(static_cast<SerialDeviceType>(uCurrentSerialDevice)).toString();
     }
 
     //任务类的方法,需要回应

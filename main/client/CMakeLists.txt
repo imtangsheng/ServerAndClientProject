@@ -1,3 +1,5 @@
+#!!!使用vs2022无法处理中文路径的文件资源
+#set(CMAKE_UTF8 ON)  # 让 CMake 用 UTF-8 编译
 # MS301客户端程序 TCC 隧影
 set(APP_NAME TCC)
 

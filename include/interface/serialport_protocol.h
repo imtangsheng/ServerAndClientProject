@@ -1,21 +1,21 @@
-/**
- * ������-���� ͨѶ�ֲ� 1.2  ������ 2022-04-18
- * ���ݸ�ʽ��16 ����
- * ����֡��ʽ����8 λ����λ��1 λֹͣλ����У�飬Ĭ�ϲ����� 921600��
- * ��ʶ����2 byte�� 41 54
- * ������ַ ��1 byte�� 64
- * �����루1 byte��
- * ���ݸ�ʽ��16 ����
- * ���ݣ�n byte��
- * CRC У�飨2 byte��
- * ��β��2 byte��0D 0A
+﻿/**
+ * 多面阵-车载 通讯手册 1.2  电子组 2022-04-18
+ * 数据格式：16 进制
+ * 数据帧格式：（8 位数据位，1 位停止位，无校验，默认波特率 921600）
+ * 标识符（2 byte） 41 54
+ * 本机地址 （1 byte） 64
+ * 功能码（1 byte）
+ * 数据格式：16 进制
+ * 数据（n byte）
+ * CRC 校验（2 byte）
+ * 结尾（2 byte）0D 0A
  *
- * ��ʶ�����̶�Ϊ 41 54
- * ������ַ���̶�Ϊ 64
- * �����룺ÿ�������в�ͬ�Ĺ�����
- * ���ݣ����ݵĳ��ȿ���Ϊ 0 �� n �ֽڣ�����Ϊ 0 ʱֱ��������һλ
- * CRC У�飺���� crc16 �ķ�ʽ����У�飬У����ֽ�Ϊ CRC ֮ǰ�������ֽڣ����ֽ���ǰ�����ֽ��ں��ֲ��β����˵����
- * ��β���̶�Ϊ 0D 0A
+ * 标识符：固定为 41 54
+ * 本机地址：固定为 64
+ * 功能码：每个功能有不同的功能码
+ * 数据：数据的长度可以为 0 到 n 字节，长度为 0 时直接跳过这一位
+ * CRC 校验：采用 crc16 的方式进行校验，校验的字节为 CRC 之前的所有字节，低字节在前，高字节在后；手册结尾另附说明。
+ * 结尾：固定为 0D 0A
  *
  */
 #ifndef _SERIALPORT_PROTOCOL_H
@@ -23,30 +23,30 @@
 
 namespace serial {
     typedef unsigned char FunctionCodeType;
-    // ֡��ʽ����
+    // 帧格式定义
 
-    // ��ʶ�� 
+    // 标识符 
     inline static constexpr quint16 HEADER_BYTE = 0x0D0A;    // CR LF
-    // ��ʶ�� - ֱ�ӳ�ʼ��Ϊ QByteArray
+    // 标识符 - 直接初始化为 QByteArray
     static inline const QByteArray HEADER_BYTES = QByteArrayLiteral("\x41\x54");  // 'A''T'
     inline static constexpr quint8 HEADER_BYTE_LEN = 2;
-    // ������ַ
+    // 本机地址
     inline static constexpr quint8 LOCAL_ADDRESS = 0x64; //
-    // ������
-    //FunctionCodeType FUNCTION_CODE = 0x00; //ÿ�������в�ͬ�Ĺ�����
-    inline static constexpr quint8 FUNCTION_CODE_POS = 3;//�����ʶ���Ŀ�ʼλ��
-    // ����
-    inline static constexpr quint8 DATA_POS = 4; // �����ʶ���Ŀ�ʼλ��
-    //CRC У��
+    // 功能码
+    //FunctionCodeType FUNCTION_CODE = 0x00; //每个功能有不同的功能码
+    inline static constexpr quint8 FUNCTION_CODE_POS = 3;//距离标识符的开始位置
+    // 数据
+    inline static constexpr quint8 DATA_POS = 4; // 距离标识符的开始位置
+    //CRC 校验
     inline static constexpr quint16 CRC_BYTE_LEN = 2;
-    // ֡β
+    // 帧尾
     inline static constexpr quint16 TAIL_BYTE = 0x0D0A;    // CR LF
-    // ֡β - Ҳ��Ϊ QByteArray
+    // 帧尾 - 也改为 QByteArray
     static inline const QByteArray TAIL_BYTES = QByteArrayLiteral("\x0D\x0A");
     inline static constexpr quint8 TAIL_BYTE_LEN = 2;
 
-    // ���� CRC16 У��ֵ
-        // CRC16 MODBUS ���ұ�
+    // 计算 CRC16 校验值
+        // CRC16 MODBUS 查找表
     inline static constexpr uint16_t CRC_Table[256] = {
         0x0000, 0xC0C1, 0xC181, 0x0140, 0xC301, 0x03C0, 0x0280, 0xC241,
         0xC601, 0x06C0, 0x0780, 0xC741, 0x0500, 0xC5C1, 0xC481, 0x0440,
@@ -85,109 +85,118 @@ namespace serial {
         uint16_t crc = 0xFFFF;
         const uint8_t* buf = reinterpret_cast<const uint8_t*>(data.constData());
         int len = data.length();
-        // ʹ�ò��ұ�����CRC
+        // 使用查找表计算CRC
         while (len--) {
             crc = (crc >> 8) ^ CRC_Table[(crc ^ *buf++) & 0xFF];
         }
-        // ת��ΪQByteArray
+        // 转换为QByteArray
         QByteArray result(2, 0);
-        result[0] = static_cast<char>(crc & 0xFF);         // ���ֽ�
-        result[1] = static_cast<char>((crc >> 8) & 0xFF);  // ���ֽ�
+        result[0] = static_cast<char>(crc & 0xFF);         // 低字节
+        result[1] = static_cast<char>((crc >> 8) & 0xFF);  // 高字节
         return result;
     }
 
-    //�ظ�ִ�гɹ�
+    //回复执行成功
     enum FunctionCodeResultEnum : quint8 {
-        RESULT_SUCCESS = 0x00,  // �ɹ�
-        RESULT_FAILURE = 0x01,  // ʧ��
+        RESULT_SUCCESS = 0x00,  // 成功
+        RESULT_FAILURE = 0x01,  // 失败
     };
 
-    /*������ö��
-    * CODE_ ͨ�ÿ�ͷ
-    * SCANNER_ɨ����
-    * CAR_��С������ָ�� Trolley
-    * BATTERY_�ǵ��������
-    * LED_ LED�ƹ����
+    /*功能码枚举
+    * CODE_ 通用开头
+    * SCANNER_扫描仪
+    * CAR_是小车控制指令 Trolley
+    * BATTERY_是电池命令类
+    * LED_ LED灯光控制
     */
     enum FunctionCodeEnum : FunctionCodeType {
-        CODE_TEST = 0x00,  // ����
-        CODE_GET_ID = 0x01,  // ��ȡID
+        CODE_TEST = 0x00,  // 测试
+        CODE_GET_ID = 0x01,  // 获取ID
 
-        // ɨ����ָ��
-        SCANER_END_SCAN = 0x02,  // ����ɨ��
-        SCANER_INITIATE_SCAN = 0x03,  // ��ʼ��ɨ��
-        SCANER_SET_AUTOMATION_TIME = 0x04,  // �����Զ���ʱ��
-        SCANER_RECORD_PAUSE = 0x05,  // ��ʼ/��ͣ��¼ɨ������
-        SCANER_DATA_MESSAGE = 0x06,  // ��ɨ���ǵĵ��������м����û�����
-        SCANER_SELF_TEST = 0x07,  // �Բ�
-        SCANER_GET_AUTOMATION_TIME = 0x08,  // ��ȡɨ���ǵ��Զ���ʱ��
-        SCANER_MIRROR_INDEX_TRIGGER_ENABLE = 0x09, // ����
-        SCANER_MIRROR_INDEX_TRIGGER_OCCURRED = 0x0a, // ����
+        // 扫描仪指令
+        SCANER_END_SCAN = 0x02,  // 结束扫描
+        SCANER_INITIATE_SCAN = 0x03,  // 初始化扫描
+        SCANER_SET_AUTOMATION_TIME = 0x04,  // 设置自动化时间
+        SCANER_RECORD_PAUSE = 0x05,  // 开始/暂停记录扫描数据
+        SCANER_DATA_MESSAGE = 0x06,  // 向扫描仪的点云数据中加入用户数据
+        SCANER_SELF_TEST = 0x07,  // 自测
+        SCANER_GET_AUTOMATION_TIME = 0x08,  // 获取扫描仪的自动化时间
+        SCANER_MIRROR_INDEX_TRIGGER_ENABLE = 0x09, // 保留
+        SCANER_MIRROR_INDEX_TRIGGER_OCCURRED = 0x0a, // 保留
 
-        // С������ָ��
-        CAR_STARTUP = 0x0b,  // ����С��
-        CAR_STOP = 0x0c,  // ֹͣС��
-        CAR_CHANGING_OVER = 0x0d,  // ����
-        CAR_SET_SPEED = 0x0e,  // �����ٶ�
-        CAR_RESET_TOTAL_MILEAGE = 0x0f,  // ���С���������
-        CAR_GET_MSG = 0x10,  // ��ȡС������Ϣ
-        // ��Դ����
-        CAR_SCANER_PWR_CTRL = 0x11,  // ɨ���ǵ�Դ����
-        CAR_PWR_CTRL = 0x12,  // �����Դ����
-        CAR_GET_TOTAL_MILEAGE = 0x13,  // ��ȡ�����
-        // ���ָ��
-        CAR_GET_BATTERY_MSG = 0x14,  // ��ȡ�����Ϣ
-        CAR_SET_ENCODER_USAGE = 0x15,  // ����ʹ���Ǹ�������
-        CAR_SET_START_STOP_BUTTON_MODE = 0x16,  // ������ͣ����ģʽ
-        CAR_SET_EMERGENCY_STOP_MODE = 0x17,  // �����Ƿ����ü�ͣ��ť
-        CAR_GET_EMERGENCY_STOP_MODE = 0x18,  // ��ȡ�Ƿ����ü�ͣ��ť
-        CAR_SWITCH_VOLTAGE_CTRL = 0x19,  // �л���ѹ
-        CAR_CHOOSE_BATTERY_SOURCE = 0x1a,  // ����ʹ����һ���ع���
+        // 小车控制指令
+        CAR_STARTUP = 0x0b,  // 启动小车
+        CAR_STOP = 0x0c,  // 停止小车
+        CAR_CHANGING_OVER = 0x0d,  // 换向
+        CAR_SET_SPEED = 0x0e,  // 设置速度
+        CAR_RESET_TOTAL_MILEAGE = 0x0f,  // 清除小车的总里程
+        CAR_GET_MSG = 0x10,  // 获取小车的信息
+        // 电源控制
+        CAR_SCANER_PWR_CTRL = 0x11,  // 扫描仪电源控制
+        CAR_PWR_CTRL = 0x12,  // 电机电源控制
+        CAR_GET_TOTAL_MILEAGE = 0x13,  // 获取总里程
+        // 电池指令
+        CAR_GET_BATTERY_MSG = 0x14,  // 获取电池信息
+        CAR_SET_ENCODER_USAGE = 0x15,  // 设置使用那个编码器
+        CAR_SET_START_STOP_BUTTON_MODE = 0x16,  // 设置启停按键模式
+        CAR_SET_EMERGENCY_STOP_MODE = 0x17,  // 设置是否启用急停按钮
+        CAR_GET_EMERGENCY_STOP_MODE = 0x18,  // 获取是否启用急停按钮
+        CAR_SWITCH_VOLTAGE_CTRL = 0x19,  // 切换电压
+        CAR_CHOOSE_BATTERY_SOURCE = 0x1a,  // 设置使用哪一块电池供电
 
+        CAR_GET_INFO = 0x20, //MS310 获取小车信息
         // Camera commands
-        CAMERA_GET_MSG = 0x30,                         /* ��ȡ���õ���Ϣ */
-        CAMERA_SET_FREQUENCY = 0x31,                   /* �����������Ƶ�� */
-        CAMERA_START_STOP = 0x32,                      /* ��ʼ��ֹͣ���� */
-        CAMERA_SET_ENABLE_MODE = 0x33,                 /* �������ʹ�ܺ͹���ģʽ */
-        CAMERA_LED_CONTROL = 0x34,                     /* LED���� */
-        CAMERA_FAN_CONTROL = 0x35,                     /* ���ȿ��� */
-        CAMERA_GET_LED_FAN_STATUS = 0x36,              /* ��ȡLED�ͷ��ȿ���״̬ */
-        CAMERA_GET_TEMP_VOLTAGE = 0x37,                /* ��ȡ�¶ȡ���ѹ����������� */
-        CAMERA_MOTOR_CONTROL = 0x38,                   /* ����������� */
+        CAMERA_GET_MSG = 0x30,                         /* 获取设置的信息 */
+        CAMERA_SET_FREQUENCY = 0x31,                   /* 设置相机拍照频率 */
+        CAMERA_START_STOP = 0x32,                      /* 开始或停止拍照 */
+        CAMERA_SET_ENABLE_MODE = 0x33,                 /* 设置相机使能和工作模式 */
+        CAMERA_LED_CONTROL = 0x34,                     /* LED控制 */
+        CAMERA_FAN_CONTROL = 0x35,                     /* 风扇控制 */
+        CAMERA_GET_LED_FAN_STATUS = 0x36,              /* 获取LED和风扇开闭状态 */
+        CAMERA_GET_TEMP_VOLTAGE = 0x37,                /* 获取温度、电压、电池组数量 */
+        CAMERA_MOTOR_CONTROL = 0x38,                   /* 步进电机控制 */
 
-        CAMERA_SET_UNIQUE_ID = 0x39,                   /* ���������Ψһ��ţ�ID��Χ0-255 */
-        CAMERA_GET_UNIQUE_ID = 0x3A,                   /* ��ȡ�����Ψһ��� */
-        CAMERA_SET_UNIQUE_ENABLE_MODE = 0x3B,          /* ��Ψһ�����ʽ�������ʹ�ܺ͹���ģʽ */
-        CAMERA_SET_UNIQUE_FREQUENCY = 0x3C,            /* ��Ψһ�����ʽ�����������Ƶ�� */
-        CAMERA_START_STOP_UNIQUE = 0x3D,               /* ��Ψһ�����ʽ��ʼ��ֹͣ���� */
+        CAMERA_SET_UNIQUE_ID = 0x39,                   /* 设置相机的唯一编号，ID范围0-255 */
+        CAMERA_GET_UNIQUE_ID = 0x3A,                   /* 获取相机的唯一编号 */
+        CAMERA_SET_UNIQUE_ENABLE_MODE = 0x3B,          /* 以唯一编号形式设置相机使能和工作模式 */
+        CAMERA_SET_UNIQUE_FREQUENCY = 0x3C,            /* 以唯一编号形式设置相机拍照频率 */
+        CAMERA_START_STOP_UNIQUE = 0x3D,               /* 以唯一编号形式开始或停止拍照 */
 
-        CAMERA_MOTOR_SEARCH_ZERO = 0x3E,               /* �������������� */
-        CAMERA_START_UNIQUE_ONE_FRAME = 0x3F,          /* ��ʼ����һ֡ */
-        CAMERA_SET_EXPOSURE_TIME = 0x40,               /* �����ع�ʱ�� */
-        CAMERA_M2_FAN_CONTROL = 0x41,                  /* M2ɢ�ȷ��ȿ��� */
-        CAMERA_MOTOR_SPEED_CONTROL = 0x42,             /* ��ת���ֵĵ��ת�ٺͷ������ */
-        CAMERA_MOTOR_START_STOP_CONTROL = 0x43,        /* �����ͣ���� */
-        CAMERA_READ_MOTOR_STATUS = 0x44,               /* ��ȡ���״̬ */
-        CAMERA_SET_MOTOR_POSITION = 0x45,              /* ��ת��ָ��λ��1-15 */
-        CAMERA_SET_TRIGGER_POSITION = 0x46,            /* �������մ���λ�� */
-        CAMERA_GET_TRIGGER_POSITION = 0x47,            /* ��ȡ���մ���λ�� */
+        CAMERA_MOTOR_SEARCH_ZERO = 0x3E,               /* 步进电机搜索零点 */
+        CAMERA_START_UNIQUE_ONE_FRAME = 0x3F,          /* 开始拍照一帧 */
+        CAMERA_SET_EXPOSURE_TIME = 0x40,               /* 设置曝光时间 */
+        CAMERA_M2_FAN_CONTROL = 0x41,                  /* M2散热风扇控制 */
+        CAMERA_MOTOR_SPEED_CONTROL = 0x42,             /* 旋转部分的电机转速和方向控制 */
+        CAMERA_MOTOR_START_STOP_CONTROL = 0x43,        /* 电机启停控制 */
+        CAMERA_READ_MOTOR_STATUS = 0x44,               /* 读取电机状态 */
+        CAMERA_SET_MOTOR_POSITION = 0x45,              /* 旋转到指定位置1-15 */
+        CAMERA_SET_TRIGGER_POSITION = 0x46,            /* 设置拍照触发位置 */
+        CAMERA_GET_TRIGGER_POSITION = 0x47,            /* 获取拍照触发位置 */
 
-        CAMERA_SET_GET_BM1_LOCATION_VALUE = 0x48,      /* ��ȡ������λ��1���ڵı�����ֵ */
-        CAMERA_SET_GET_TRIGGER_MODE = 0x49             /* �򿪻�رչ�翪���쳣��ⴥ��ģʽ�Զ��л� */
+        CAMERA_SET_GET_BM1_LOCATION_VALUE = 0x48,      /* 获取或设置位置1所在的编码器值 */
+        CAMERA_SET_GET_TRIGGER_MODE = 0x49,             /* 打开或关闭光电开关异常检测触发模式自动切换 */
+
+        //线阵相机相关指令
+        LINE_SACN_CAMERA_GET_MSG = 0x50, /*获取线阵相机信息*/
+        LINE_SACN_CAMERA_LED_CONTROL = 0x51, /*线阵相机LED控制*/
+        LINE_SACN_CAMERA_CONTROL = 0x52, /*开始或停止线阵相机拍照*/
+        LINE_SCAN_CAMERA_SET_CONFIG = 0x53, /*设置线阵相机配置*/
+        LINE_SCAN_CAMERA_SET_FOCUS_DIS = 0x54 /*设置对焦距离*/
     };
 
-    /*������������෽��*/
+    /*串口任务控制类方法*/
     Q_NAMESPACE
         enum SerialDeviceType : quint8 {
-        SERIAL_NONE = 0x00,//���豸
-        SERIAL_CAR = 0x01,//С���п���
-        SERIAL_CAMERA = 0x02,//����豸
+        SERIAL_NONE = 0x00,//无设备
+        SERIAL_CAR = 0x01,//小车中控箱
+        SERIAL_CAMERA = 0x02,//相机设备
+        SERIAL_LINE_SCAN_CAMERA = 0x04,//线阵相机设备
         SERIAL_CAR_CAMERA = SERIAL_CAR | SERIAL_CAMERA
     };
     Q_ENUM_NS(SerialDeviceType)
 
 #pragma region serialport
-        //�̶���ģ������
+        //固定的模块名称
         inline static const QString g_module_name = share::Shared::GetModuleName(share::ModuleName::serial);
 
 #define Function_Code(name) def_##name(const QByteArray& data)
@@ -196,91 +205,96 @@ namespace serial {
 #define SUBSCRIBE_METHOD(name) "on" #name "Change"
 
     inline QString FunctionCodeToString(FunctionCodeType code) {
-        //qUtf8Printable;//qUtf8Printable �������������������ڱ����ַ������������ڣ����Ǹ���ȫ������
-        //QString::number(code, 16) ������ code ת��Ϊָ�����ƣ������� 16 ���ƣ����ַ���
-        //.rightJustified(2, '0') ���ã����ַ����Ҷ��룬ȷ���䳤������Ϊָ�����ȣ������� 2����������㣬����������ָ�����ַ��������� '0'��
-        //.toUpper() ���ã����ַ����е�������ĸת��Ϊ��д��ʮ�������е���ĸ a - f ��Ϊ A - F�����ֺ������ַ����䡣
+        //qUtf8Printable;//qUtf8Printable 宏会在整个语句作用域内保持字符串的生命周期，这是更安全的做法
+        //QString::number(code, 16) 将整数 code 转换为指定进制（这里是 16 进制）的字符串
+        //.rightJustified(2, '0') 作用：将字符串右对齐，确保其长度至少为指定宽度（这里是 2），如果不足，则在左侧填充指定的字符（这里是 '0'）
+        //.toUpper() 作用：将字符串中的所有字母转换为大写。十六进制中的字母 a - f 变为 A - F，数字和其他字符不变。
         return QString("function0x") + QString::number(code, 16).rightJustified(2, '0').toUpper();
     }
 
 #pragma endregion
 
 #ifdef DEVICE_TYPE_CAR
-    /*С�����ݸ�ʽ����*/
+    /*小车数据格式定义*/
     struct CarInfo
     {
-        //С����Ϣ ָ��ظ�
+        //小车信息 指令回复
         uint16_t speed;
-        uint8_t temperature_symbol; //0 Ϊ����1 Ϊ��
-        uint16_t temperature;//��λΪ0.1�� ��ʾʱ��Ҫ����10
-        uint8_t direction; // ���� 0 ���� 1 ǰ��
-        uint8_t moving; // ��ͣ״̬ 0 ֹͣ 1 ����
-        uint8_t battery_usage;//���ʹ��״̬��0 δ��ʼ�� ��أ�1 ʹ������أ� 2 ʹ���Ҳ���
-        uint8_t knob_state;//��ť״̬��1 �� 5 �ֱ��ʾ��ť��״̬ 1 �� 5��
-        uint8_t encoder_mode;//ΪĿǰʹ�õ����ĸ���������	1 ��࣬2 �Ҳ࣬3 ͬʱʹ������������ Ŀǰ��˫������
-        uint8_t key_mode;//Ϊ����ģʽ��0 С�����ȼ��ߣ����°���С��ֱ��������1 �������ȼ��ߣ�С��������������ֻ���Ͱ�����Ϣ������
-        uint8_t scanner_power;//Ϊɨ���ǹ���״̬��0 �����磨Ĭ�ϣ���1 ���硣���� 0x11 ָ�����
-        uint16_t speed_min; //Ϊ��С�ٶ�
+        uint8_t temperature_symbol; //0 为正，1 为负
+        uint16_t temperature;//单位为0.1° 显示时需要除以10
+        uint8_t direction; // 方向 0 后退 1 前进
+        uint8_t moving; // 启停状态 0 停止 1 运行
+        uint8_t battery_usage;//电池使用状态；0 未初始化 电池，1 使用左侧电池， 2 使用右侧电池
+        uint8_t knob_state;//旋钮状态；1 到 5 分别表示旋钮的状态 1 到 5。
+        uint8_t encoder_mode;//为目前使用的是哪个编码器；	1 左侧，2 右侧，3 同时使用两个编码器 目前用双编码器
+        uint8_t key_mode;//为按键模式；0 小车优先级高，按下按键小车直接启动；1 软件优先级高，小车并不会启动，只发送按键信息到电脑
+        uint8_t scanner_power;//为扫描仪供电状态；0 不供电（默认），1 供电。（由 0x11 指令控制
+        uint16_t speed_min; //为最小速度
         uint16_t speed_max;
-        int64_t time;//��·��ʱ�䣻��λΪ��10 ΢�룩�������������Ը�Ϊ 1 ΢�롣
+        int64_t time;//电路板时间；单位为（10 微秒）。如果有需求可以改为 1 微秒。
     };
     struct ScannerAndCarTimeInfo
     {
-        quint64 scanner{ 0 };        //ɨ�����Զ���ʱ�� ��λ΢��
-        quint64 car{ 0 };              //С�����Զ���ʱ�� ��λΪ10΢��
+        quint64 scanner{ 0 };        //扫描仪自动化时间 单位微秒
+        quint64 car{ 0 };              //小车的自动化时间 单位为10微秒
         quint64 difference{ 0 };
-        void upadate(quint64 scanner_time, quint64 car_time) {
+        void update(quint64 scanner_time, quint64 car_time) {
             scanner = scanner_time;
             car = car_time;
             difference = scanner - car;
         }
-        quint64 GetScanner(quint64 cartime) const {
-            return cartime + difference;
+        quint64 GetScanner(quint64 car_time) const {
+            return car_time + difference;
         }
 
     };
     struct BatteryInfo {
-        uint8_t state; // 00 �����������쳣
-        uint16_t voltage; // in mV Ϊ��ص�ѹ
-        int16_t current; // in mA Ϊ��ص���
-        uint16_t remainingCapacity; // in mAh Ϊ���ʣ������
-        uint16_t fullChargeCapacity; // in mAh Ϊ�����������
-        uint16_t cycleCount; // Ϊ���ѭ������
+        uint8_t state; // 00 正常，其他异常
+        uint16_t voltage; // in mV 为电池电压
+        int16_t current; // in mA 为电池电流
+        uint16_t remainingCapacity; // in mAh 为电池剩余容量
+        uint16_t fullChargeCapacity; // in mAh 为电池满充容量
+        uint16_t cycleCount; // 为电池循环次数
     };
     struct MileageInfo
     {
-        quint8 symbol; //Ϊ��̷��ţ�00 Ϊ����01 Ϊ����
-        qint64 pulse;//�������� 8 �ֽ�Ϊ��̵���������ʵ�����= ������ * ���岽��Pulse step size�� ��Ҫ ���� speed_multiplier
-        qint64 time;//��� ��ʱ��
+        quint8 symbol; //为里程符号，00 为正，01 为负。
+        qint64 pulse;//接下来的 8 字节为里程的脉冲数。实际里程= 脉冲数 * 脉冲步长Pulse step size。 即要 乘以 speed_multiplier
+        qint64 time;//里程 的时间
         MileageInfo() : symbol(0), pulse(0), time(0) {}
         MileageInfo(quint8 symbol,qint64 pulse,qint64 time) : symbol(symbol), pulse(pulse), time(time) {}
         friend QDataStream& operator<<(QDataStream& out, const MileageInfo& info) {
-            // ��˳��д�����г�Ա����
+            // 按顺序写入所有成员变量
             out << info.symbol << info.pulse << info.time;
             return out;
         }
         friend QDataStream& operator>>(QDataStream& in, MileageInfo& info) {
-            // ����ͬ˳���ȡ���г�Ա����
+            // 按相同顺序读取所有成员变量
             in >> info.symbol >> info.pulse >> info.time;
             return in;
         }
 
     };
 
-    struct InclinometerInfo { //��ǼƵ�����Ϊ���� 15 ��
+    struct InclinometerInfo { //倾角计的量程为正负 15 度
         qint32 x = 0;
         qint32 y = 0;
         qint64 time = 0;
+        friend QDataStream& operator>>(QDataStream& in, InclinometerInfo& info) {
+            // 按相同顺序读取所有成员变量
+            in >> info.x >> info.y >> info.time;
+            return in;
+        }
     };
 
-    /*���������,���ڻ�������*/
+    /*定义的数据,用于缓存数据*/
     static inline ScannerAndCarTimeInfo gScannerCarTimeSync;
-    static inline qint64 gGetScannerTimeCount{ 0 };//����
+    static inline qint64 gGetScannerTimeCount{ 0 };//计数
 
-    static inline QAtomicInteger<quint64> g_mileage_count{ 0 };//��̼���
+    static inline QAtomicInteger<quint64> g_mileage_count{ 0 };//里程计数
 
-    inline static constexpr int kMileageUpdateInterval = 20;//�����еĸ������ʹ���
-    inline double g_mileage_multiplier = 1.0;//�ٶȱ���
+    inline static constexpr int kMileageUpdateInterval = 20;//界面中的更新推送次数
+    inline double g_mileage_multiplier = 0.0000843689430;//速度倍率
 
     inline const QJsonObject MILEAGE_MULTIPLIER{
         {"MS201", 0.0000843689430},
@@ -294,35 +308,35 @@ namespace serial {
 
 
 #ifdef DEVICE_TYPE_CAMERA
-    /*��Ҷ��������ݸ�ʽ*/
+    /*三叶草相机数据格式*/
     struct CloverInfo
     {
-        quint16 enable;//���ʹ��
-        quint16 mode;//���ģʽ
-        char fps[10];//���Ƶ�� 10 �ֽ� AcquisitionFrameRate
-        quint16 led_state;//�����״̬�����ֽ���ǰ�����ֽ��ں󡣺ϳ�֮�� �ӵ�λ����λ�ֱ���� 10�鲹��Ƶ�״̬��
-        quint16 fan_state;//����ɢ�ȷ���״̬���벹��Ƹ�ʽ��ͬ��δ���á�
-        quint16 speed;//Ϊת��  ��λ����תÿ����
-        quint8 direction;//��ʾ��ת����0 ��ʾ��ǰ����1 ��ʾ�෴���򡣸�λĿǰ���ɵ���Ĭ��Ϊ 0��
-        quint8 moving;//��ʾ��ͣ״̬��0 ֹͣ��1 ת��
-        quint8 calibrated;//��ʾ�������Ƿ��Ѿ�У׼��0��У׼��1 δУ׼����δУ׼����ת��������ת�����л��Զ�У׼��
-        quint8 pose;//��ת����λ�ã���Χ 1-15��δУ׼��ֵ��׼ȷ��
-        quint16 trigger_position[3];//�����λ���� 15 λ���δ������̵� 1 �� 15λ�á�
+        quint16 enable;//相机使能
+        quint16 mode;//相机模式
+        char fps[10];//相机频率 10 字节 AcquisitionFrameRate
+        quint16 led_state;//补光灯状态，低字节在前，高字节在后。合成之后 从低位到高位分别代表 10组补光灯的状态。
+        quint16 fan_state;//代表散热风扇状态，与补光灯格式相同。未启用。
+        quint16 speed;//为转速  单位多少转每分钟
+        quint8 direction;//表示旋转方向，0 表示当前方向，1 表示相反方向。该位目前不可调，默认为 0。
+        quint8 moving;//表示启停状态，0 停止，1 转动
+        quint8 calibrated;//表示编码器是否已经校准，0已校准，1 未校准。若未校准，旋转机构在旋转过程中会自动校准。
+        quint8 pose;//旋转机构位置，范围 1-15；未校准该值不准确。
+        quint16 trigger_position[3];//由最低位到第 15 位依次代表码盘的 1 到 15位置。
     };
 
-    //��Ҷ�����Ĭ����15����λ ����һ̨�豸��21��λ
+    //三叶草相机默认是15个机位 还有一台设备是21机位
 #ifndef Clover_Positions_Number
 #define Clover_Positions_Number 15
 #endif
 
     struct CloverTriggerInfo
     {
-        qint32 id; //    �������������
-        qint64 time; //   ʱ��
-        quint8 camera_id;//    ��� ID
-        quint8 feedback;//    �عⷴ����0 �޷�����1 �з���
-        quint8 position;//    ��ת����λ�ã�ȡֵ 1 - 15 ��תλ�ò���ʵ�ʶ�Ӧ�Ļ�λ
-        quint8 GetActualPosition() const { //��Ӧ��ʵ�ʻ�λ
+        qint32 id; //    相机触发次数，
+        qint64 time; //   时间
+        quint8 camera_id;//    相机 ID
+        quint8 feedback;//    曝光反馈，0 无反馈，1 有反馈
+        quint8 position;//    旋转机构位置，取值 1 - 15 旋转位置不是实际对应的机位
+        quint8 GetActualPosition() const { //对应的实际机位
             quint8 actual_position = 0;
             switch (camera_id) {
             case 1:actual_position = position; break;

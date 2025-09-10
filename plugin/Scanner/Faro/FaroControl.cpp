@@ -1,6 +1,4 @@
-﻿
-
-#include<QTimer>
+﻿#include<QTimer>
 #include <QtConcurrent>
 #include "FaroControl.h"
 using namespace faro;
@@ -227,8 +225,8 @@ FaroControl::FaroControl(QObject* parent)
     }
     
     //ip = "192.168.43.1";//无线
-    //ip = "172.17.9.20";//有线
-    ip = "192.168.1.20";//测试
+    ip = "172.17.9.20";//有线
+    //ip = "192.168.1.20";//测试
 }
 
 FaroControl::~FaroControl() {
@@ -247,16 +245,16 @@ bool FaroControl::isConnect() {
     return scanCtrl->Connected;/* 0 == FALSE, -1 == TRUE */
 }
 
-int FaroControl::Connect() const {
+int FaroControl::Connect() {
     qDebug() << "[#Faro]尝试连接" << ip <<"[时间]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz");
     scanCtrl->ScannerIP = faro::FaroSring(ip);
     //scanCtrl->clearExceptions();
-    int ret = scanCtrl->connect(); //可能的结果:0, 2, 4 ⚠️注意,该函数会冻结程序运行,无线连接21秒,并且在有线网络时候,其返回2,结果不准,在约24秒后通过连接查询会连接上
+    ret = scanCtrl->connect(); //可能的结果:0, 2, 4 ⚠️注意,该函数会冻结程序运行,无线连接21秒,并且在有线网络时候,其返回2,结果不准,在约24秒后通过连接查询会连接上
     qDebug() << "FaroControl::connect 连接结果" << ret;
     return ret;
 }
 
-int FaroControl::SetParameters(QJsonObject param) {
+Result FaroControl::SetParameters(QJsonObject param) {
     /* ScanMode 可以有四个值：
     0 固定灰色 设置 StationaryGrey 以进行普通球面灰度扫描。
     1 固定颜色 设置 StationaryColor 以记录带颜色的球面扫描
@@ -265,8 +263,11 @@ int FaroControl::SetParameters(QJsonObject param) {
     */
     QString path = param.value("dir").toString();
     if (path.isEmpty()) {
-        LOG_ERROR(tr("[#Faro]目录参数为空").arg(path));
-        return -1;
+        if (gTaskFileInfo == nullptr) {
+            LOG_ERROR(tr("[#Faro]目录参数为空").arg(path));
+            return -1;
+        }
+        path = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
     }
     QDir dir(path);
     // 检查目录是否存在
@@ -299,7 +300,7 @@ int FaroControl::SetParameters(QJsonObject param) {
     */
     scanCtrl->NumCols = param.value(Json_NumCols).toInteger(2000000); // 2000000; //In ScanMode HelicalGrey changes on Resolution or the scan area will have no effect on NumCols.
     scanCtrl->SplitAfterLines = param.value(Json_SplitAfterLines).toInt(5000);//The minimum number is 100. Smaller scan files are not supported.
-    int ret = scanCtrl->syncParam();// By calling syncParam they get synchronized with the scanner 
+    ret = scanCtrl->syncParam();// By calling syncParam they get synchronized with the scanner 
     qDebug() << "执行结果" << ret;
     return ret;
 }
@@ -310,21 +311,21 @@ int FaroControl::ScanStart() {
     * 请注意，在螺旋扫描模式下，记录的扫描点没有完整的 3D信息，并且必须使用额外的定位信息进行扩展（例如来自里程表或 GPS 的定位信息）。
     */
     //scanCtrl->clearExceptions();//Clears all exceptions on the scanner.This function is automatically called at the beginning of scanStart.
-    int ret = scanCtrl->startScan();//0, 1, 3, 4  约等待8秒才可以触发录制的功能,否则点击无效
+    ret = scanCtrl->startScan();//0, 1, 3, 4  约等待8秒才可以触发录制的功能,否则点击无效
     qDebug() << "执行结果" << ret;
-    //qint32 Errorcode = scanCtrl->NumberExceptions;
-    //qDebug() << "##startScan NumberExceptions: " << Errorcode;
+    ret.lastError = tr("扫描仪开始扫描失败, 请检查设备状态");
     return ret;
 }
 
 int FaroControl::ScanRecord() {
     HelicalRecordingStatus status{ HRSUnknown };
-    int ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
+    ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
     qDebug() << "FaroControl::ScanRecord 查询结果和状态" << ret << status;
     ret = scanCtrl->recordScan();//0,3 Starts scan data recording when scanning in helical CAN mode.
     qDebug() << "执行开始记录数据结果 " << ret;
     ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
     qDebug() << "FaroControl::ScanRecord 再次查询结果和状态" << ret << status;
+    ret.lastError = tr("扫描仪开始录制任务失败, 请检查设备状态");
     return ret;
 }
 
@@ -334,7 +335,7 @@ int FaroControl::ScanPause() {
     //HRSPaused = 1,
     //HRSRecording = 2
     HelicalRecordingStatus status{ HRSUnknown };
-    int ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
+    ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
     qDebug() << "执行结果" << ret << status;
     qDebug() << "正在暂停";
     ret = scanCtrl->pauseScan();//需要等待生效
@@ -362,7 +363,6 @@ int FaroControl::ScanPause() {
 }
 
 int FaroControl::ScanStop() {
-    int ret = 0;
     int percent = scanCtrl->ScanProgress;
     int currentNumCols = scanCtrl->NumCols * percent / 100;
     qDebug() << "[#Scanner]停止扫描 进度:" << percent << "%" << currentNumCols;
@@ -376,6 +376,7 @@ int FaroControl::ScanStop() {
     
     ret = scanCtrl->stopScan();//0,1, 3
     qDebug() << "执行结果" << ret;
+    ret.lastError = tr("扫描仪停止任务失败, 请检查设备状态");
     return ret;
 }
 
@@ -391,6 +392,31 @@ int FaroControl::shutdown()
 
 void FaroControl::SetScanCompletedCallback(const ScanCompletedCallback& callback) {
     g_scanCompletedCallback = callback;
+}
+
+Result FaroControl::OnStarted(CallbackResult callback) {
+    if(!isConnect()){
+        ret.lastError = tr("扫描仪未连接");
+        if (callback) callback(-1,ret.lastError);
+        return false;
+    }
+    ret = ScanStart();
+    //需要等待一定时间准备 约8 秒开始记录数据
+    if (ret != faro::OK) {
+        ret.lastError=tr("扫描仪开始采集任务失败, 请检查设备状态");
+        return ret;
+    }
+    QTimer::singleShot(8000, [=]() {
+        ret = ScanRecord();
+        if (callback) callback(ret, ret.lastError);
+    });
+    return Result(); // 或直接 return {};  C++17及以上
+}
+
+Result FaroControl::OnStopped(CallbackResult callback) {
+    ret = ScanStop();
+    if (callback) callback(ret, ret.lastError);
+    return ret;
 }
 
 void FaroControl::onDirectoryChanged(const QString& path) {
@@ -435,3 +461,4 @@ void FaroControl::onDirectoryChanged(const QString& path) {
         }
     }
 }
+

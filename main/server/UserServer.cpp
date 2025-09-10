@@ -164,7 +164,7 @@ void UserServer::SetRegisterSettings(const Session& session) {
 
 void UserServer::GetTaskData(const Session& session) {
     qDebug() << "update task data get:" << gTaskManager.data;
-    gShare.on_session(session.ResponseString(gTaskManager.data), session.socket);
+    gShare.on_session(session.ResponseSuccess(gTaskManager.data), session.socket);
 }
 
 enum SessionErrorCode : int
@@ -200,7 +200,7 @@ void UserServer::AddNewProject(const Session& session) {
     projects[project.name] = project.ToJsonObject();
     gTaskManager.data[cKeyContent] = projects;
 
-    return gShare.on_session(session.ResponseString(SessionErrorNone,tr("创建新项目成功")), session.socket);
+    return gShare.on_session(session.ResponseSuccess(SessionErrorNone,tr("创建新项目成功")), session.socket);
 }
 
 void UserServer::DeleteProject(const Session& session) {
@@ -230,7 +230,7 @@ void UserServer::DeleteProject(const Session& session) {
     projects.remove(project.name);
     gTaskManager.data[cKeyContent] = projects;
 
-    return gShare.on_session(session.ResponseString(SessionErrorNone, tr("删除项目成功")), session.socket);
+    return gShare.on_session(session.ResponseSuccess(SessionErrorNone, tr("删除项目成功")), session.socket);
 }
 
 void UserServer::AddCurrentTask(const Session& session) {
@@ -272,7 +272,7 @@ void UserServer::AddCurrentTask(const Session& session) {
     project[cKeyContent] = tasks;//保存任务
     projects[projectName] = project;//更新项目
     gTaskManager.data[cKeyContent] = projects;//保存项目
-    return gShare.on_session(session.ResponseString(SessionErrorNone, tr("添加任务成功")), session.socket);
+    return gShare.on_session(session.ResponseSuccess(SessionErrorNone, tr("添加任务成功")), session.socket);
 }
 
 void UserServer::DeleteTask(const Session& session) {
@@ -312,7 +312,7 @@ void UserServer::DeleteTask(const Session& session) {
     project[cKeyContent] = tasks;
     projects[projectName] = project;//更新项目
     gTaskManager.data[cKeyContent] = projects;//保存项目
-    return gShare.on_session(session.ResponseString(SessionErrorNone, tr("删除任务成功")), session.socket);
+    return gShare.on_session(session.ResponseSuccess(SessionErrorNone, tr("删除任务成功")), session.socket);
 }
 
 
@@ -348,7 +348,7 @@ void UserServer::onStart(const Session& session, bool isContinue) {
             this->onStart(session,true); //启动后,再继续执行
             started_devices_all << device;
         } else {
-            gShare.on_session(session.Finished(code, value), session.socket);
+            gShare.on_session(session.Finished(code, value.toString()), session.socket);
             gManagerPlugin->stop(started_devices_all);//停止已经启动的设备
         }
     });
@@ -385,7 +385,7 @@ void UserServer::onStop(const Session& session, bool isContinue) {
         if (Result(code)) {
             this->onStop(session,true); //启动后,再继续执行
         } else {
-            gShare.on_session(session.Finished(code, value), session.socket);
+            gShare.on_session(session.Finished(code, value.toString()), session.socket);
         }
     });
 }

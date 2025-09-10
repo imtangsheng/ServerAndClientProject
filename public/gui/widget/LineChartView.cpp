@@ -8,15 +8,19 @@ void LineChartView::init()
 {
     setChart(new QChart());
     /*X轴初始化*/
+    MinTime = 0;
+    MinMileage = 0;
+    MaxTime = AxisXMax;
+    MaxMileage = AxisYMax;
     axisX = new QValueAxis(this);
-    axisX->setRange(0, AxisXMax);
+    axisX->setRange(MinTime, AxisXMax);
     axisX->setTickCount(AxisTickCount);// 网格线数
     axisX->setLabelFormat("%0.1f");//设置为显示小数点后1位数
     axisX->setGridLineVisible(false);// 移除网格线
     chart()->addAxis(axisX, Qt::AlignBottom);
     /*Y轴初始化*/
     axisY = new QValueAxis(this);
-    axisY->setRange(0, AxisYMax);
+    axisY->setRange(MinMileage, AxisYMax);
     axisY->setTickCount(AxisTickCount);
     axisY->setMinorTickCount(AxisTickCount);
     axisY->setLabelFormat("%0.2f");
@@ -79,21 +83,33 @@ void LineChartView::append(const double &time, const double &mileage)
 {
     // if(!chart()) return;
     qDebug() << "append" << time << mileage;
+
+
+    if(MinTime <= 0){
+        MinTime = time;
+        MaxTime = time+ AxisXMax;
+        axisX->setRange(MinTime,MaxTime);
+    }
+    while(time > MaxTime){
+        MaxTime =time+ AxisXMax;
+        axisX->setMax(MaxTime);
+        qDebug() << "set time" << time <<MaxTime;
+    }
+    if(MinMileage <= 0){
+        MinMileage = mileage;
+        MaxMileage= mileage+ AxisYMax;
+        axisY->setRange(MinMileage,MaxMileage);
+    }
+    while(mileage > MaxMileage){
+        MaxMileage =mileage + AxisYMax;
+        axisY->setMax(MaxMileage);
+        qDebug() << "set mileage" << mileage << MaxMileage;
+    }
+
     lineSeriesUpper->append(time,mileage);
     lineSeriesLower->append(time,0);
 
-    static double MaxTime = AxisXMax;
-    static double MaxMileage = AxisYMax;
-    while(time > MaxTime){
-        MaxTime += AxisXMax;
-        axisX->setMax(MaxTime);
-        qDebug() << "set" << time;
-    }
-    while(mileage > MaxMileage){
-        MaxMileage += AxisYMax;
-        axisY->setMax(MaxMileage);
-         qDebug() << "set" << mileage;
-    }
+
 
 }
 

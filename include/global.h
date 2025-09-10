@@ -37,19 +37,21 @@ inline static QString JsonToString(const QJsonObject& jsonObject) {
 
 
 /**定义一个结构体来包含更详细的结果信息**/
-struct Result
-{
-    int code{ -1 }; //错误码,0为成功
+struct Result {
+    int code{ -1 };
     QString message{ "" };
-    Result(int i, const QString& msg = "") :code(i), message(msg) {}
-    Result(bool s=true, const QString& msg = "") :message(msg) {
-        if (s) { code = 0; }
-    }//隐式构造函数调用
+
+    Result() : code(0), message("") {}
+    Result(int i, const QString& msg = "") : code(i), message(msg) {}
+    Result(bool s, const QString& msg = "") : code(s ? 0 : -1), message(msg) {}
+    Result(const QString& msg) : code(-1), message(msg) {} // 支持 QString 隐式转换
+
     static Result Success(const QString& msg = "") { return Result(true, msg); }
     static Result Failure(const QString& msg = "") { return Result(false, msg); }
-    operator bool() const { return code == 0; }//重载了 bool 操作符，使其可以像之前的 bool 返回值一样使用例如：if (result)
 
+    operator bool() const { return code == 0; }
 };
+
 // 声明结构体为元类型
 Q_DECLARE_METATYPE(Result)
 // 注册 结构体为元类型 运行时环境初始化时调用  main 函数或者构造函数中
@@ -64,7 +66,7 @@ template<typename T>
 struct Atomic
 {
     QAtomicInteger<T> value;
-    QString message;
+    QString lastError;
     // Relaxed - 最宽松的内存序
     // Release - 确保之前的写入对其他线程可见
     // Acquire - 确保之后的读取能看到其他线程的Release写入
@@ -72,7 +74,7 @@ struct Atomic
     T Get() const { return value.loadAcquire(); }
     void Set(T s) { value.storeRelease(s); }
     //在构造函数中，可以直接用 T 类型的值初始化它
-    Atomic(T t = T(), const QString& msg = QString()) : value(t), message(msg) {}
+    Atomic(T t = T(), const QString& msg = QString()) : value(t), lastError(msg) {}
     // 重载赋值运算符，允许直接赋值
     Atomic& operator=(T value) {
         Set(value);
@@ -83,7 +85,7 @@ struct Atomic
 
     // 支持隐式转换
     operator Result() const {
-        return Result(Get(), message);
+        return Result(Get(), lastError);
     }
 
 };
@@ -145,10 +147,10 @@ struct Session {
     static QString RequestString(qint64 id, const QString& module, const QString& method, const QJsonValue& params) {
         return JsonToString({ {"id", id}, {"module", module}, {"method", method}, {"params", params} });
     }
-    QString Finished(qint8 errorCode, const QJsonValue& value = QString()) const {
-        return JsonToString({ {"id", id}, {"code", errorCode},{"module", module}, {"method", method},{"params", params}, {"result", value} });
+    QString Finished(qint8 errorCode, const QString& errorMessage = QString()) const {
+        return JsonToString({ {"id", id}, {"code", errorCode},{"message", errorMessage},{"module", module}, {"method", method},{"params", params}, {"result", result} });
     }
-    QString ResponseString(const QJsonValue& ExecutionResult,const QString& ExecutionMessage = QString()) const {
+    QString ResponseSuccess(const QJsonValue& ExecutionResult,const QString& ExecutionMessage = QString()) const {
         return JsonToString({ {"id", id}, {"code",0},{"module", module}, { "method", method }, {"params", params},{"result", ExecutionResult}, {"message", ExecutionMessage} });
     }
     QString GetRequest() const {

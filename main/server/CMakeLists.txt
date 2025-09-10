@@ -22,7 +22,7 @@ set(TS_FILES_
 )
 # 创建文件夹结构以便在IDE中组织文件
 source_group("network" FILES ${NETWORK_SOURCES})
-source_group("control" FILES ${CONTROLLER_SOURCES})
+source_group("core" FILES ${CONTROLLER_SOURCES})
 
 # 创建可执行文件
 add_executable(${APP_NAME}
@@ -58,4 +58,4 @@ set_target_properties(${APP_NAME} PROPERTIES
 )
 
 # 确保插件和应用依赖共享库
-add_dependencies(${APP_NAME} Faro)
+add_dependencies(${APP_NAME} Serial)

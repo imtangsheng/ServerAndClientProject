@@ -25,6 +25,7 @@ public:
     /*iController API 设备控制的接口方法*/
     void initialize() final;
     QString _module() const final;
+    Result SetTaskParameter(QJsonObject &data) final;
     void UpdateTaskConfigSync(QJsonObject &content) final;
     void ShowMessage(const QString& msg);
     QJsonObject params;

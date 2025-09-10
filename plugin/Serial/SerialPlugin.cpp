@@ -119,7 +119,7 @@ void SerialPlugin::initUi(const Session& session) {
 #ifdef DEVICE_TYPE_CAR
     obj["mileage_multiplier"] = MILEAGE_MULTIPLIER.keys().join(",");
 #endif // DEVICE_TYPE_CAR
-    emit gSigSent(session.ResponseString(obj, tr("succeed")), session.socket);
+    emit gSigSent(session.ResponseSuccess(obj, tr("succeed")), session.socket);
     //主动请求一次配置更新
     emit gSigSent(Session::RequestString(2, GetModuleName(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
 }
@@ -130,7 +130,7 @@ void SerialPlugin::execute(const QString& method) {
 }
 
 void SerialPlugin::scan(const Session& session) {
-    gShare.on_session(session.ResponseString(gSerial->GetAvailablePorts().join(",")), session.socket);
+    gShare.on_session(session.ResponseSuccess(gSerial->GetAvailablePorts().join(",")), session.socket);
 }
 
 void SerialPlugin::start(const Session& session) {

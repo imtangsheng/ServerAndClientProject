@@ -21,6 +21,10 @@ public:
 
     QString xTitle;
     QString yTitle;
+    double MinTime = 0;
+    double MinMileage = 0;
+    double MaxTime;// = AxisXMax;
+    double MaxMileage;// = AxisYMax;
     void init();
     void append(const double& time,const double& mileage);
     void clear();

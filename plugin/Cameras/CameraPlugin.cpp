@@ -101,7 +101,7 @@ void CameraPlugin::SetImageFormat(const Session& session) {
 void CameraPlugin::scan(const Session& session) {
     Result result = gCameraSDK->scan();
     if (result) {
-        emit gSigSent(session.ResponseString(gCameraSDK->GetDeviceIdList(),tr("succeed")));
+        emit gSigSent(session.ResponseString(gCameraSDK->GetDeviceIdList()));
     } else {
         emit gSigSent(session.Finished(result.code, result.message));
     }

@@ -95,7 +95,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	}
 	Result result = plugin->initialize();
 	if (!result){
-		LOG_ERROR(tr("[#插件]%1初始化失败,设备%2,[#错误]%3").arg(pluginName).arg(plugin->name()).arg(result.message));
+		LOG_ERROR(tr("[#Plugin]%1初始化失败,设备%2,[#错误]%3").arg(pluginName).arg(plugin->name()).arg(result.message));
 	}
 	//加载json文件的元组
 	QJsonObject jsonFile;
@@ -104,7 +104,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	顶层结构包含几个预定义的键：
 	IID : 插件接口标识符
 	className : 插件类名
-	MetaData : 包含用户定义的自定义元数据,即json文件的内容
+	MetaData : 包含用户定义的自定义元数据,即 json文件的内容
 	Keys : 可选的插件键列表
 	当调用 loader.metaData() 时，你获取的是整个顶层 JSON 对象
 */

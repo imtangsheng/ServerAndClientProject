@@ -1,68 +1,68 @@
-#include "ActiveSerial.h"
+ï»¿#include "ActiveSerial.h"
 
-//¶¨ÒåÉÏ´«Êı¾İ´¦Àíº¯Êı
-#pragma region FunctionCodeUploadDataHandler//ÉÏ´«Êı¾İ´¦Àíº¯Êı
+//å®šä¹‰ä¸Šä¼ æ•°æ®å¤„ç†å‡½æ•°
+#pragma region FunctionCodeUploadDataHandler//ä¸Šä¼ æ•°æ®å¤„ç†å‡½æ•°
 #ifdef DEVICE_TYPE_CAR
 #include "public/utils/car_mileage_correction.h"
-/*Àï³ÌÊı¾İ´¦Àíº¯Êı
-* @param id Àï³ÌÊı¾İID
-* @param left ×óÀï³ÌÊı¾İ
-* @param right ÓÒÀï³ÌÊı¾İ
+/*é‡Œç¨‹æ•°æ®å¤„ç†å‡½æ•°
+* @param id é‡Œç¨‹æ•°æ®ID
+* @param left å·¦é‡Œç¨‹æ•°æ®
+* @param right å³é‡Œç¨‹æ•°æ®
 */
-static void RecvMileageData(qint64 id,const MileageInfo& left,const MileageInfo& right) {
+static void RecvMileageData(qint64 id, const MileageInfo& left, const MileageInfo& right) {
     static QString header = "ID\tLeftMileage\tLeftTime\tLeftTimeRaw\tRightMileage\tRightTime\tRightTimeRaw\n";
-    static SavaDataFile mileage(QString("%1/mileage.txt").arg(kTaskDirCarName),header);
+    static SavaDataFile mileage(QString("%1/mileage.txt").arg(kTaskDirCarName), header);
 
     if (gTaskState == TaskState::TaskState_Running && mileage.initialize()) {
-        //Àï³ÌÊı¾İ
+        //é‡Œç¨‹æ•°æ®
         QString str = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7\n").arg(id)
-            .arg((left.symbol ? -1 : 1) * left.pulse) //×óÀï³ÌÊı¾İ
-            .arg(gScannerCarTimeSync.GetScanner(left.time)) //ÍÆËãµÄÉ¨ÃèÒÇÊ±¼ä
-            .arg(left.time) //Ğ¡³µÊ±¼ä
-            .arg((right.symbol ? -1 : 1) * right.pulse) //ÓÒÀï³ÌÊı¾İ
-            .arg(gScannerCarTimeSync.GetScanner(right.time)) //ÍÆËãµÄÉ¨ÃèÒÇÊ±¼ä
-            .arg(right.time) //Ğ¡³µÊ±¼ä
+            .arg((left.symbol ? -1 : 1) * left.pulse * g_mileage_multiplier) //å·¦é‡Œç¨‹æ•°æ®
+            .arg(gScannerCarTimeSync.GetScanner(left.time)) //æ¨ç®—çš„æ‰«æä»ªæ—¶é—´
+            .arg(left.time) //å°è½¦æ—¶é—´
+            .arg((right.symbol ? -1 : 1) * right.pulse * g_mileage_multiplier) //å³é‡Œç¨‹æ•°æ®
+            .arg(gScannerCarTimeSync.GetScanner(right.time)) //æ¨ç®—çš„æ‰«æä»ªæ—¶é—´
+            .arg(right.time) //å°è½¦æ—¶é—´
             ;
         mileage.WriteLine(str);
     }
 }
 
-/*µ¥Àï³ÌÊı¾İ ¼æÈİÇ°µ¥Àï³ÌµÄÊı¾İ,Ä¬ÈÏ²»Ê¹ÓÃµ¥Àï³ÌÊı¾İ,Ë«Àï³ÌÊı¾İÖĞÓÒÀï³ÌÊı¾İÎª0
-* @param id Àï³ÌÊı¾İID
-* @param data Àï³ÌÊı¾İ
+/*å•é‡Œç¨‹æ•°æ® å…¼å®¹å‰å•é‡Œç¨‹çš„æ•°æ®,é»˜è®¤ä¸ä½¿ç”¨å•é‡Œç¨‹æ•°æ®,åŒé‡Œç¨‹æ•°æ®ä¸­å³é‡Œç¨‹æ•°æ®ä¸º0
+* @param id é‡Œç¨‹æ•°æ®ID
+* @param data é‡Œç¨‹æ•°æ®
 */
 static void RecvSingleMileageData(qint64 id, const MileageInfo& data) {
     static QString header = "ID\tMileage\tTime\tTimeRaw\n";
     static SavaDataFile single_mileage_file(QString("%1/singleMileage.txt").arg(kTaskDirCarName), header);
-    //µ¥Àï³ÌÊı¾İ
+    //å•é‡Œç¨‹æ•°æ®
     if (gTaskState == TaskState_Running && single_mileage_file.initialize()) {
         QString str = QString("%1\t%2\t%3\t%4\n").arg(id)
-            .arg((data.symbol ? -1 : 1) * data.pulse) //Àï³ÌÊı¾İ
-            .arg(gScannerCarTimeSync.GetScanner(data.time)) //ÍÆËãµÄÉ¨ÃèÒÇÊ±¼ä
-            .arg(data.time); //Ğ¡³µÊ±¼ä
+            .arg((data.symbol ? -1 : 1) * data.pulse) //é‡Œç¨‹æ•°æ®
+            .arg(gScannerCarTimeSync.GetScanner(data.time)) //æ¨ç®—çš„æ‰«æä»ªæ—¶é—´
+            .arg(data.time); //å°è½¦æ—¶é—´
         single_mileage_file.WriteLine(str);
     }
 }
-/*Çã½Ç¼ÆÊı¾İ
-* @param data Çã½Ç¼ÆÊı¾İ
+/*å€¾è§’è®¡æ•°æ®
+* @param data å€¾è§’è®¡æ•°æ®
 */
 static void RecvInclinometerData(InclinometerInfo data) {
     static QString header = "X\tY\tTime\n";
     static SavaDataFile inclinometer_file(QString("%1/Inclinometer.txt").arg(kTaskDirCarName), header);
-    //Çã½Ç¼ÆÊı¾İ
+    //å€¾è§’è®¡æ•°æ®
     if (gTaskState == TaskState_Running && inclinometer_file.initialize()) {
         QString str = QString("%1\t%2\t%3\n").arg(data.x).arg(data.y).arg(data.time);
         inclinometer_file.WriteLine(str);
     }
 }
-/*É¨ÃèÒÇÊ±¼äÊı¾İ
-* gGetScannerTimeCount ÓÃÓÚ»ñÈ¡É¨ÃèÒÇÊ±¼äÊı¾İµÄ´ÎÊı<en
-* gScannerCarTimeSync ÓÃÓÚ´æ´¢É¨ÃèÒÇºÍĞ¡³µµÄÊ±¼ä
+/*æ‰«æä»ªæ—¶é—´æ•°æ®
+* gGetScannerTimeCount ç”¨äºè·å–æ‰«æä»ªæ—¶é—´æ•°æ®çš„æ¬¡æ•°<en
+* gScannerCarTimeSync ç”¨äºå­˜å‚¨æ‰«æä»ªå’Œå°è½¦çš„æ—¶é—´
 */
-static void RecvScannerTimeData() {//É¨ÃèÒÇÊ±¼äÊı¾İ
+static void RecvScannerTimeData() {//æ‰«æä»ªæ—¶é—´æ•°æ®
     static QString header = "ID\tTrolleyTime\tScannerTime\n";
     static SavaDataFile scanner_time_file(QString("%1/scannerTime.txt").arg(kTaskDirCarName), header);
-    //É¨ÃèÒÇÊ±¼äÊı¾İ
+    //æ‰«æä»ªæ—¶é—´æ•°æ®
     if (gTaskState == TaskState_Running && scanner_time_file.initialize()) {
         QString str = QString("%1\t%2\t%3\n").arg(gGetScannerTimeCount)
             .arg(gScannerCarTimeSync.car)
@@ -74,21 +74,21 @@ static void RecvScannerTimeData() {//É¨ÃèÒÇÊ±¼äÊı¾İ
 #endif // DEVICE_TYPE_CAR
 
 #ifdef DEVICE_TYPE_CAMERA
-/*Ïà»ú´¥·¢Êı¾İ
-* @param data Ïà»ú´¥·¢Êı¾İ
+/*ç›¸æœºè§¦å‘æ•°æ®
+* @param data ç›¸æœºè§¦å‘æ•°æ®
 */
 static void RecvCameraPositionData(const CloverTriggerInfo& data) {
     static QString header = "ID\tCamID\tCentralPosition\ttime\tActualPosition\n";
     static SavaDataFile camera_position_file(QString("%1/centralPosition.txt").arg(kTaskDirCameraName), header);
-    //Ïà»ú´¥·¢Êı¾İ
+    //ç›¸æœºè§¦å‘æ•°æ®
     if (gTaskState == TaskState_Running && camera_position_file.initialize()) {
         QString str = QString("%1\t%2\t%3\t%4\t%5\n").arg(data.id)
-            .arg(data.camera_id) //Ïà»úID
-            .arg(data.position) //Ïà»ú»úÎ»
-            .arg(data.time) //Ğ¡³µÊ±¼ä
-            .arg(data.GetActualPosition()); //Êµ¼Ê»úÎ»
+            .arg(data.camera_id) //ç›¸æœºID
+            .arg(data.position) //ç›¸æœºæœºä½
+            .arg(data.time) //å°è½¦æ—¶é—´
+            .arg(data.GetActualPosition()); //å®é™…æœºä½
         camera_position_file.WriteLine(str);
-        //Ïà»ú´¥·¢Êı¾İ ÍÆËÍµ½¶©ÔÄµÄ¿Í»§¶Ë
+        //ç›¸æœºè§¦å‘æ•°æ® æ¨é€åˆ°è®¢é˜…çš„å®¢æˆ·ç«¯
         QJsonObject obj;
         obj.insert("id", data.id);
         obj.insert("camera_id", data.camera_id);
@@ -96,7 +96,7 @@ static void RecvCameraPositionData(const CloverTriggerInfo& data) {
         obj.insert("time", data.time);
         obj.insert("actual_position", data.GetActualPosition());
         obj.insert("feedback", data.feedback);
-        PushClients(SUBSCRIBE_METHOD(CameraPosition), obj,sModuleSerial);
+        PushClients(SUBSCRIBE_METHOD(CameraPosition), obj, sModuleSerial);
         if (data.feedback == 0) {
             LOG_ERROR(QObject::tr("Camera trigger id:%1 camera:%2 position:%3 time:%4 feedback:%5 error").arg(data.id).arg(data.camera_id).arg(data.position).arg(data.time).arg(data.feedback));
         }
@@ -111,149 +111,156 @@ ActiveSerial::~ActiveSerial() {
 }
 
 Result ActiveSerial::SetConfig(const QJsonObject& config) {
-    qDebug() << "[#Trolley]ÉèÖÃÅäÖÃ" << config;
+    qDebug() << "[#Trolley]è®¾ç½®é…ç½®" << config;
     return Result();
 }
 
 void ActiveSerial::start(const Session& session) {
-    //ÏÈÆô¶¯Ïà»ú,ÔÙÆô¶¯Ğ¡³µ 301ÏîÄ¿ÊÇÁ½¸öÉè±¸Í¬Ê±¶¼ÓĞ
+    //å…ˆå¯åŠ¨ç›¸æœº,å†å¯åŠ¨å°è½¦ 301é¡¹ç›®æ˜¯ä¸¤ä¸ªè®¾å¤‡åŒæ—¶éƒ½æœ‰ 201æ˜¯åˆ†å¼€çš„,æŒ‡ä»¤ä¹Ÿä¸åŒ
 #ifdef DEVICE_TYPE_CAMERA
-    WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x01)));//Ïà»úÆô¶¯ Ö¸ÁîĞ´Èë
-#ifdef DEVICE_TYPE_CAR
-    g_serial_session.addSession(CAMERA_START_STOP, [&session,this](const QJsonValue& result, const QString& message) {
-        if (result.toInt(-1) == RESULT_SUCCESS) {//·µ»Ø³É¹¦
-            WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01))); //00£ºÆô¶¯Ğ¡³µ 01£ºÆô¶¯²¢Çå³ıÀï³Ì
-            g_serial_session.addSession(CAR_STARTUP, session);
-        } else {
-            PushSessionResponse(session, result, message);
-        }
-        });
-#else
+    WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x01)));//ç›¸æœºå¯åŠ¨ æŒ‡ä»¤å†™å…¥
     g_serial_session.addSession(CAMERA_START_STOP, session);
 #endif // DEVICE_TYPE_CAR
-#elif defined(DEVICE_TYPE_CAR)
-    WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00£ºÆô¶¯Ğ¡³µ 01£ºÆô¶¯²¢Çå³ıÀï³Ì
+
+#ifdef DEVICE_TYPE_CAR
+#ifdef DEVICE_TYPE_LINE_SACN_CAMERA
+    if (gShare.GetHandlerList().contains(sModuleCamera)) {
+        WriteData(LINE_SACN_CAMERA_CONTROL, QByteArray(1, static_cast<char>(0x01)));//ç›¸æœºå¯åŠ¨ æŒ‡ä»¤å†™å…¥
+        g_serial_session.addSession(LINE_SACN_CAMERA_CONTROL, [&session, this](const qint8& i8result, const QJsonValue& value) {
+            if (i8result == RESULT_SUCCESS) {
+                WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00ï¼šå¯åŠ¨å°è½¦ 01ï¼šå¯åŠ¨å¹¶æ¸…é™¤é‡Œç¨‹
+                g_serial_session.addSession(CAR_STARTUP, session);
+            } else {
+                emit gSigSent(session.Finished(i8result, value.toString()), session.socket);
+            }
+            });
+    } else {
+        WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00ï¼šå¯åŠ¨å°è½¦ 01ï¼šå¯åŠ¨å¹¶æ¸…é™¤é‡Œç¨‹
+        g_serial_session.addSession(CAR_STARTUP, session);
+    }
+#else // DEVICE_TYPE_LINE_SACN_CAMERA
+    WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00ï¼šå¯åŠ¨å°è½¦ 01ï¼šå¯åŠ¨å¹¶æ¸…é™¤é‡Œç¨‹
     g_serial_session.addSession(CAR_STARTUP, session);
-#else
-    gShare.on_send(Result::Failure(tr("The device type is not defined")), session);
+#endif
 #endif // DEVICE_TYPE_CAR
 }
 
 void ActiveSerial::stop(const Session& session) {
-    //ÏÈÍ£Ö¹Ğ¡³µ,ÔÙÍ£Ö¹Ïà»ú
+    //å…ˆåœæ­¢å°è½¦,å†åœæ­¢ç›¸æœº
 #ifdef DEVICE_TYPE_CAR
-    WriteData(CAR_STOP, QByteArray(1, static_cast<char>(0x01))); //00£ºÍ£Ö¹Ğ¡³µ 01£ºÍ£Ö¹²¢Çå³ıÀï³Ì
-#ifdef DEVICE_TYPE_CAMERA
-    g_serial_session.addSession(CAR_STOP, [=](const QJsonValue& result, const QString& message) {
-        if (result.toInt(-1) == RESULT_SUCCESS) {//·µ»Ø³É¹¦
-            WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x00)));
-            g_serial_session.addSession(CAMERA_START_STOP, session);
-        } else {
-            PushSessionResponse(session, result, message);
-        }
-        });
-#else
+    WriteData(CAR_STOP, QByteArray(1, static_cast<char>(0x01))); //00ï¼šåœæ­¢å°è½¦ 01ï¼šåœæ­¢å¹¶æ¸…é™¤é‡Œç¨‹
+#ifdef DEVICE_TYPE_LINE_SACN_CAMERA
+    if (gShare.GetHandlerList().contains(sModuleCamera)) {
+        g_serial_session.addSession(CAR_STOP, [&session, this](const qint8& i8result, const QJsonValue& value) {
+            if (i8result == RESULT_SUCCESS) {
+                WriteData(LINE_SACN_CAMERA_CONTROL, QByteArray(1, static_cast<char>(0x00)));
+                g_serial_session.addSession(LINE_SACN_CAMERA_CONTROL, session);
+            } else {
+                emit gSigSent(session.Finished(i8result, value.toString()), session.socket);
+            }
+            });
+    } else {
+        g_serial_session.addSession(CAR_STOP, session);
+    }
+#else // DEVICE_TYPE_LINE_SACN_CAMERA
     g_serial_session.addSession(CAR_STOP, session);
+#endif
 #endif // DEVICE_TYPE_CAMERA
-#elif defined(DEVICE_TYPE_CAMERA)
+
+#ifdef DEVICE_TYPE_CAMERA
     WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x00)));
     g_serial_session.addSession(CAMERA_START_STOP, session);
-#else
-    gShare.on_send(Result::Failure(tr("The device type is not defined")), session);
 #endif // DEVICE_TYPE_CAR
 }
 
 Result ActiveSerial::OnStarted(CallbackResult callback) {
-    //ÏÈÆô¶¯Ïà»ú,ÔÙÆô¶¯Ğ¡³µ 301ÏîÄ¿ÊÇÁ½¸öÉè±¸Í¬Ê±¶¼ÓĞ
+    //å…ˆå¯åŠ¨ç›¸æœº,å†å¯åŠ¨å°è½¦ 301é¡¹ç›®æ˜¯ä¸¤ä¸ªè®¾å¤‡åŒæ—¶éƒ½æœ‰
 #ifdef DEVICE_TYPE_CAMERA
-    WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x01)));//Ïà»úÆô¶¯ Ö¸ÁîĞ´Èë
-#ifdef DEVICE_TYPE_CAR
-    g_serial_session.addSession(CAMERA_START_STOP, [=](const QJsonValue& result, const QString&) {
-        if (result.toInt(-1) == RESULT_SUCCESS) {//·µ»Ø³É¹¦
-            WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01))); //00£ºÆô¶¯Ğ¡³µ 01£ºÆô¶¯²¢Çå³ıÀï³Ì
-            g_serial_session.addSession(CAR_STARTUP, [callback](const QJsonValue& result, const QString&) {
-                callback(result.toInt(-1) == RESULT_SUCCESS ? true : false);
-                });
-        } else {
-            callback(false);
-        }
-        });
-#else
-    g_serial_session.addSession(CAMERA_START_STOP, [callback](const QJsonValue& result, const QString&) {
-        callback(result.toInt(-1) == RESULT_SUCCESS ? true : false);
-        });
+    WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x01)));//ç›¸æœºå¯åŠ¨ æŒ‡ä»¤å†™å…¥
+    g_serial_session.addSession(CAMERA_START_STOP, callback);
 #endif // DEVICE_TYPE_CAR
-#elif defined(DEVICE_TYPE_CAR)
-    WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00£ºÆô¶¯Ğ¡³µ 01£ºÆô¶¯²¢Çå³ıÀï³Ì
-    g_serial_session.addSession(CAR_STARTUP, [callback](const qint8& i8result,const QJsonValue& value) {
-        if(i8result == RESULT_SUCCESS){
-            gShare.isCarDriving = true;
-        }
-        if (callback)
-        return callback(i8result,value);
-        });
-#else
-    LOG_ERROR(tr("The device type is not defined"));
-    callback(false);
+
+#ifdef DEVICE_TYPE_CAR
+#ifdef DEVICE_TYPE_LINE_SACN_CAMERA
+    if (gShare.GetHandlerList().contains(sModuleCamera)) {
+        WriteData(LINE_SACN_CAMERA_CONTROL, QByteArray(1, static_cast<char>(0x01)));//ç›¸æœºå¯åŠ¨ æŒ‡ä»¤å†™å…¥
+        g_serial_session.addSession(LINE_SACN_CAMERA_CONTROL, [callback, this](const qint8& i8result, const QJsonValue& value) {
+            if (i8result == RESULT_SUCCESS) {
+                WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00ï¼šå¯åŠ¨å°è½¦ 01ï¼šå¯åŠ¨å¹¶æ¸…é™¤é‡Œç¨‹
+                g_serial_session.addSession(CAR_STARTUP, callback);
+            } else {
+                return callback(i8result, value);
+            }
+            });
+    } else {
+        WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00ï¼šå¯åŠ¨å°è½¦ 01ï¼šå¯åŠ¨å¹¶æ¸…é™¤é‡Œç¨‹
+        g_serial_session.addSession(CAR_STARTUP, callback);
+    }
+#else // DEVICE_TYPE_LINE_SACN_CAMERA
+    WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00ï¼šå¯åŠ¨å°è½¦ 01ï¼šå¯åŠ¨å¹¶æ¸…é™¤é‡Œç¨‹
+    g_serial_session.addSession(CAR_STARTUP, callback);
+#endif
 #endif // DEVICE_TYPE_CAR
     return Result();
 }
 
 Result ActiveSerial::OnStopped(CallbackResult callback) {
-
-    //ÏÈÍ£Ö¹Ğ¡³µ,ÔÙÍ£Ö¹Ïà»ú
+    //å…ˆåœæ­¢å°è½¦,å†åœæ­¢ç›¸æœº
 #ifdef DEVICE_TYPE_CAR
-    WriteData(CAR_STOP, QByteArray(1, static_cast<char>(0x01))); //00£ºÍ£Ö¹Ğ¡³µ 01£ºÍ£Ö¹²¢Çå³ıÀï³Ì
-#ifdef DEVICE_TYPE_CAMERA
-    g_serial_session.addSession(CAR_STOP, [=](const QJsonValue& result, const QString&) {
-        if (result.toInt(-1) == RESULT_SUCCESS) {//·µ»Ø³É¹¦
-            WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x00)));
-            g_serial_session.addSession(CAMERA_START_STOP, [callback](const QJsonValue& result, const QString&) {
-                callback(result.toInt(-1) == RESULT_SUCCESS ? true : false);
-                });
-        } else {
-            callback(false);
-        }
-        });
-#else
-    g_serial_session.addSession(CAR_STOP, [callback](const qint8& i8result, const QJsonValue& value) {
-        if (i8result == RESULT_SUCCESS) {
-            gShare.isCarDriving = false;
-        }
-        if(callback)
-        return callback(i8result, value);
-        });
+    WriteData(CAR_STOP, QByteArray(1, static_cast<char>(0x01))); //00ï¼šåœæ­¢å°è½¦ 01ï¼šåœæ­¢å¹¶æ¸…é™¤é‡Œç¨‹
+#ifdef DEVICE_TYPE_LINE_SACN_CAMERA
+    if (gShare.GetHandlerList().contains(sModuleCamera)) {
+        g_serial_session.addSession(CAR_STOP, [callback, this](const qint8& i8result, const QJsonValue& value) {
+            if (i8result == RESULT_SUCCESS) {
+                WriteData(LINE_SACN_CAMERA_CONTROL, QByteArray(1, static_cast<char>(0x00)));
+                g_serial_session.addSession(LINE_SACN_CAMERA_CONTROL, callback);
+            } else if (callback) {
+                return callback(i8result, value);
+            }
+            });
+    } else {
+        g_serial_session.addSession(CAR_STOP, callback);
+    }
+#else // DEVICE_TYPE_LINE_SACN_CAMERA
+    g_serial_session.addSession(CAR_STOP, callback);
+#endif
 #endif // DEVICE_TYPE_CAMERA
-#elif defined(DEVICE_TYPE_CAMERA)
+
+#ifdef DEVICE_TYPE_CAMERA
     WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x00)));
-    g_serial_session.addSession(CAMERA_START_STOP, [callback](const QJsonValue& result, const QString&) {
-        callback(result.toInt(-1) == RESULT_SUCCESS ? true : false);
-        });
-#else
-    LOG_ERROR(tr("The device type is not defined"));
-    callback(false);
+    g_serial_session.addSession(CAMERA_START_STOP, callback);
 #endif // DEVICE_TYPE_CAR
     return Result();
 }
 
 bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data) {
-    qDebug() << "Received Function Code:" << QString::number(code, 16).rightJustified(2, '0').toUpper() << "Data:" << data.toHex().toUpper();
+    qDebug() << "#Received Code:" << QString::number(code, 16).rightJustified(2, '0').toUpper() << "Data:" << data.toHex().toUpper();
     //if (data.isEmpty()) return;
     QDataStream stream(data);
-    stream.setByteOrder(QDataStream::LittleEndian);  // ÉèÖÃ×Ö½ÚĞò
+    stream.setByteOrder(QDataStream::LittleEndian);  // è®¾ç½®å­—èŠ‚åº
     QJsonValue value;
 
 #pragma region FunctionCode
-    /*µÚÒ»²¿·Ö:ÃüÁîÖ´ĞĞµÄ»Ø¸´,ĞèÒªÏìÓ¦ÇëÇó,breakºóÍ³Ò»´¦Àí
-    * µÚ¶ş²¿·Ö:»ñÈ¡Êı¾İµÄ»Ø¸´,ĞèÒª½âÎöÊı¾İ,È»ºó breakÏìÓ¦ÇëÇó,»òÕß return Ö±½Ó·µ»Ø
-    * µÚÈı²¿·Ö:×Ô¶¯ÉÏ´«µÄÊı¾İ¸ñÊ½,Ö±½Ó return ²»»Ø¸´
+    /*ç¬¬ä¸€éƒ¨åˆ†:å‘½ä»¤æ‰§è¡Œçš„å›å¤,éœ€è¦å“åº”è¯·æ±‚,breakåç»Ÿä¸€å¤„ç†
+    * ç¬¬äºŒéƒ¨åˆ†:è·å–æ•°æ®çš„å›å¤,éœ€è¦è§£ææ•°æ®,ç„¶å breakå“åº”è¯·æ±‚,æˆ–è€… return ç›´æ¥è¿”å›
+    * ç¬¬ä¸‰éƒ¨åˆ†:è‡ªåŠ¨ä¸Šä¼ çš„æ•°æ®æ ¼å¼,ç›´æ¥ return ä¸å›å¤
     */
     switch (code) {
 #ifdef DEVICE_TYPE_CAR
-    case SCANER_SET_AUTOMATION_TIME:
-        //[[fallthrough]];  // C++17ÌØĞÔ£¬Ã÷È·±íÊ¾¹ÊÒâ fall through
     case CAR_STARTUP:
+        stream >> i8result;
+        if (i8result == RESULT_SUCCESS) {
+            gShare.isCarDriving = true;
+        }
+        break;
     case CAR_STOP:
+        stream >> i8result;
+        if (i8result == RESULT_SUCCESS) {
+            gShare.isCarDriving = false;
+        }
+        break;
+    case SCANER_SET_AUTOMATION_TIME:
+        //[[fallthrough]];  // C++17ç‰¹æ€§ï¼Œæ˜ç¡®è¡¨ç¤ºæ•…æ„ fall through
     case CAR_CHANGING_OVER:
     case CAR_SET_SPEED:
     case CAR_RESET_TOTAL_MILEAGE:
@@ -265,9 +272,9 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     case CAMERA_START_STOP:
     case CAMERA_SET_ENABLE_MODE:
     case CAMERA_LED_CONTROL:
-    case CAMERA_SET_EXPOSURE_TIME://00£º³É¹¦ 01£ºÊ§°Ü£¬Ê±¼ä·¶Î§²»ÕıÈ·£¨±àÂëÆ÷ 2 Î»ÖÃ£© 02£ºÊ±¼äÊ§°Ü£¬Ê±¼ä·¶Î§²»ÕıÈ·£¨±àÂëÆ÷ 1 Î»ÖÃ£© 03£ºÊ§°Ü£¬Ê±¼äÓëµÆ¿Ø °å·µ»ØÊ±¼ä²»Ò»ÖÂ£¨±àÂëÆ÷ 2 Î» ÖÃ£© 04£ºÊ§°Ü£¬Ê±¼äÓëµÆ¿Ø °å·µ»ØÊ±¼ä²»Ò»ÖÂ£¨±àÂëÆ÷ 1 Î» ÖÃ£©05£ºÎ´¼ì²âµ½µÆ¿Ø°å»òµÆ¿Ø°åÎŞ ÏìÓ¦
+    case CAMERA_SET_EXPOSURE_TIME://00ï¼šæˆåŠŸ 01ï¼šå¤±è´¥ï¼Œæ—¶é—´èŒƒå›´ä¸æ­£ç¡®ï¼ˆç¼–ç å™¨ 2 ä½ç½®ï¼‰ 02ï¼šæ—¶é—´å¤±è´¥ï¼Œæ—¶é—´èŒƒå›´ä¸æ­£ç¡®ï¼ˆç¼–ç å™¨ 1 ä½ç½®ï¼‰ 03ï¼šå¤±è´¥ï¼Œæ—¶é—´ä¸ç¯æ§ æ¿è¿”å›æ—¶é—´ä¸ä¸€è‡´ï¼ˆç¼–ç å™¨ 2 ä½ ç½®ï¼‰ 04ï¼šå¤±è´¥ï¼Œæ—¶é—´ä¸ç¯æ§ æ¿è¿”å›æ—¶é—´ä¸ä¸€è‡´ï¼ˆç¼–ç å™¨ 1 ä½ ç½®ï¼‰05ï¼šæœªæ£€æµ‹åˆ°ç¯æ§æ¿æˆ–ç¯æ§æ¿æ—  å“åº”
     case CAMERA_MOTOR_SPEED_CONTROL:
-    case CAMERA_MOTOR_START_STOP_CONTROL://00£ºÕı³£ 01£ºÒÑ¾­ÔÚĞı×ª 02£º³¬Ê±
+    case CAMERA_MOTOR_START_STOP_CONTROL://00ï¼šæ­£å¸¸ 01ï¼šå·²ç»åœ¨æ—‹è½¬ 02ï¼šè¶…æ—¶
     case CAMERA_SET_MOTOR_POSITION:
     case CAMERA_SET_TRIGGER_POSITION:
 #endif // DEVICE_TYPE_CAMERA
@@ -278,14 +285,14 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     {
         quint64 autotimer;
         stream >> autotimer >> gScannerCarTimeSync.car;
-        //»ñÈ¡É¨ÃèÒÇÊ±¼äÊ§°Ü,·µ»Ø0 Ó¦¸ÃÖ´ĞĞÈÎÎñ»Øµ÷
+        //è·å–æ‰«æä»ªæ—¶é—´å¤±è´¥,è¿”å›0 åº”è¯¥æ‰§è¡Œä»»åŠ¡å›è°ƒ
         if (autotimer == 0) {
             LOG_ERROR(tr("Failed to get scanner time"));
             i8result = -1;
             return false;
         }
         gScannerCarTimeSync.scanner = autotimer;
-        RecvScannerTimeData();//É¨ÃèÒÇÊ±¼äÊı¾İµÄÈÎÎñ´¦Àí
+        RecvScannerTimeData();//æ‰«æä»ªæ—¶é—´æ•°æ®çš„ä»»åŠ¡å¤„ç†
         i8result = 0;
     }return true;
     case CAR_GET_MSG:
@@ -309,7 +316,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     }break;
     case CAR_GET_TOTAL_MILEAGE:
     {
-        static qint64 total_mileage{ 0 }; //Ğ¡³µ×ÜÀï³Ì µ¥Î»ÎªÃ×
+        static qint64 total_mileage{ 0 }; //å°è½¦æ€»é‡Œç¨‹ å•ä½ä¸ºç±³
         stream >> total_mileage;
         value = total_mileage;
         i8result = 0;
@@ -336,65 +343,67 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         value = obj;
     }break;
 
-    /**×Ô¶¯ÉÏ´«µÄÊı¾İ¸ñÊ½,return ²»»Ø¸´**/
-    case 0xEF://Çã½ÇĞÅÏ¢ÉÏ´« Çã½Ç¼ÆµÄÁ¿³ÌÎªÕı¸º 15 ¶È¡£
+    /**è‡ªåŠ¨ä¸Šä¼ çš„æ•°æ®æ ¼å¼,return ä¸å›å¤**/
+    case 0xEF://å€¾è§’ä¿¡æ¯ä¸Šä¼  å€¾è§’è®¡çš„é‡ç¨‹ä¸ºæ­£è´Ÿ 15 åº¦ã€‚
     {
         InclinometerInfo inclinometer;
-        stream >> inclinometer.x >> inclinometer.y >> inclinometer.time;
-        RecvInclinometerData(inclinometer);//Çã½Ç¼ÆÊı¾İµÄÈÎÎñ´¦Àí
+        stream >> inclinometer;
+        RecvInclinometerData(inclinometer);//å€¾è§’è®¡æ•°æ®çš„ä»»åŠ¡å¤„ç†
     }return true;
-    case 0xF8://Ä¬ÈÏÖ»Ö§³ÖË«Àï³ÌÊı¾İ
+    case 0xF8://é»˜è®¤åªæ”¯æŒåŒé‡Œç¨‹æ•°æ®
     {
         static MileageInfo left;
         static MileageInfo right;
         stream >> left >> right;
         if (left.symbol != right.symbol) {
-            LOG_ERROR(tr("[#´íÎó]×óÓÒÀï³ÌÊı¾İ·ûºÅ²»Ò»ÖÂ:%1").arg(left.symbol));
+            LOG_ERROR(tr("[#Serial]å·¦å³é‡Œç¨‹æ•°æ®ç¬¦å·ä¸ä¸€è‡´ å·¦: %1 å³: %2").arg(left.symbol,right.symbol));
+            qWarning() << left.symbol << left.pulse << left.time;
+            qWarning() << right.symbol << right.pulse << right.time;
+
         }
         struMileage mileage = MileageCorrector::instance().Correct(left.time, left.pulse, right.time, right.pulse);
-        MileageInfo  mileage_info(left.symbol,mileage.pulse,mileage.time);
-        mileage_info.pulse = mileage_info.pulse * g_mileage_multiplier;
-        //Àï³ÌÊı¾İ ÍÆËÍµ½¶©ÔÄµÄ¿Í»§¶Ë
-        //if (id % kMileageUpdateInterval == 0) {
-        //¶ş½øÖÆÊı¾İ ·¢ËÍ
-        static quint8 invoke = share::ModuleName::trolley;
-        QByteArray bytes;
-        QDataStream out(&bytes, QIODevice::WriteOnly);
-        out << invoke << code << g_mileage_count << mileage_info;
-        qDebug() << "data.size" << bytes.size();
-        emit gShare.sigSentBinary(bytes);//ÍÆËÍ¶ş½øÖÆÊı¾İ
-
-        //}
-
-        RecvSingleMileageData(g_mileage_count,mileage_info);
-        left.pulse = left.pulse * g_mileage_multiplier;
-        right.pulse = right.pulse * g_mileage_multiplier;
-        RecvMileageData(g_mileage_count, left, right);//Àï³ÌÊı¾İµÄÈÎÎñ´¦Àí
-
+        //MileageInfo  mileage_info(left.symbol, mileage.pulse, mileage.time);
+        //mileage_info.pulse = mileage_info.pulse * g_mileage_multiplier;
+        //é‡Œç¨‹æ•°æ® æ¨é€åˆ°è®¢é˜…çš„å®¢æˆ·ç«¯
+        if (g_mileage_count % kMileageUpdateInterval == 0) {
+            //äºŒè¿›åˆ¶æ•°æ® å‘é€
+            static quint8 invoke = share::ModuleName::trolley;
+            QByteArray bytes;
+            QDataStream out(&bytes, QIODevice::WriteOnly);
+            out << invoke << code << g_mileage_count << left.symbol << mileage.pulse *g_mileage_multiplier << mileage.time*10;
+            qDebug() << "data.size" << bytes.size();
+            emit gShare.sigSentBinary(bytes);//æ¨é€äºŒè¿›åˆ¶æ•°æ®
+        }
+        if (gTaskState == TaskState::TaskState_Running) {
+            //RecvSingleMileageData(g_mileage_count, mileage_info);
+            left.pulse = left.pulse * g_mileage_multiplier;
+            right.pulse = right.pulse * g_mileage_multiplier;
+            RecvMileageData(g_mileage_count, left, right);//é‡Œç¨‹æ•°æ®çš„ä»»åŠ¡å¤„ç†
+        }
         g_mileage_count++;
     }return true;
-    case 0xFC://°´¼üĞÅÏ¢ÉÏ´« ±£Áô´¦Àí
+    case 0xFC://æŒ‰é”®ä¿¡æ¯ä¸Šä¼  ä¿ç•™å¤„ç†
     {
         LOG_INFO(QString("Received Car key Data:%1").arg(data.toHex().toUpper()));
         quint8 key_value, knob_value;
         stream >> key_value >> knob_value;
-        switch (key_value) {//Æô¶¯ºÍÍ£Ö¹°´¼ü²»»áÄ¿Ç°²»»áÉÏ´«
-        case 0x02://Æô¶¯°´¼ü £¨Ğ¡³µÓÅÏÈ¼¶¸ß£©
-        case 0x03://Í£Ö¹°´¼ü £¨Ğ¡³µÓÅÏÈ¼¶¸ß£©
-        case 0x04://¿ªÊ¼É¨Ãè°´¼ü £¨Èí¼şÓÅÏÈ¼¶¸ß£©
-            LOG_INFO("¿ªÊ¼É¨Ãè°´¼ü");
+        switch (key_value) {//å¯åŠ¨å’Œåœæ­¢æŒ‰é”®ä¸ä¼šç›®å‰ä¸ä¼šä¸Šä¼ 
+        case 0x02://å¯åŠ¨æŒ‰é”® ï¼ˆå°è½¦ä¼˜å…ˆçº§é«˜ï¼‰
+        case 0x03://åœæ­¢æŒ‰é”® ï¼ˆå°è½¦ä¼˜å…ˆçº§é«˜ï¼‰
+        case 0x04://å¼€å§‹æ‰«ææŒ‰é”® ï¼ˆè½¯ä»¶ä¼˜å…ˆçº§é«˜ï¼‰
+            LOG_INFO("å¼€å§‹æ‰«ææŒ‰é”®");
             break;
-        case 0x05://Í£Ö¹É¨Ãè°´¼ü £¨Èí¼şÓÅÏÈ¼¶¸ß£©
-            LOG_INFO("Í£Ö¹É¨Ãè°´¼ü");
+        case 0x05://åœæ­¢æ‰«ææŒ‰é”® ï¼ˆè½¯ä»¶ä¼˜å…ˆçº§é«˜ï¼‰
+            LOG_INFO("åœæ­¢æ‰«ææŒ‰é”®");
             break;
-        case 0x0A://·½ÏòÇĞ»»°´Å¥
-        case 0x0B://Ä£Ê½ÇĞ»»°´Å¥£¨³¤°´ÆôÍ£°´Å¥£©
+        case 0x0A://æ–¹å‘åˆ‡æ¢æŒ‰é’®
+        case 0x0B://æ¨¡å¼åˆ‡æ¢æŒ‰é’®ï¼ˆé•¿æŒ‰å¯åœæŒ‰é’®ï¼‰
         default:
             break;
         }
         PushClients(SUBSCRIBE_METHOD(CarKey), key_value, sModuleSerial);
     }return true;
-    case 0xFD://É¨ÃèÒÇCANÖ¸ÁîÉÏ´« ´ı²âÊÔ
+    case 0xFD://æ‰«æä»ªCANæŒ‡ä»¤ä¸Šä¼  å¾…æµ‹è¯•
     {
         LOG_INFO(QString("Received Scanner CAN Data:%1").arg(data.toHex().toUpper()));
         quint8 can_id, trigger_in, trigger_out, ack_by_can, ditection;
@@ -417,8 +426,8 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         case 0x09://Self-Test
         case 0x0A://Get Automation Time
         case 0x0B://Mirror Index Trigger Enable
-            //0X->Trigger on mirror index disabled 1X->Trigger onmirror index enabled
-        case 0x0C://Mirror Index Trigger Occurred¾µÏñË÷Òı´¥·¢Æ÷ÒÑ·¢Éú
+            //0X->Trigger on mirror index disabled 1X->Trigger on mirror index enabled
+        case 0x0C://Mirror Index Trigger Occurredé•œåƒç´¢å¼•è§¦å‘å™¨å·²å‘ç”Ÿ
             //Out: Automation time of occurred mirror index
         default:
             break;
@@ -428,7 +437,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         //obj.insert("data", data);
         //result = obj;
     }return true;
-    case 0xFE://ÎªÁË¼æÈİµ¥Àï³ÌÊı¾İ
+    case 0xFE://ä¸ºäº†å…¼å®¹å•é‡Œç¨‹æ•°æ®
     {
         MileageInfo mileage{};
         stream >> mileage.symbol >> mileage.pulse >> mileage.time;
@@ -444,12 +453,12 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         obj.insert("enable", clover_info_.enable);
         obj.insert("mode", clover_info_.mode);
         obj.insert("fps", clover_info_.fps[0]);
-        //Í³Ò»,²»Ã¿¸öÊ¹ÓÃ
+        //ç»Ÿä¸€,ä¸æ¯ä¸ªä½¿ç”¨
         //QJsonArray jsonArray;
         //for (const auto& fps : clover_info_.fps) {
         //    jsonArray.append(fps);
         //}
-        result = obj;
+        value = obj;
     }break;
     case CAMERA_GET_LED_FAN_STATUS:
     {
@@ -457,7 +466,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         QJsonObject obj;
         obj.insert("led_state", clover_info_.led_state);
         obj.insert("fan_state", clover_info_.fan_state);
-        result = obj;
+        value = obj;
     }break;
     case  CAMERA_READ_MOTOR_STATUS:
     {
@@ -468,7 +477,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         obj.insert("moving", clover_info_.moving);
         obj.insert("calibrated", clover_info_.calibrated);
         obj.insert("pose", clover_info_.pose);
-        result = obj;
+        value = obj;
     }break;
     case  CAMERA_GET_TRIGGER_POSITION:
     {
@@ -477,34 +486,37 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         obj.insert("trigger_position_0", clover_info_.trigger_position[0]);
         obj.insert("trigger_position_1", clover_info_.trigger_position[1]);
         obj.insert("trigger_position_2", clover_info_.trigger_position[2]);
-        result = obj;
+        value = obj;
     }break;
-    /**×Ô¶¯ÉÏ´«µÄÊı¾İ¸ñÊ½**/
-    case 0xF5://Ïà»úÊ±¼äÊı¾İÉÏ´«
+    /**è‡ªåŠ¨ä¸Šä¼ çš„æ•°æ®æ ¼å¼**/
+    case 0xF5://ç›¸æœºæ—¶é—´æ•°æ®ä¸Šä¼ 
     {
         CloverTriggerInfo trigger{};
         stream >> trigger.id >> trigger.time >> trigger.camera_id >> trigger.feedback >> trigger.position;
-        RecvCameraPositionData(trigger);//Ïà»úÎ»ÖÃÊı¾İµÄÈÎÎñ´¦Àí
+        RecvCameraPositionData(trigger);//ç›¸æœºä½ç½®æ•°æ®çš„ä»»åŠ¡å¤„ç†
 
     }return true;
 #endif // DEVICE_TYPE_CAMERA
-    //¹¦ÄÜÂë,»ñÈ¡Éè±¸ÀàĞÍ
+    //åŠŸèƒ½ç ,è·å–è®¾å¤‡ç±»å‹
     case CODE_TEST:
     {
         quint8 type;
         stream >> type;
-        value = type;//ÓÉ½çÃæÉèÖÃÉè±¸ÀàĞÍ
-        if ((kSupportedSerialDevices & type) == 0) {
-            LOG_ERROR(tr("The device type that is currently set is inconsistent with the device type that is currently supported!"));
+        value = type;//ç”±ç•Œé¢è®¾ç½®è®¾å¤‡ç±»å‹
+        qDebug() << "å½“å‰è®¾å¤‡ç±»å‹:" << type; // 1 ä¸­æ§ 2ä¸‰å¶è‰ç›¸æœº 3 ä¸‰å¶è‰21æœºä½
+        //if ((kSupportedSerialDevices & type) == 0) {
+            //LOG_ERROR(tr("The device type that is currently set is inconsistent with the device type that is currently supported!"));
+        //}
+        if (uCurrentSerialDevice != type) {
+            uCurrentSerialDevice = type;
+            gShare.RegisterSettings->setValue("type", type);//æ³¨å†Œè¡¨ç±»å‹è®¾ç½®
         }
-        //kSupportedSerialDevices = type;
-        gShare.RegisterSettings->setValue("type", type);//×¢²á±íÀàĞÍÉèÖÃ
     }break;
     default:
         return SerialPortTemplate::HandleProtocol(code, data);
     }
 #pragma endregion
-    //ÈçºÎ¶ÔÓ¦µ½¾ßÌåµÄÇëÇó?
-    SerialSession::instance().HandleSessionCallback(code,i8result, value);
+    //å¦‚ä½•å¯¹åº”åˆ°å…·ä½“çš„è¯·æ±‚?
+    SerialSession::instance().HandleSessionCallback(code, i8result, value);
     return true;
 };

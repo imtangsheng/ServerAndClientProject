@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget* parent)
     //系统设置界面
 #pragma region settings系统设置数据界面
     //#网络设置
-    gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();//192.200.1.20"ws://localhost:8080"
+    gWebWidget->url = gSettings->value("network/url", "ws://192.200.1.20:8080").toString();//192.200.1.20"ws://localhost:8080"
     ui.lineEdit_network_url->setText(gWebWidget->url);
     gWebWidget->isAutoReconnect = gSettings->value("network/AutoReconnect", true).toBool();
     ui.radioButton_network_reconnect_on->setChecked(gWebWidget->isAutoReconnect);
@@ -305,18 +305,18 @@ void MainWindow::on_action_start_triggered()
 {
     qDebug() << "#Window::on_action_start_triggered()";
     //如果执行完任务,需要重新进入当前设置
-    // if(gTaskFileInfo){
+    if(gTaskFileInfo){
         Session session(_module, "onStart");
         if(!gControl.SendAndWaitResult(session)) {
             qWarning() <<"开始任务失败:" << session.message;
             ToolTip::ShowText(tr("提示:开始任务失败"),session.message);
             return;
         }
-    //     ui.pushButton_acquisition_start->hide();
-    // }else {
-    //     if(gProjectFileInfo)
-    //     onEnterProjectClicked();//创建任务
-    // }
+        ui.pushButton_acquisition_start->hide();
+    }else {
+        if(gProjectFileInfo)
+        onEnterProjectClicked();//创建任务
+    }
 
 }
 
@@ -330,17 +330,13 @@ void MainWindow::on_action_stop_triggered()
         ToolTip::ShowText(tr("提示:停止任务失败"),session.message);
         return;
     }
-    // ui.pushButton_acquisition_start->show();
-    // ui.pushButton_acquisition_start->setText(tr("创建任务"));
-    // gTaskFileInfo = nullptr;
+    ui.pushButton_acquisition_start->show();
+    ui.pushButton_acquisition_start->setText(tr("创建任务"));
+    gTaskFileInfo = nullptr;
 }
 
 void MainWindow::on_pushButton_test_clicked()
 {
-    QJsonObject obj;
-    obj["test"] = "main";
-    emit sigTaskConfigChanged(obj);
-    qDebug() << "#MainWindow::on_pushButton_test_clicked()"<<obj;
 }
 
 void MainWindow::on_pushButton_network_not_connect_clicked()
@@ -791,6 +787,13 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
     ui.label_current_task_name->setText(tr("当前任务:%1").arg(name));
     ui.label_current_task_name->show();
     gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
+
+    //进行参数检测
+    if(gScanner){
+    QJsonObject parameter = content;
+    parameter["dir"] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
+    if(!gScanner->SetTaskParameter(parameter)) return;
+    }
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_last);
 }
 
@@ -894,6 +897,10 @@ void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
     content[JSON_SPEED] = ui.spinBox_task_car_travel_speed->value();
     content[JSON_DIRECTION] = GetCarDirection(gControl.carDirection); //0后退 1 前进
 
+    //进行参数检测
+    if(gTrolley){
+        if(!gTrolley->SetTaskParameter(content)) return;
+    }
 
     emit sigTaskConfigChanged(content);//更新参数
     content[JSON_CREATE_TIME] = GetCurrentDateTime();

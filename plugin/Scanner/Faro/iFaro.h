@@ -50,7 +50,7 @@ namespace faro
     * @brief color:
     * For grey scan points: Mapped reflection value is in the range 0 (black) to 255 (white).
     * For color: the lightness of the color in the range 0 to 255.
-    * @bruef time 内部时间
+    * @brief time 内部时间
     */
     struct ScanPoint {
         double x{ 0.0 };

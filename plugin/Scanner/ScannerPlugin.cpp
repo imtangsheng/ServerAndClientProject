@@ -91,12 +91,19 @@ bool ScannerPlugin::RegisterServerHandler() {
 
 Result ScannerPlugin::OnStarted(CallbackResult callback)
 {
-return Result::Success();
+    return gFaroCtrl->OnStarted(callback);
+    //QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+    //Result ret = gFaroCtrl->SetParameters(content);
+    //if(ret) gFaroCtrl->OnStarted(callback);
+    //else {
+    //    callback(ret.code, tr("[#Faro]设置参数失败"));
+    //}
+    //return ret;
 }
 
 Result ScannerPlugin::OnStopped(CallbackResult callback)
 {
-return Result::Success();
+    return gFaroCtrl->OnStopped(callback);
 }
 
 //使用有线连接的时候,不会立马返回,而是超时,但其实已经连接
@@ -129,7 +136,7 @@ Result ScannerPlugin::TryConnect() {
 }
 
 void ScannerPlugin::CheckConnect() {
-    static int check_count = 10;
+    static int check_count = 45;
     qDebug() << "检测设备连接状态:" << check_count;
     if (gFaroCtrl->isConnect()) {
         RegisterServerHandler();
@@ -151,7 +158,7 @@ void ScannerPlugin::initUi(const Session &session)
     obj.insert("version", "0.0.1");
     obj.insert("isConnect", gFaroCtrl->isConnect());
     qDebug() << "[时间]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz") << "[#Faro]连接状态查询" << gFaroCtrl->isConnect();
-    gShare.on_session(session.ResponseString(obj),session.socket);
+    gShare.on_session(session.ResponseSuccess(obj),session.socket);
 }
 
 
@@ -204,8 +211,7 @@ void ScannerPlugin::ScanConnect(const Session& session) {
 void ScannerPlugin::SetParameter(const Session& session) {
     qDebug() << "[#Scanner]";
     QJsonObject param = session.params.toObject();
-    gFaroCtrl->SetParameters(param);
-    gShare.on_success("参数设置", session);
+    gShare.on_session(session.Finished(gFaroCtrl->SetParameters(param),"参数设置"), session.socket);
 }
 
 void ScannerPlugin::ScanStart(const Session& session) {

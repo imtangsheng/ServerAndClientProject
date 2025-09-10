@@ -58,6 +58,11 @@ QString CameraWidget::_module() const
     return module;
 }
 
+Result CameraWidget::SetTaskParameter(QJsonObject &data)
+{
+    return true;
+}
+
 void CameraWidget::UpdateTaskConfigSync(QJsonObject &content)
 {
    qDebug() <<"#CameraWidget::UpdateTaskConfigSync(QJsonObject &"<<content;

@@ -1,3 +1,8 @@
+
+// 全局变量定义
+QSharedPointer<FileInfoDetails> gProjectFileInfo;//当前正在执行的项目信息(主要客户端使用)
+FileInfoDetails* gTaskFileInfo = nullptr;//当前正在执行的任务
+
 using namespace share;
 
 QString Shared::GetVersion() {
@@ -46,12 +51,12 @@ void Shared::on_session(const QString& message, QObject* client) {
 };
 
 void Shared::on_success(const QString& msg, const Session& session) {
-    emit sigSent(session.ResponseString(0, msg), session.socket);
+    emit sigSent(session.ResponseSuccess(0, msg), session.socket);
 }
 
 void Shared::on_send(const Result& result, const Session& session) {
     if (result) {
-        on_session(session.ResponseString(result.code, result.message), session.socket);
+        on_session(session.ResponseSuccess(result.code, result.message), session.socket);
     } else {
         on_session(session.Finished(result.code, result.message), session.socket);
     }

@@ -19,6 +19,7 @@ public:
     /*iController API 设备控制的接口方法*/
     void initialize() final;
     QString _module() const final;
+    Result SetTaskParameter(QJsonObject &data) final;
     void UpdateTaskConfigSync(QJsonObject &content) final;
     void test();
     void ShowMessage(const QString& msg);
@@ -27,9 +28,7 @@ public:
     bool isUseRatedMileage{false}; //小车额定里程值,使用标志,满足此条件,则结束任务
     int carRatedMileage;//小车额定里程值,满足此条件,则结束任务
 
-    double lastTime;
-    double lastMileag;
-    void AddMileage(double time,double mileage, bool backward = false);// s秒 m米
+    void AddMileage(quint8 symbol,double mileage, qint64 time_us) const;
 
     void handle_binary_message(const QByteArray &bytes);
 public slots:
@@ -77,6 +76,8 @@ private slots:
 
 private:
     void retranslate();// 对自定义组件（如图表） 更新显示,重新翻译
+    Result SetSpeed(qint16 speed);
+    Result SetDirection(qint8 direction);
 };
 
 #endif // TROLLEYWIDGET_H
