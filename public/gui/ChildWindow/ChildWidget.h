@@ -31,7 +31,10 @@ public:
 
     virtual void initialize();
     bool isInitUi{false};
-    virtual void UpdateTaskConfigSync(QJsonObject &content) = 0;//同步更新任务配置相关
+
+    /*同步更新任务配置相关,以及同步设置任务参数*/
+    virtual Result SetTaskParameter(QJsonObject &data) = 0;
+    virtual void UpdateTaskConfigSync(QJsonObject &content) = 0;
 
     void stop();//停止任务执行
 public slots:

@@ -76,7 +76,7 @@ public:
     Q_NAMESPACE 必须在命名空间内部  后面必须跟 Q_ENUM_NS 或其他 Qt 元对象宏
     即使用枚举名称,该枚举需要定义在命名空间内部
     */
-    static QString DeviceName() {
+    QString DeviceName() {
         //static QMetaEnum metaEnum = QMetaEnum::fromType<SerialDeviceType>();
         //return metaEnum.valueToKey(kSupportedSerialDevices);
         return QVariant::fromValue(static_cast<SerialDeviceType>(uCurrentSerialDevice)).toString();
