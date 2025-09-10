@@ -174,9 +174,9 @@ public:
 protected:
     // 保护构造函数,只能继承使用
     explicit TaskManager(QObject* parent = nullptr) : QObject(parent) {
-        // qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
+         qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
     }
-    ~TaskManager();
+    ~TaskManager() = default;
 signals:
     void started();
     void finished();
@@ -200,13 +200,16 @@ inline static bool GetProjectName(const QString& path, QString& name) {
 }
 
 
-class SHAREDLIB_EXPORT SavaDataFile : public QObject
+class SHAREDLIB_EXPORT SavaDataFile
 {
-    Q_OBJECT
 public:
-    SavaDataFile(const QString& filename, const QString& firstline) :filename(filename), firstline(firstline), file(nullptr), QObject(&gTaskManager) {
-        connect(&gTaskManager, &TaskManager::started, this, &SavaDataFile::initialize);
-        connect(&gTaskManager, &TaskManager::finished, this, &SavaDataFile::close);
+    SavaDataFile(const QString& filename, const QString& first_line) :filename(filename), first_line(first_line), file(nullptr){
+        QObject::connect(&gTaskManager, &TaskManager::started, [this]() {
+            initialize(); 
+        });
+        QObject::connect(&gTaskManager, &TaskManager::finished,[this]() {
+            close();
+        });
     }
     ~SavaDataFile() {
         close();
@@ -216,23 +219,23 @@ public:
     Result initialize() {
         if (isInitialized) return true;
         if (gTaskFileInfo == nullptr) { //确保任务对象存在
-            return Result::Failure(tr("Task is not initialized."));
+            return Result::Failure(QObject::tr("任务对象不存在"));
         }
         QString filepath = gTaskFileInfo->path + "/" + filename;
         // 确保目录存在
         QFileInfo fileInfo(filepath);
         QDir dir = fileInfo.dir();
         if (!dir.exists() && !dir.mkpath(".")) {//确保在写入文件之前,相应的目录结构已经存在
-            return Result::Failure(tr("Failed to create directory: %1").arg(dir.absolutePath()));
+            return Result::Failure(QObject::tr("创建新目录失败: %1").arg(dir.absolutePath()));
         }
         // 打开文件
         file = new QFile(filepath);//缓冲区大小由 Qt 的底层实现和操作系统决定（通常为 4KB 或 16KB，具体取决于平台）
         if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {//使用 QIODevice::Unbuffered 标志打开文件，禁用 Qt 的内部缓冲，直接写入磁盘
             delete file; file = nullptr;
-            return Result::Failure(tr("Failed to open file: %1").arg(filepath));
+            return Result::Failure(QObject::tr("打开文件写入失败: %1").arg(filepath));
         }
         stream = new QTextStream(file);
-        WriteLine(firstline);//写入第一行数据
+        WriteLine(first_line);//写入第一行数据
         isInitialized = true;
         return true;
 
@@ -258,7 +261,7 @@ public:
         isInitialized = false;
     }
 private:
-    QString filename, firstline;
+    QString filename, first_line;
     QFile* file;
     QTextStream* stream{ nullptr };
 };
@@ -267,7 +270,7 @@ class SHAREDLIB_EXPORT SavaRawData : public QObject
 {
     Q_OBJECT
 public:
-    explicit SavaRawData(const QString& filename) :filename(filename), file(nullptr), QObject(&gTaskManager) {
+    explicit SavaRawData(const QString& filename) :filename(filename), file(nullptr) {
         connect(&gTaskManager, &TaskManager::started, this, &SavaRawData::initialize);
         connect(&gTaskManager, &TaskManager::finished, this, &SavaRawData::close);
     }
