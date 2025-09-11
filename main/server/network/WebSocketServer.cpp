@@ -139,7 +139,7 @@ void WebSocketServer::verify_device_type(const QString& message)
 			});
         deviceType = SessionType::Client;
 		foreach( auto mod, gShare.GetHandlerList()) {//模块初始化信息,界面信息初始化
-			newSocket->sendTextMessage(Session::RequestString(mod, "onEnableChanged", QJsonArray{ true }));
+			newSocket->sendTextMessage(Session::RequestString(mod, "onConnectionChanged", QJsonArray{ true }));
 		}
 		SentMessageToClients();//发送之前缓存信息
 		break;

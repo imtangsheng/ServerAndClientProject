@@ -74,10 +74,10 @@ void ScannerWidget::ScanPowerSwitch(bool flag)
     }
 }
 
-void ScannerWidget::onEnableChanged(bool enable)
+void ScannerWidget::onConnectionChanged(bool enable)
 {
     qDebug() <<_module()<< "模块已经加载,指令控制状态"<<enable;
-    ChildWidget::onEnableChanged(enable);
+    ChildWidget::onConnectionChanged(enable);
     if(enable){
         ui->pushButton_connect->hide();
     } else {
@@ -100,12 +100,9 @@ void ScannerWidget::onConfigChanged(QJsonObject config)
     general = config_.value("general").toObject();
 }
 
-void ScannerWidget::onDeviceStateChanged(double state, QString message)
+void ScannerWidget::onDeviceStateChanged(double state)
 {
-    if(!isInitUi){
-        gControl.sendTextMessage(Session::RequestString(11,_module(),"initUi",state));
-    }
-    return ChildWidget::onDeviceStateChanged(state,message);
+    return ChildWidget::onDeviceStateChanged(state);
 }
 
 void ScannerWidget::onWatcherFilesChanged(QJsonObject obj)

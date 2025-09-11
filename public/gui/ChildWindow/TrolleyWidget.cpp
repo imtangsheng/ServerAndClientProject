@@ -88,7 +88,6 @@ void TrolleyWidget::test()
 
     timer.start(1000);
 
-
 }
 
 
@@ -185,12 +184,9 @@ void TrolleyWidget::onConfigChanged(QJsonObject config)
     }
 }
 
-void TrolleyWidget::onDeviceStateChanged(double state, QString message)
+void TrolleyWidget::onDeviceStateChanged(double state)
 {
-    if(!isInitUi){
-        gControl.sendTextMessage(Session::RequestString(11,_module(),"initUi",state));
-    }
-    return ChildWidget::onDeviceStateChanged(state,message);
+    return ChildWidget::onDeviceStateChanged(state);
 }
 
 QRadioButton *TrolleyWidget::GetButtonDeviceManager()
@@ -294,6 +290,7 @@ void TrolleyWidget::on_pushButton_stop_clicked()
     }
 }
 
+
 void TrolleyWidget::on_radioButton_Direction_Drive_clicked()
 {
     // 改变行驶方向向前
@@ -359,8 +356,8 @@ void TrolleyWidget::on_radioButton_mileage_set_off_clicked()
 
 void TrolleyWidget::retranslate()
 {
-    static QString time = tr("Time (s)");
-    static QString mileage = tr("Mileage (m)");
+    static QString time = tr("时间(s)");
+    static QString mileage = tr("里程(m)");
     ui->ChartView_mileage_monitor->xTitle = time;
     ui->ChartView_mileage_monitor->yTitle = mileage;
 
@@ -408,3 +405,4 @@ Result TrolleyWidget::SetDirection(qint8 direction)
         }
         return true;
 }
+

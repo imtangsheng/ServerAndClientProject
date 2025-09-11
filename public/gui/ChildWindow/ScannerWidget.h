@@ -31,10 +31,10 @@ public:
     QJsonObject params;
     void ScanPowerSwitch(bool flag=false);//控制扫描上电开关
 public slots:
-    void onEnableChanged(bool enable=true) final;
+    void onConnectionChanged(bool enable=true) final;
     void initUi(const Session& session) final;
     void onConfigChanged(QJsonObject config) final;
-    void onDeviceStateChanged(double state,QString message) final;
+    void onDeviceStateChanged(double state) final;
     void onWatcherFilesChanged(QJsonObject obj);
 protected:
     QRadioButton* GetButtonDeviceManager() final;

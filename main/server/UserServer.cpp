@@ -108,12 +108,11 @@ void UserServer::initialize(quint16 port_ws, quint16 port_http) {
 }
 
 
-void UserServer::onDeviceStateChanged(Session session) {
+void UserServer::onDeviceStateChanged(const Session &session) {
     qDebug() << "UserServer::onDeviceStateChanged";
     for (auto& plugin : gManagerPlugin->m_plugins) {
-        session.module = plugin.ptr->GetModuleName();
-        session.params = QJsonArray{ {plugin.ptr->state_,"state"} };//double 类型传输值 message用于显示信息
-        gShare.on_session(session.GetRequest(), session.socket);
+        gShare.on_session(Session::RequestString(plugin.ptr->GetModuleName(),
+            session.method ,QJsonArray{ plugin.ptr->state_->toDouble() }), session.socket);//double 类型传输值 message用于显示信息
     }
 }
 

@@ -16,7 +16,12 @@ void ChildWidget::initialize()
         connect(GetButtonDeviceManager(),&QRadioButton::clicked,mainWindow,[&]{
             mainWindow->ui.StackedWidgetDeviceItems->setCurrentWidget(GetWidgetDeviceManager());
         });
-        onEnableChanged(false);//离线状态显示
+
+        currentState.addHandler(DeviceState::Offline,[this](){
+            onConnectionChanged(false);//离线状态显示
+        });
+        currentState.setState(DeviceState::Offline);
+        // onConnectionChanged(false);//离线状态显示
         //采集界面
         mainWindow->ui.LayoutRealtimeMonitoring->addWidget(GetWidgetAcquisitionMonitor());
         // 连接的是派生类函数 可用 lambda 表达式显示调用
@@ -24,7 +29,7 @@ void ChildWidget::initialize()
     }
 }
 
-void ChildWidget::onEnableChanged(bool enable)
+void ChildWidget::onConnectionChanged(bool enable)
 {
     bool isOffline = !enable;
     switch (deviceType) {

@@ -4,3 +4,4 @@
 #include "shared.h"
 #include "logger.h"
 #include "TaskManager.h"
+#include "DeviceState.h"

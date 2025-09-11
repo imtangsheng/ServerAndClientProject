@@ -18,8 +18,8 @@ public:
     virtual ~ChildWidget() = default;
 
     DeviceType deviceType{Other};//用于设备特有的界面操作等
+    DeviceState currentState;//记录设备当前的状态
     virtual QString _module() const = 0;//记录当前设备模块名称 必要用于注册设备
-    double state_{0};//记录当前设备状态值
     QString stateString;//监控显示信息
     QJsonObject config_;//设备参数 json格式
     QJsonObject parameter; //统一的置参数界面json对象
@@ -38,13 +38,15 @@ public:
 
     void stop();//停止任务执行
 public slots:
-    virtual void onEnableChanged(bool enable=true);//设备模块是否激活,在线状态显示
+    virtual void onConnectionChanged(bool enable=true);//设备模块是否激活,在线状态显示
     virtual void initUi(const Session& session) = 0;
     virtual void onConfigChanged(QJsonObject config) = 0;
-    virtual void onDeviceStateChanged(double state,QString message){
-        qDebug() <<"[#IWidget]"<<deviceType <<"state:" <<state << message;
-        onEnableChanged(false);
-    }//设备登录状态显示
+    virtual void onDeviceStateChanged(double state){//设备登录状态显示
+        if(!isInitUi){//初始状态变化后,连接请求更新显示信息
+            gControl.sendTextMessage(Session::RequestString(_module(),"initUi"));
+        }
+        currentState = state;
+    }
 protected:
     MainWindow* mainWindow{nullptr};  // 保存主窗口指针
     //设备管理界面

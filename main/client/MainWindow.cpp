@@ -182,6 +182,8 @@ void MainWindow::onSignIn(QJsonObject obj)
         ToolTip::ShowText(tr("客户端%1与服务端%2版本不一样").arg(gShare.GetVersion(),obj.value("version").toString()),-1);
     }
     gShare.info = obj; //同步服务端的信息
+    //请求同步更新设备状态
+    gClient.sendTextMessage(Session::RequestString(_module,"onDeviceStateChanged"));
 }
 
 void MainWindow::GotoHomePage() {
@@ -226,12 +228,12 @@ void MainWindow::onShowMessage(const QString& message, LogLevel level)
     QColor color;
     switch (level) {
     case LogLevel::Error:
-        levelStr = tr("[Error]");
+        levelStr = tr("错误]");
         color = Qt::red;
         ui.toolButton_alarm->setAlarmState(AlarmToolButton::Error);
         break;
     case LogLevel::Warning:
-        levelStr = tr("[Warning]");
+        levelStr = tr("[警告]");
         color = Qt::yellow;
         ui.toolButton_alarm->setAlarmState(AlarmToolButton::Warning);
         break;

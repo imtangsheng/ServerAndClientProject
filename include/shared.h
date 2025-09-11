@@ -44,7 +44,7 @@ namespace share {
         user
     };
     Q_ENUM_NS(ModuleName)
-//Share名称被msvc使用,故使用Shared
+//Share名称被 msvc使用,故使用Shared
 class SHAREDLIB_EXPORT Shared : public QObject
 {
     Q_OBJECT

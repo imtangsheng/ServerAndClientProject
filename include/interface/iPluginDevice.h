@@ -10,33 +10,21 @@
  //#include <QtPlugin>
 QT_BEGIN_NAMESPACE
 
-
-
-// 定义设备事件类型
-enum class DeviceEvent {
-    Initialize, Start, Pause, Resume, Stop, Error, Reset, Update, Custom
-};
-// 定义设备的状态
-enum class DeviceState {
-    Disconnected, Connected, Capturing
-};
-
-using StateHandler = std::function<Result(const QJsonValue&)>;
-
 class IPluginDevice : public QObject
 {
     Q_OBJECT
 public:
-    explicit IPluginDevice(QObject* parent = nullptr) :QObject(parent),
-        currentState(DeviceState::Disconnected) {
+    explicit IPluginDevice(QObject* parent = nullptr) :QObject(parent) {
         qDebug() << "[IPluginDevice]构造函数被调用" << QThread::currentThread();
     }
     virtual ~IPluginDevice() {
         qDebug() << "IPluginDevice()析构函数被调用";
+        delete state_;
     }
 
     virtual QString GetModuleName() const = 0;//记录当前设备模块名称 必要用于注册设备
-    double state_{-1};//记录设备状态值,int类型,double类型用于json数据网络传输
+
+    QPointer<DeviceState> state_;//记录设备状态值,int类型,double类型用于json数据网络传输
     QJsonObject config_;//设备配置参数 json格式
     TaskState taskState{ TaskState::TaskState_Waiting };//任务状态
 
@@ -71,25 +59,16 @@ public:
     virtual Result OnStarted(CallbackResult callback = nullptr) =0;
     virtual Result OnStopped(CallbackResult callback = nullptr) =0;
 
-    virtual DeviceState GetCurrentState() { return currentState; }
     // 获取错误信息
     virtual QString GetLastError() { return lastError; };
 
-    // 处理事件的方法
-    Result HandleEvent(DeviceEvent event, const QJsonValue& data = QJsonValue()) {
-        if (stateHandlers.contains(currentState) &&
-            stateHandlers[currentState].contains(event)) {
-            return stateHandlers[currentState][event](data);
-        }
-        return Result(false, "无效的状态或事件");
-    }
 public slots:
     virtual void initUi(const Session& session) = 0;//初始化UI,返回配置信息
     virtual void SaveConfig(const Session& session) {//保存配置
         config_ = session.params.toObject();
         Result result = WriteJsonFile(ConfigFilePath(), config_);
         if (!result) {
-            LOG_WARNING(tr("%1 保存参数错误:%2").arg(name()).arg(result.message));
+            LOG_WARNING(tr("%1 保存参数错误:%2").arg(name(),result.message));
         }
         gShare.on_send(result, session);
     }
@@ -97,27 +76,10 @@ public slots:
     virtual void execute(const QString& method) = 0; // 执行特定功能
 
 signals:
-    void state_changed(DeviceState oldState, DeviceState newState);
-    void event_occurred(DeviceEvent event, const QVariant& data);
     void error_occurred(const QString& errorMessage);
 
 protected:
     QString lastError;
-    DeviceState currentState;
-    // 状态转换处理器
-    QMap<DeviceState, QMap<DeviceEvent, StateHandler>> stateHandlers;
-    // 注册自定义事件处理器
-    void RegisterEventHandler(DeviceState state, DeviceEvent event, StateHandler handler) {
-        stateHandlers[state][event] = handler;
-    }
-    virtual void SetState(DeviceState newState) {
-        if (currentState != newState) {
-            DeviceState oldState = currentState;
-            currentState = newState;
-            emit state_changed(oldState, newState);
-        }
-    }
-
     QTranslator translator;//成员变量,用于国际化 必须由qt主线程析构
     QString ConfigFilePath() const {
         static QString filePath = gShare.appPath + "/config/" + name() + ".json";

@@ -141,7 +141,7 @@ struct Session {
         this->module = module;this->method = method;this->params = params; this->id = NextId();
     }
     // 请求的Request发送
-    static QString RequestString(const QString& module, const QString& method, const QJsonValue& params) {
+    static QString RequestString(const QString& module, const QString& method, const QJsonValue& params = QJsonValue()) {
         return JsonToString({ {"id", NextId()}, {"module", module}, {"method", method}, {"params", params} });
     }
     static QString RequestString(qint64 id, const QString& module, const QString& method, const QJsonValue& params) {

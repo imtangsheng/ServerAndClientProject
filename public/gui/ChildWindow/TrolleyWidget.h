@@ -35,7 +35,7 @@ public slots:
     // void onEnableChanged(bool enable=true) final;
     void initUi(const Session& session) final;
     void onConfigChanged(QJsonObject config) final;
-    void onDeviceStateChanged(double state,QString message) final;
+    void onDeviceStateChanged(double state) final;
 
 protected:
     QRadioButton* GetButtonDeviceManager() final;
@@ -55,6 +55,7 @@ private slots:
     void on_pushButton_start_clicked();
 
     void on_pushButton_stop_clicked();
+    //全局参数控制
     //参数设置
     void on_comboBox_car_param_templates_activated(int index);
 
@@ -73,6 +74,8 @@ private slots:
     void on_radioButton_mileage_set_on_clicked();
 
     void on_radioButton_mileage_set_off_clicked();
+
+
 
 private:
     void retranslate();// 对自定义组件（如图表） 更新显示,重新翻译

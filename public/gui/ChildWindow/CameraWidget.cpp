@@ -134,9 +134,10 @@ void CameraWidget::handle_binary_message(const QByteArray &bytes)
 
 }
 
-void CameraWidget::onEnableChanged(bool enable)
+void CameraWidget::onConnectionChanged(bool enable)
 {
     qDebug() <<_module()<< "模块已经加载,指令控制状态"<<enable;
+    ChildWidget::onConnectionChanged(enable);
 }
 
 void CameraWidget::initUi(const Session &session)
@@ -150,13 +151,9 @@ void CameraWidget::initUi(const Session &session)
     }
 }
 
-void CameraWidget::onDeviceStateChanged(double state, QString message)
+void CameraWidget::onDeviceStateChanged(double state)
 {
-    //默认触发就是在线状态,返回值为false
-    if(!isInitUi){
-        gControl.sendTextMessage(Session::RequestString(11,_module(),"initUi",state));
-    }
-    return ChildWidget::onDeviceStateChanged(state,message);
+    return ChildWidget::onDeviceStateChanged(state);
 }
 
 void CameraWidget::onConfigChanged(QJsonObject config)
