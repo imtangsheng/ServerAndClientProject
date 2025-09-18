@@ -40,7 +40,7 @@ void CreateNewProject::on_pushButton_Accepted_clicked() {
     content[JSON_NOTE] = ui->textEdit_remark->toPlainText();
 
     Session session(sModuleUser, "AddNewProject",project.ToJsonObject());
-    if(gControl.SendAndWaitResult(session,"创建新项目",-1)) {
+    if(gControl.SendAndWaitResult(session,tr("创建新项目"),tr("正在创建新项目目录信息"),-1)) {
         accept();
     } else {
         qWarning() << session.result;

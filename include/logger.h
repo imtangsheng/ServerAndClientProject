@@ -50,6 +50,25 @@ struct LogMessage {
 	int lineNumber;        // 行号
 };
 
+inline QString ShowLogMessage(const QString& message, LogLevel level) {
+	QString levelStr;
+	QString colorStr;
+	switch (level) {
+	case LogLevel::Error:
+		levelStr = QObject::tr("错误");
+		colorStr = "#FF0000";  // 红色
+		break;
+	case LogLevel::Warning:
+		levelStr = QObject::tr("警告");
+		colorStr = "#FFFF00";  // 黄色
+		break;
+	default:
+		colorStr = "#808080";  // 灰色
+		break;
+	}
+	return QString("<span style='color: %1'>[%2] %3</span>").arg(colorStr, levelStr, message);
+}
+
 /**
  * @brief 日志基类
  * 实现日志记录到文件和显示到界面的功能

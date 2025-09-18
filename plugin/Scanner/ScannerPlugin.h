@@ -27,6 +27,7 @@ public:
     Result OnStarted(CallbackResult callback = nullptr) final;
     Result OnStopped(CallbackResult callback = nullptr) final;
 
+    Result Shutdown() final;
 private:
     Result TryConnect();
     void CheckConnect();

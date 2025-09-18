@@ -42,7 +42,7 @@ static void RecvImuData(const ImuFrame& data) {
     static QString header = "time\tXRotation\tYRotation\tZRotation\tXAcceleration\tYAcceleration\tZAcceleration\n";
     static SavaDataFile imu_file(QString("%1/Imu.txt").arg(kTaskDirCarName),header);
     //惯导数据
-    if (gTaskState == TaskState_Running && imu_file.initialize()) {
+    if (gTaskState == TaskState_Running && imu_file.create_file()) {
         //数据量很大,基本都会粘包
         QString str = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7\n").arg(data.time).arg(data.gyroX).arg(data.gyroY).arg(data.gyroZ).arg(data.accX).arg(data.accY).arg(data.accZ);
         imu_file.WriteLine(str);
@@ -57,7 +57,7 @@ class LinsF400Imu :public QObject
     Q_OBJECT
 public:
     explicit LinsF400Imu(QObject* parent = nullptr, QString portName = NULL)
-        : QObject(parent), serialPort(new QSerialPort(this)) {
+        : QObject(parent), serial(new QSerialPort(this)) {
         //open serial port
         if (!portName.isEmpty()) {
             if (GetAvailablePorts().contains(portName)) {
@@ -66,8 +66,8 @@ public:
                 LOG_ERROR(tr("Unable to scan the specified serial port:%1").arg(portName));
             }
         }
-        connect(serialPort, &QSerialPort::readyRead, this, &LinsF400Imu::handleReadyRead);
-        connect(serialPort, &QSerialPort::errorOccurred, this, &LinsF400Imu::handleError);
+        connect(serial, &QSerialPort::readyRead, this, &LinsF400Imu::handleReadyRead);
+        connect(serial, &QSerialPort::errorOccurred, this, &LinsF400Imu::handleError);
     }
 
     ~LinsF400Imu() {
@@ -75,17 +75,17 @@ public:
     }
     // 打开串口
     bool open(const QString& port) {
-        if (serialPort->isOpen()) {
+        if (serial->isOpen()) {
             LOG_WARNING(tr("Serial port %1 is already open").arg(port));
             return false;
         }
-        serialPort->setPortName(port);
-        serialPort->setBaudRate(ImuBaudRate);
-        serialPort->setDataBits(QSerialPort::Data8);
-        serialPort->setStopBits(QSerialPort::OneStop);
-        serialPort->setParity(QSerialPort::NoParity);
+        serial->setPortName(port);
+        serial->setBaudRate(ImuBaudRate);
+        serial->setDataBits(QSerialPort::Data8);
+        serial->setStopBits(QSerialPort::OneStop);
+        serial->setParity(QSerialPort::NoParity);
 
-        if (serialPort->open(QIODevice::ReadWrite)) {
+        if (serial->open(QIODevice::ReadWrite)) {
             return true;
         }
         LOG_ERROR(tr("Failed to open serial port %1").arg(port));
@@ -94,8 +94,8 @@ public:
 
     // 关闭串口
     void close() {
-        if (serialPort->isOpen()) {
-            serialPort->close();
+        if (serial->isOpen()) {
+            serial->close();
         }
     }
 
@@ -109,12 +109,12 @@ public:
     }
 
 protected:
-    QSerialPort* serialPort;
+    QSerialPort* serial;
     QByteArray buffer_;
     QReadWriteLock bufferLock_;
 
     void handleReadyRead() {
-        QByteArray data = serialPort->readAll();
+        QByteArray data = serial->readAll();
         {
             QWriteLocker locker(&bufferLock_);
             buffer_.append(data);
@@ -157,7 +157,7 @@ protected:
         if (error == QSerialPort::NoError) {
             return;
         }
-        LOG_ERROR(tr("Serial port error:%1").arg(serialPort->errorString()));
+        LOG_ERROR(tr("Serial port error:%1").arg(serial->errorString()));
     }
 
 };

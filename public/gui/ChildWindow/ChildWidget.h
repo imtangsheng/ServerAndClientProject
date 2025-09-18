@@ -18,7 +18,7 @@ public:
     virtual ~ChildWidget() = default;
 
     DeviceType deviceType{Other};//用于设备特有的界面操作等
-    DeviceState currentState;//记录设备当前的状态
+    StateEvent currentState;//记录设备当前的状态
     virtual QString _module() const = 0;//记录当前设备模块名称 必要用于注册设备
     QString stateString;//监控显示信息
     QJsonObject config_;//设备参数 json格式
@@ -31,7 +31,7 @@ public:
 
     virtual void initialize();
     bool isInitUi{false};
-
+    bool isConnection{false};
     /*同步更新任务配置相关,以及同步设置任务参数*/
     virtual Result SetTaskParameter(QJsonObject &data) = 0;
     virtual void UpdateTaskConfigSync(QJsonObject &content) = 0;
@@ -43,6 +43,7 @@ public slots:
     virtual void onConfigChanged(QJsonObject config) = 0;
     virtual void onDeviceStateChanged(double state){//设备登录状态显示
         if(!isInitUi){//初始状态变化后,连接请求更新显示信息
+            qDebug() << _module() <<"连接请求更新显示信息";
             gControl.sendTextMessage(Session::RequestString(_module(),"initUi"));
         }
         currentState = state;

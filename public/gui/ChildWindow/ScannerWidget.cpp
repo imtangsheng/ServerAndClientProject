@@ -34,11 +34,19 @@ QString ScannerWidget::_module() const
 
 Result ScannerWidget::SetTaskParameter(QJsonObject &data)
 {
+    //获取扫描仪时间同步,每次任务前
+    Session session_car(sModuleSerial,"ScanAutomationTimeSync",true);
+    if (!gControl.SendAndWaitResult(session_car,tr("扫描仪与小车时间同步"),tr("正在扫描仪与小车时间同步"))) {
+        ToolTip::ShowText(tr("设置扫描仪与小车时间同步"), -1);
+        return false;
+    }
+
     Session session(_module(), "SetParameter", data);
     if (!gControl.SendAndWaitResult(session)) {
         ToolTip::ShowText(tr("设置参数失败"), -1);
         return Result::Failure(tr("设置参数失败"));
     }
+
     return Result();
 }
 
@@ -59,9 +67,9 @@ void ScannerWidget::ShowMessage(const QString &msg)
 qDebug() <<"ShowMessage:"<< msg;
 }
 
-void ScannerWidget::ScanPowerSwitch(bool flag)
+void ScannerWidget::ScanPowerSwitch(bool open)
 {
-    if(flag){
+    if(open){
         ui->pushButton_power_switch->setText(tr("开启上电"));
         ui->pushButton_power_switch->setStyleSheet("");
     }else{
@@ -161,13 +169,17 @@ void ScannerWidget::on_pushButton_power_switch_clicked()
 {
     qDebug() <<"void ScannerWidget::on_pushButton_power_on_clicked()";
     static bool flag = true;
-    Session session(sModuleSerial, "SetScanPowerSwitch",!flag);
-    if (gControl.SendAndWaitResult(session)) {
-        ScanPowerSwitch(!flag);
-        flag = !flag;
-    } else {
-        ToolTip::ShowText(tr("操作失败"), -1);
+    QJsonObject obj;
+    obj["code"] = 0x11;//CAR_SCANER_PWR_CTRL
+    QByteArray data = QByteArray(1, static_cast<char>(flag ? 0x01 : 0x00));//01 为打开电源，00 为关闭电源。
+    obj["data"] = QString(data.toHex());
+    Session session(sModuleSerial, "SetParameterByCode", obj);
+    if (!gControl.SendAndWaitResult(session,tr("等待扫描仪上电"))) {
+        ToolTip::ShowText(tr("扫描仪上电失败"), -1);
+        return;
     }
+    flag = !flag;
+    ScanPowerSwitch(flag);
 }
 
 
@@ -522,6 +534,11 @@ void ScannerWidget::on_pushButton_ScanStop_clicked()
 void ScannerWidget::on_pushButton_ScanSetParameter_clicked()
 {
     parameter["dir"] = gShare.info.value("dir").toString() + "/config/faro/test";
-    SetTaskParameter(parameter);
+    // SetTaskParameter(parameter);
+    Session session(_module(), "SetParameter", parameter);
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(tr("设置参数失败"), -1);
+    }
+
 }
 

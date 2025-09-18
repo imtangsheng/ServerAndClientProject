@@ -57,7 +57,7 @@ protected:
             qreal textHeight = fm.height()/2;
             // 计算绘制位置（底部右下） 文本会向右上方延伸（因为基线在左下）和widget计算不同
             QPointF titlePos(
-                plotArea.right() + 9,
+                plotArea.right() + 10,
                 plotArea.bottom() + textHeight
                 );
             painter.drawText(titlePos, xTitle);
@@ -71,7 +71,7 @@ protected:
             //顶部 左上
             QPointF titlePos(
                 plotArea.left() - textWidth,
-                plotArea.top() - textHeight - 9
+                plotArea.top() - textHeight
                 );
             painter.drawText(titlePos, yTitle);
         }

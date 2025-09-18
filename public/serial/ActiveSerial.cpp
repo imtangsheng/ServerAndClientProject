@@ -9,11 +9,10 @@
 * @param left 左里程数据
 * @param right 右里程数据
 */
-static void RecvMileageData(qint64 id, const MileageInfo& left, const MileageInfo& right) {
+inline static void RecvMileageData(qint64 id, const MileageInfo& left, const MileageInfo& right) {
     static QString header = "ID\tLeftMileage\tLeftTime\tLeftTimeRaw\tRightMileage\tRightTime\tRightTimeRaw\n";
     static SavaDataFile mileage(QString("%1/mileage.txt").arg(kTaskDirCarName), header);
-
-    if (gTaskState == TaskState::TaskState_Running && mileage.initialize()) {
+    if (mileage.create_file()) { 
         //里程数据
         QString str = QString("%1\t%2\t%3\t%4\t%5\t%6\t%7\n").arg(id)
             .arg((left.symbol ? -1 : 1) * left.pulse * g_mileage_multiplier) //左里程数据
@@ -25,6 +24,7 @@ static void RecvMileageData(qint64 id, const MileageInfo& left, const MileageInf
             ;
         mileage.WriteLine(str);
     }
+    
 }
 
 /*单里程数据 兼容前单里程的数据,默认不使用单里程数据,双里程数据中右里程数据为0
@@ -35,7 +35,7 @@ static void RecvSingleMileageData(qint64 id, const MileageInfo& data) {
     static QString header = "ID\tMileage\tTime\tTimeRaw\n";
     static SavaDataFile single_mileage_file(QString("%1/singleMileage.txt").arg(kTaskDirCarName), header);
     //单里程数据
-    if (gTaskState == TaskState_Running && single_mileage_file.initialize()) {
+    if (single_mileage_file.create_file()) {
         QString str = QString("%1\t%2\t%3\t%4\n").arg(id)
             .arg((data.symbol ? -1 : 1) * data.pulse) //里程数据
             .arg(gScannerCarTimeSync.GetScanner(data.time)) //推算的扫描仪时间
@@ -46,11 +46,10 @@ static void RecvSingleMileageData(qint64 id, const MileageInfo& data) {
 /*倾角计数据
 * @param data 倾角计数据
 */
-static void RecvInclinometerData(InclinometerInfo data) {
+inline static void RecvInclinometerData(InclinometerInfo data) {
     static QString header = "X\tY\tTime\n";
     static SavaDataFile inclinometer_file(QString("%1/Inclinometer.txt").arg(kTaskDirCarName), header);
-    //倾角计数据
-    if (gTaskState == TaskState_Running && inclinometer_file.initialize()) {
+    if (inclinometer_file.create_file()) {
         QString str = QString("%1\t%2\t%3\n").arg(data.x).arg(data.y).arg(data.time);
         inclinometer_file.WriteLine(str);
     }
@@ -63,7 +62,7 @@ static void RecvScannerTimeData() {//扫描仪时间数据
     static QString header = "ID\tTrolleyTime\tScannerTime\n";
     static SavaDataFile scanner_time_file(QString("%1/scannerTime.txt").arg(kTaskDirCarName), header);
     //扫描仪时间数据
-    if (gTaskState == TaskState_Running && scanner_time_file.initialize()) {
+    if (gTaskState == TaskState_Running && scanner_time_file.create_file()) {
         QString str = QString("%1\t%2\t%3\n").arg(gGetScannerTimeCount)
             .arg(gScannerCarTimeSync.car)
             .arg(gScannerCarTimeSync.scanner);
@@ -81,7 +80,7 @@ static void RecvCameraPositionData(const CloverTriggerInfo& data) {
     static QString header = "ID\tCamID\tCentralPosition\ttime\tActualPosition\n";
     static SavaDataFile camera_position_file(QString("%1/centralPosition.txt").arg(kTaskDirCameraName), header);
     //相机触发数据
-    if (gTaskState == TaskState_Running && camera_position_file.initialize()) {
+    if (gTaskState == TaskState_Running && camera_position_file.create_file()) {
         QString str = QString("%1\t%2\t%3\t%4\t%5\n").arg(data.id)
             .arg(data.camera_id) //相机ID
             .arg(data.position) //相机机位
@@ -236,6 +235,13 @@ Result ActiveSerial::OnStopped(CallbackResult callback) {
 bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data) {
     qDebug() << "#Received Code:" << QString::number(code, 16).rightJustified(2, '0').toUpper() << "Data:" << data.toHex().toUpper();
     //if (data.isEmpty()) return;
+    static auto push_car = [&code,&data]() {
+        static quint8 trolley = share::ModuleName::trolley;
+        QByteArray bytes = QByteArray(1, trolley) + QByteArray(1, code) + data;
+        //bytes.append(trolley).append(code).append(data);
+        qDebug() << "bytes:" << bytes.toHex().toUpper();
+        emit gShare.sigSentBinary(bytes);//推送二进制数据
+    };
     QDataStream stream(data);
     stream.setByteOrder(QDataStream::LittleEndian);  // 设置字节序
     QJsonValue value;
@@ -247,6 +253,12 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     */
     switch (code) {
 #ifdef DEVICE_TYPE_CAR
+    case AUTOMATION_TIME_SYNC:
+        stream >> i8result;
+        if (i8result == RESULT_SUCCESS) {
+            ScannerAndCarTimeInfo::isAwake = true;
+        }
+        break;
     case CAR_STARTUP:
         stream >> i8result;
         if (i8result == RESULT_SUCCESS) {
@@ -259,7 +271,6 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
             gShare.isCarDriving = false;
         }
         break;
-    case SCANER_SET_AUTOMATION_TIME:
         //[[fallthrough]];  // C++17特性，明确表示故意 fall through
     case CAR_CHANGING_OVER:
     case CAR_SET_SPEED:
@@ -267,6 +278,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     case CAR_SCANER_PWR_CTRL:
     case CAR_SET_ENCODER_USAGE:
     case CAR_SET_START_STOP_BUTTON_MODE:
+    case CAR_CHOOSE_BATTERY_SOURCE:
 #endif // DEVICE_TYPE_CAR
 #ifdef DEVICE_TYPE_CAMERA
     case CAMERA_START_STOP:
@@ -287,7 +299,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         stream >> autotimer >> gScannerCarTimeSync.car;
         //获取扫描仪时间失败,返回0 应该执行任务回调
         if (autotimer == 0) {
-            LOG_ERROR(tr("Failed to get scanner time"));
+            LOG_ERROR(tr("获取扫描仪时间同步失败,返回 扫描仪值:%1 小车值:%2,原始数据").arg(autotimer).arg(gScannerCarTimeSync.car).arg(data.toHex().toUpper()));
             i8result = -1;
             return false;
         }
@@ -297,23 +309,10 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     }return true;
     case CAR_GET_MSG:
     {
-        static CarInfo info_;
-        stream >> info_.speed >> info_.temperature_symbol >> info_.temperature << info_.direction << info_.moving << info_.battery_usage << info_.knob_state << info_.encoder_mode << info_.key_mode << info_.scanner_power << info_.speed_min << info_.speed_max << info_.time;
-        QJsonObject obj;
-        obj.insert("speed", info_.speed);
-        obj.insert("temperature", info_.temperature_symbol ? -1 * info_.temperature / 10.0 : info_.temperature / 10.0);
-        obj.insert("direction", info_.direction);
-        obj.insert("moving", info_.moving);
-        obj.insert("battery_usage", info_.battery_usage);
-        obj.insert("knob_state", info_.knob_state);
-        obj.insert("encoder_mode", info_.encoder_mode);
-        obj.insert("key_mode", info_.key_mode);
-        obj.insert("scanner_power", info_.scanner_power);
-        obj.insert("speed_min", info_.speed_min);
-        obj.insert("speed_max", info_.speed_max);
-        obj.insert("time", info_.time);
-        value = obj;
-    }break;
+        push_car();
+        //获取小车信息后,还有获取电池信息等
+        WriteData(CAR_GET_BATTERY_MSG);
+    }return true;
     case CAR_GET_TOTAL_MILEAGE:
     {
         static qint64 total_mileage{ 0 }; //小车总里程 单位为米
@@ -323,32 +322,17 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     }break;
     case CAR_GET_BATTERY_MSG:
     {
-        static BatteryInfo left_battery_info_;
-        static BatteryInfo right_battery_info_;
-        stream >> left_battery_info_.state >> left_battery_info_.voltage >> left_battery_info_.current << left_battery_info_.remainingCapacity >> left_battery_info_.fullChargeCapacity << left_battery_info_.cycleCount;
-        stream >> right_battery_info_.state >> right_battery_info_.voltage >> right_battery_info_.current << right_battery_info_.remainingCapacity >> right_battery_info_.fullChargeCapacity << right_battery_info_.cycleCount;
-        QJsonObject obj;
-        obj.insert("left_battery_state", left_battery_info_.state);
-        obj.insert("left_battery_voltage", left_battery_info_.voltage);
-        obj.insert("left_battery_current", left_battery_info_.current);
-        obj.insert("left_battery_remainingCapacity", left_battery_info_.remainingCapacity);
-        obj.insert("left_battery_fullChargeCapacity", left_battery_info_.fullChargeCapacity);
-        obj.insert("left_battery_cycleCount", left_battery_info_.cycleCount);
-        obj.insert("right_battery_state", right_battery_info_.state);
-        obj.insert("right_battery_voltage", right_battery_info_.voltage);
-        obj.insert("right_battery_current", right_battery_info_.current);
-        obj.insert("right_battery_remainingCapacity", right_battery_info_.remainingCapacity);
-        obj.insert("right_battery_fullChargeCapacity", right_battery_info_.fullChargeCapacity);
-        obj.insert("right_battery_cycleCount", right_battery_info_.cycleCount);
-        value = obj;
-    }break;
+        push_car();
+    }return true;
 
     /**自动上传的数据格式,return 不回复**/
     case 0xEF://倾角信息上传 倾角计的量程为正负 15 度。
     {
-        InclinometerInfo inclinometer;
-        stream >> inclinometer;
-        RecvInclinometerData(inclinometer);//倾角计数据的任务处理
+        if (gTaskState == TaskState::TaskState_Running) {
+            InclinometerInfo inclinometer;
+            stream >> inclinometer;
+            RecvInclinometerData(inclinometer);//倾角计数据的任务处理
+        }
     }return true;
     case 0xF8://默认只支持双里程数据
     {
@@ -356,28 +340,27 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         static MileageInfo right;
         stream >> left >> right;
         if (left.symbol != right.symbol) {
-            LOG_ERROR(tr("[#Serial]左右里程数据符号不一致 左: %1 右: %2").arg(left.symbol,right.symbol));
+            LOG_WARNING(tr("[#串口]左右里程数据符号不一致 左: %1 右: %2").arg(left.symbol,0,16).arg(right.symbol,0,16));
             qWarning() << left.symbol << left.pulse << left.time;
             qWarning() << right.symbol << right.pulse << right.time;
-
+            return true;//这个时候抛弃掉数据就好了
         }
+        left.time *= 10; right.time *= 10;//时间单位为10us,需要*10改为us的单位
         struMileage mileage = MileageCorrector::instance().Correct(left.time, left.pulse, right.time, right.pulse);
-        //MileageInfo  mileage_info(left.symbol, mileage.pulse, mileage.time);
-        //mileage_info.pulse = mileage_info.pulse * g_mileage_multiplier;
         //里程数据 推送到订阅的客户端
         if (g_mileage_count % kMileageUpdateInterval == 0) {
             //二进制数据 发送
             static quint8 invoke = share::ModuleName::trolley;
             QByteArray bytes;
             QDataStream out(&bytes, QIODevice::WriteOnly);
-            out << invoke << code << g_mileage_count << left.symbol << mileage.pulse *g_mileage_multiplier << mileage.time*10;
+            //推送里程为m
+            out << invoke << code << g_mileage_count << left.symbol << mileage.pulse *g_mileage_multiplier << mileage.time;
             qDebug() << "data.size" << bytes.size();
             emit gShare.sigSentBinary(bytes);//推送二进制数据
         }
         if (gTaskState == TaskState::TaskState_Running) {
-            //RecvSingleMileageData(g_mileage_count, mileage_info);
-            left.pulse = left.pulse * g_mileage_multiplier;
-            right.pulse = right.pulse * g_mileage_multiplier;
+            MileageInfo  mileage_info(right.symbol, mileage.pulse, mileage.time);
+            RecvSingleMileageData(g_mileage_count, mileage_info);
             RecvMileageData(g_mileage_count, left, right);//里程数据的任务处理
         }
         g_mileage_count++;

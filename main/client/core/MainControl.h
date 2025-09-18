@@ -33,7 +33,7 @@ public:
 
     QSet<QPointer<QWebSocket>> sockets; // 自动去重
     void sendTextMessage(const QString &message);
-    Result SendAndWaitResult(Session &session,QString info=QString(), quint8 sTimeout = 30);
+    Result SendAndWaitResult(Session &session,const QString &info = QString(),const QString& title = QString(), quint8 sTimeout = 30);
     void SetBackgroudAcrylicEffect(QWidget *dialog);
 private:
     explicit MainControl(QObject* parent = nullptr);

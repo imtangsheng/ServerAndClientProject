@@ -1,4 +1,4 @@
-/*!
+﻿/*!
  * @file SerialPlugin.cpp
  * @brief
  * @date 2025-04
@@ -41,12 +41,12 @@ Result SerialPlugin::Activate_(QJsonObject param) {
         else 
             gSerial->close();
     }
-    Result result = gSerial->open(port);
-    if (result) {
+    if (gSerial->open(port)) {
         config_["port"] = port;
         WriteJsonFile(ConfigFilePath(), config_);
+        return true;
     }
-    return result;
+    return Result::Failure(tr("打开串口%1失败,请检查是否被其他应用程序占用").arg(port));
 }
 
 Result SerialPlugin::initialize() {
@@ -113,6 +113,38 @@ void SerialPlugin::SetSpeedMultiplier(const Session& session) {
     Result result = WriteJsonFile(ConfigFilePath(), config_);
     gShare.on_send(result, session);
 }
+
+void SerialPlugin::ScanAutomationTimeSync(const Session& session) {
+    static const int time_sync_interval = 30 * 1000; // 30秒
+    static QTimer timer(gSerial);
+    if (ScannerAndCarTimeInfo::isAwake) {//要先判断是否在开机后进行设置了自动化时间同步,目前设计客户端也会实现一次同步
+        bool enable = session.params.toBool(true);
+        if (enable) {
+            gSerial->WriteData(SCANER_GET_AUTOMATION_TIME);
+            g_serial_session.addSession(SCANER_GET_AUTOMATION_TIME, session);
+            //if(timer.isActive() == false) //是否激活启动过的判断
+            connect(&timer, &QTimer::timeout, this, []() {// 每次调用都会添加新连接
+                gSerial->WriteData(SCANER_GET_AUTOMATION_TIME);
+                });
+            // 确保唯一连接 Qt::UniqueConnection 不能用于 lambda 表达式或非成员函数
+            connect(&gTaskManager, &TaskManager::finished, &timer, &QTimer::stop, Qt::UniqueConnection);
+            timer.start(time_sync_interval);
+        } else {
+            timer.disconnect();
+            timer.stop();
+            gShare.on_success(tr("关闭成功"), session);
+        }
+    } else {
+        gSerial->WriteData(AUTOMATION_TIME_SYNC);
+        g_serial_session.addSession(AUTOMATION_TIME_SYNC, [this, session](const qint8& code, const QJsonValue& value) {
+            if (code == RESULT_SUCCESS) {
+                ScanAutomationTimeSync(session);
+            } else {
+                gShare.on_session(session.Finished(code, value.toString()), session.socket);
+            }
+            });
+    }
+}
 #endif // DEVICE_TYPE_CAR
 void SerialPlugin::initUi(const Session& session) {
     QJsonObject obj;
@@ -122,6 +154,27 @@ void SerialPlugin::initUi(const Session& session) {
     emit gSigSent(session.ResponseSuccess(obj, tr("succeed")), session.socket);
     //主动请求一次配置更新
     emit gSigSent(Session::RequestString(2, GetModuleName(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
+    /*小车的界面信息定时更新*/
+    static const int time_sync_interval = 30 * 1000; // 30秒
+    static QTimer timer(gSerial);
+    static auto SyncInfo = [this]() {
+        /*此处应更新同步的主要的两个电池使用的是哪一个,还有一个是电量电压信息,因为下位机不会缓存指令,需要等待执行完一条指令后再执行下一条*/
+        gSerial->WriteData(CAR_GET_MSG);
+        //QThread::msleep(25); // 25ms 间隔不会有粘包的现象
+        //gSerial->WriteData(CAR_GET_BATTERY_MSG);
+    };
+    static bool isInitConnect = false;
+    if (!isInitConnect) {
+        connect(&timer, &QTimer::timeout, this, SyncInfo);
+        connect(&gTaskManager, &TaskManager::running, &timer, &QTimer::stop);
+        connect(&gTaskManager, &TaskManager::waiting, [this]() {
+            if (gSerial->isOpen()) {
+                timer.start(time_sync_interval);
+            }
+            });
+        isInitConnect = true;
+    }
+    SyncInfo();
 }
 
 

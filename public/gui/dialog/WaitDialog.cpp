@@ -1,7 +1,7 @@
 #include "WaitDialog.h"
 #include "ui_WaitDialog.h"
 
-WaitDialog::WaitDialog(Session* session,QWebSocket* client,QString info, quint8 sTimeout,QWidget *parent)
+WaitDialog::WaitDialog(Session* session,QWebSocket* client,const QString &info,const QString& title, quint8 sTimeout,QWidget *parent)
     : QDialog(parent),session(session),pClient(client),sMaxTimeout(sTimeout)
     , ui(new Ui::WaitDialog)
 {
@@ -10,6 +10,8 @@ WaitDialog::WaitDialog(Session* session,QWebSocket* client,QString info, quint8 
     setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog | Qt::WindowStaysOnTopHint); // 设置无边框
     // setAttribute(Qt::WA_TranslucentBackground); // 设置背景透明
     // setAttribute(Qt::WA_DeleteOnClose);
+    if(!title.isEmpty())
+    ui->label_title_text->setText(title);
     if(!info.isEmpty())
     ui->label_show->setText(info);
 }
@@ -65,10 +67,15 @@ Result WaitDialog::filter(Session &recv)
         accept();
         // qDebug()<<"会设置dialog的result为QDialog::Accepted（值为1）";
         return Result(true,recv.message);
-    }else{
-        qWarning() << session->id << session->module <<session->method;
-        return false;
     }
+    if(recv.method == "onShowMessage"){
+        QJsonArray params = recv.params.toArray();
+        QString message = params.first().toString();
+        LogLevel level = static_cast<LogLevel>(params.last().toInt());
+        ui->label_show->setText(ShowLogMessage(message,level));
+    }
+    return false;
+
 }
 
 void WaitDialog::update_timeout()

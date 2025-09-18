@@ -14,12 +14,21 @@ void AlarmToolButton::setAlarmState(AlarmState state)
 {
     if (m_state != state) {
         m_state = state;
-
+        static bool hasError = false;
         // 控制闪烁逻辑
         if (m_state == Normal) {
+            this->setText(tr("正常"));
             m_blinkTimer.stop();
             m_blinkOn = false;
+            hasError = false;
         } else {
+            if(m_state == Error){
+                this->setText(tr("错误"));
+                hasError = true;
+            }
+            else if(!hasError && m_state == Warning){
+                this->setText(tr("警告"));
+            }
             m_blinkTimer.start();
         }
 

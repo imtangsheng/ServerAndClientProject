@@ -21,14 +21,15 @@ void MainControl::sendTextMessage(const QString &message)
     }
 }
 
-Result MainControl::SendAndWaitResult(Session &session,QString info, quint8 sTimeout)
+
+Result MainControl::SendAndWaitResult(Session &session,const QString& info,const QString& title, quint8 sTimeout)
 {
     Result ret;
     for (const auto& client : std::as_const(sockets)) {//标准 C++，避免容器分离
         if (client == nullptr) {  // 检查 QPointer 是否有效
             continue;
         }
-        WaitDialog wait(&session,client,info,sTimeout);
+        WaitDialog wait(&session,client,info,title,sTimeout);
         if(wait.init() || wait.exec() == QDialog::Accepted){
             if(session) continue;//QDialog::Accepted
             ret = false;

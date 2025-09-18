@@ -59,7 +59,7 @@ Q_DECLARE_METATYPE(Result)
 
 // 定义回调函数类型（支持异步回调函数lambda）
 using CallbackResult = std::function<void(const qint8&, const QJsonValue&)>;
-
+using StateHandler = std::function<void()>;
 /**定义一个原子类的结构体**/
 #include <QAtomicInteger>
 template<typename T>
@@ -241,27 +241,7 @@ enum class SessionType : int {
 
 //适用插件类型使用
 #include <QMetaEnum>
-using TaskStateType = quint8;
 
-/*任务状态枚举*/
-#define TaskEnumName(name) TaskState_##name
-enum TaskState : TaskStateType {
-    TaskEnumName(Unknown),//未知
-    TaskEnumName(Waiting),//等待
-    TaskEnumName(PreStart),//准备开始
-    TaskEnumName(Starting),//开始
-    TaskEnumName(Started),//已开始
-    TaskEnumName(Running),//运行中
-    TaskEnumName(Finished),//已完成
-    TaskEnumName(Paused),//暂停
-    TaskEnumName(Resumed),//恢复
-    TaskEnumName(Cancelled),//取消
-    TaskEnumName(Timeout),//超时
-    TaskEnumName(Failed),//失败
-    TaskEnumName(Stopped),//停止
-    TaskEnumName(Aborted),//中止
-    TaskEnumName(Error)//错误
-};
 
 #include <QReadWriteLock>
 

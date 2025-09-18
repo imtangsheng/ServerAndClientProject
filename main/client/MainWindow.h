@@ -161,10 +161,6 @@ private slots:
 
     void on_radioButton_realtime_parsing_off_clicked();
 
-    void on_radioButton_car_forward_clicked();
-
-    void on_radioButton_car_backward_clicked();
-
     //参数模板页
     void on_pushButton_template_query_clicked();
 

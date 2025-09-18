@@ -1,6 +1,6 @@
 #include <QtWebSockets>
 #include "WebSocketServer.h"
-
+#include "manager/ManagerPlugin.h"
 WebSocketServer::WebSocketServer(quint16 port, QObject* parent)
 	:QObject(parent),
 	m_pWebSocketServer(new QWebSocketServer(QStringLiteral("WebSocket Server"), QWebSocketServer::NonSecureMode, this))
@@ -91,7 +91,7 @@ void WebSocketServer::handleBinarySent(const QByteArray& message, QObject* wscli
 }
 
 void WebSocketServer::handleLogMessageSent(const QString& message, LogLevel level) {
-    //qDebug() << "处理发送到日志消息handleLogMessageSent:" << message << double(level);
+    //qDebug() << "处理发送到日志消息 handleLogMessageSent:" << message << double(level);
 	// 创建JSON数组并添加消息内容和日志级别
 	//QJsonArray array;array.append(message);array.append(double(level));
 	QJsonArray array = { message, double(level) };
@@ -137,9 +137,10 @@ void WebSocketServer::verify_device_type(const QString& message)
 		connect(newSocket, &QWebSocket::disconnected, this, [&]() {
 			clients.remove(newSocket);
 			});
-        deviceType = SessionType::Client;
-		foreach( auto mod, gShare.GetHandlerList()) {//模块初始化信息,界面信息初始化
-			newSocket->sendTextMessage(Session::RequestString(mod, "onConnectionChanged", QJsonArray{ true }));
+        deviceType = SessionType::Client;//设备初始化信息,界面信息初始化
+		for (auto& plugin : gManagerPlugin->plugins) {
+			newSocket->sendTextMessage(Session::RequestString(plugin.ptr->GetModuleName(), "onConnectionChanged", QJsonArray{ true }));
+			//newSocket->sendTextMessage(Session::RequestString(plugin.ptr->GetModuleName(),"onDeviceStateChanged", QJsonArray{ plugin.ptr->state_.toDouble() }));
 		}
 		SentMessageToClients();//发送之前缓存信息
 		break;

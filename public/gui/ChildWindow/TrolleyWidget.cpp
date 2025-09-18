@@ -1,11 +1,88 @@
 #include "TrolleyWidget.h"
 #include "MainWindow.h"
 
+#include "ScannerWidget.h"
 #ifndef DEVICE_TYPE_CAR
 #define DEVICE_TYPE_CAR
 #endif
 #include "serialport_protocol.h"
 using namespace serial;
+
+static CarInfo gCarInfo;
+static BatteryInfo gBatteryInfoLeft;
+static BatteryInfo gBatteryInfoRight;
+
+class Serializer {
+public:
+// 版本1：处理算术类型（int, float, double等）
+template<typename T>
+static typename std::enable_if<std::is_arithmetic<T>::value, QByteArray>::type
+serialize(T value) {
+    // std::is_arithmetic<T>::value 检查T是否为算术类型
+    // 如果是true，enable_if有::type成员，定义为QByteArray
+    // 如果是false，这个函数模板会被SFINAE排除，不参与重载决议
+    static_assert(std::is_trivially_copyable_v<T>, "类型必须是简单可复制的");
+    QByteArray result(sizeof(T), 0);
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        result[i] = static_cast<char>((value >> (i * 8)) & 0xFF);
+    }
+    return result;
+}
+
+// 对其他类型使用QDataStream 如非算术类型（QString, QVector等）
+template<typename T>
+static typename std::enable_if<!std::is_arithmetic<T>::value, QByteArray>::type
+serialize(T value) {
+    QByteArray buffer;
+    QDataStream stream(&buffer, QIODevice::WriteOnly);
+    stream.setByteOrder(QDataStream::LittleEndian);
+    stream << value;
+    return buffer;
+}
+
+// 多个值的序列化
+template<typename... Args>
+static QByteArray serialize(Args... args) {
+    QByteArray result;
+    ((result.append(serialize(args))), ...);
+    return result;
+}
+
+// 检测系统字节序
+static bool isSystemLittleEndian() {
+    const uint16_t test = 0x0102;
+    return reinterpret_cast<const uint8_t*>(&test)[0] == 0x02;
+}
+// 算术类型序列化（支持字节序）
+template<typename T>
+static QByteArray serializeBig(T value) {
+    static_assert(std::is_arithmetic_v<T>, "T 必须是算术类型序");
+    QByteArray result(sizeof(T), 0);
+    uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
+    // 无论系统字节序如何，都转为大端序
+    for (size_t i = 0; i < sizeof(T); ++i) {
+        result[i] = bytes[sizeof(T) - 1 - i];  // 总是反转字节顺序
+    }
+    return result;
+}
+
+};
+
+
+inline Session GetSession(const QString& module, const QString& method, FunctionCodeEnum code,QByteArray data)
+{
+    QJsonObject obj;
+    obj["code"] = code;
+    obj["data"] = QString(data.toHex());
+    return Session(module,method,obj);
+}
+
+inline void SessionParameterByCode(FunctionCodeEnum code,QByteArray data,Session &session){
+    QJsonObject obj;
+    obj["code"] = serial::CAR_SET_SPEED;
+    obj["data"] = QString(data.toHex());
+    session.params = obj;
+}
 
 TrolleyWidget::TrolleyWidget(MainWindow *parent)
     : ChildWidget(parent)
@@ -28,7 +105,6 @@ TrolleyWidget::TrolleyWidget(MainWindow *parent)
         qDebug() <<_module() << "gShare.handlerBinarySession[] = [this](const QByteArray& bytes"<< bytes.size();
         handle_binary_message(bytes);
     };
-
 }
 
 TrolleyWidget::~TrolleyWidget()
@@ -42,6 +118,28 @@ void TrolleyWidget::initialize()
     retranslate();
     ui->ChartView_mileage_monitor->init();
     ui->ChartView_mileage_info->init();
+
+    connect(mainWindow->ui.radioButton_car_forward, &QRadioButton::clicked,this, [this]() {
+        if (!SetDirection(true)) {
+            mainWindow->ui.radioButton_car_forward->setChecked(false);
+        } else {
+            ui->radioButton_Direction_Drive->setChecked(true);
+        }
+    });
+    connect(mainWindow->ui.radioButton_car_backward, &QRadioButton::clicked,this, [this]() {
+        if(!SetDirection(false)){
+            mainWindow->ui.radioButton_car_backward->setChecked(false);
+        } else {
+            ui->radioButton_Direction_Reverse->setChecked(true);
+        }
+    });
+
+    connect(mainWindow->ui.pushButton_battery_left,&QPushButton::clicked,this,[this](){
+        SetBatterySource(1);
+    });
+    connect(mainWindow->ui.pushButton_battery_right,&QPushButton::clicked,this,[this](){
+        SetBatterySource(2);
+    });
 }
 
 QString TrolleyWidget::_module() const
@@ -50,10 +148,94 @@ QString TrolleyWidget::_module() const
     return module;
 }
 
+void TrolleyWidget::UpdateCarInfo()
+{
+    static CarInfo lastCarInfo;
+    qDebug() <<"UpdateCarInfo" << gCarInfo.temperature;
+    // 温度
+    if(lastCarInfo.temperature != gCarInfo.temperature){
+        double temp = (gCarInfo.temperature_symbol ? -1 : 1) * gCarInfo.temperature / 10.0;
+        mainWindow->ui.label_car_remperature->setText(QString("%1°c").arg(temp,0, 'f', 1));
+    }
+    //方向检测
+    if(lastCarInfo.direction != gCarInfo.direction){
+        if(gCarInfo.direction == 0){//运行方向；0 后退，1 前进。
+            ui->radioButton_Direction_Reverse->setChecked(true);
+            mainWindow->ui.radioButton_car_backward->setChecked(true);
+        }else{
+            ui->radioButton_Direction_Drive->setChecked(true);
+            mainWindow->ui.radioButton_car_forward->setChecked(true);
+        }
+    }
+
+    //电池使用状态,0 未初始化电池，1 使用左侧电池， 2 使用右侧电池
+    if(lastCarInfo.battery_usage != gCarInfo.battery_usage){
+        if(gCarInfo.battery_usage == 1){
+            mainWindow->ui.pushButton_battery_left->setActive(true);
+            mainWindow->ui.pushButton_battery_left_2->setActive(true);
+            mainWindow->ui.pushButton_battery_right->setActive(false);
+            mainWindow->ui.pushButton_battery_right_2->setActive(false);
+        }else if(gCarInfo.battery_usage == 2){
+            mainWindow->ui.pushButton_battery_left->setActive(false);
+            mainWindow->ui.pushButton_battery_left_2->setActive(false);
+            mainWindow->ui.pushButton_battery_right->setActive(true);
+            mainWindow->ui.pushButton_battery_right_2->setActive(true);
+        }else{
+            qWarning() << "gCarInfo.battery_usage = " << gCarInfo.battery_usage;
+            mainWindow->ui.pushButton_battery_left->setActive(false);
+            mainWindow->ui.pushButton_battery_left_2->setActive(false);
+            mainWindow->ui.pushButton_battery_right->setActive(false);
+            mainWindow->ui.pushButton_battery_right_2->setActive(false);
+        }
+    }
+    //旋钮状态；1 到 5 分别表示旋钮的状态 1 到 5。
+
+    //为目前使用的是哪个编码器；1 左侧，2 右侧，3 同时使用两个编码器 备注:目前固定值3
+    if(gCarInfo.encoder_mode != 3){
+        qWarning() << "gCarInfo.encoder_mode:"<<gCarInfo.encoder_mode;
+    }
+    //扫描仪供电状态；0 不供电（默认），1 供电。（由 0x11 指令控制）
+    if(lastCarInfo.scanner_power != gCarInfo.scanner_power){
+        if(gScanner)
+            gScanner->ScanPowerSwitch(gCarInfo.scanner_power==0);
+    }
+}
+
+
+Result TrolleyWidget::AutomationTimeSync()
+{
+    //进行自动化时间同步,手动同步,如果此命令发送时,有设备未同步,则自动化时间会出错,故把同步流程放到此进入任务前
+    static bool is_devices_time_sync = false;
+    if(!is_devices_time_sync){
+        Session session(sModuleSerial, "SetParameterByCode");
+        SessionParameterByCode(serial::AUTOMATION_TIME_SYNC,QByteArray(),session);
+        if (gControl.SendAndWaitResult(session,tr("设备自动化时间同步"),tr("正在进行自动化时间同步"))) {
+            is_devices_time_sync = true;
+        }
+    }
+    return is_devices_time_sync;
+}
+
 Result TrolleyWidget::SetTaskParameter(QJsonObject &data)
 {
     qint32 speed = data.value(JSON_SPEED).toInt();
-    return SetSpeed(speed);
+
+    if(speed < 50 || speed > 5500){
+        ToolTip::ShowText(tr("设置的行驶速度超过范围:%1-%2,当前设置%3").arg(50,5500,speed), -1);
+        return false;
+    }
+    Session session(_module(), "SetParameterByCode");
+    if(gCarInfo.speed != speed){
+        SessionParameterByCode(serial::CAR_SET_SPEED,Serializer::serialize(speed),session);
+        if (!gControl.SendAndWaitResult(session,tr("设置行驶速度"),tr("正在设置行驶速度"))) {
+            ToolTip::ShowText(tr("设置行驶速度失败"), -1);
+            return false;
+        }
+        // if(!SetSpeed(speed)) return Result::Failure(tr("设置行驶速度失败"));
+        gCarInfo.speed = speed;
+    }
+
+    return true;
 }
 
 void TrolleyWidget::UpdateTaskConfigSync(QJsonObject &content)
@@ -145,8 +327,34 @@ void TrolleyWidget::AddMileage(quint8 symbol,double mileage, qint64 time_us) con
 void TrolleyWidget::handle_binary_message(const QByteArray &bytes)
 {
     QDataStream stream(bytes);
+    stream.setByteOrder(QDataStream::LittleEndian);
     quint8 code;stream >> code;
     switch (code) {
+    case CAR_GET_MSG:{
+        stream >> gCarInfo;
+        UpdateCarInfo();
+    }break;
+    case CAR_GET_BATTERY_MSG:{
+        stream >> gBatteryInfoLeft >> gBatteryInfoRight;
+        Result ret = gBatteryInfoLeft.isValid();
+        if(!ret){
+            ToolTip::ShowText(tr("电池显示异常:%1").arg(ret.message), -1);
+            break;
+        }
+        if(gBatteryInfoLeft.fullChargeCapacity != 0){
+            mainWindow->ui.pushButton_battery_left->setValue(gBatteryInfoLeft.GetPercentage(),gBatteryInfoLeft.GetVoltage());
+            mainWindow->ui.pushButton_battery_left_2->setValue(gBatteryInfoLeft.GetPercentage(),gBatteryInfoLeft.GetVoltage());
+        }
+        Result ret2 = gBatteryInfoRight.isValid();
+        if(!ret2){
+            ToolTip::ShowText(tr("电池显示异常:%1").arg(ret2.message), -1);
+            break;
+        }
+        if(gBatteryInfoRight.fullChargeCapacity != 0){
+            mainWindow->ui.pushButton_battery_right->setValue(gBatteryInfoRight.GetPercentage(),gBatteryInfoRight.GetVoltage());
+            mainWindow->ui.pushButton_battery_right_2->setValue(gBatteryInfoRight.GetPercentage(),gBatteryInfoRight.GetVoltage());
+        }
+    }break;
     case 0xF8:{
         quint64 id;
         quint8 symbol;
@@ -252,7 +460,7 @@ void TrolleyWidget::on_pushButton_open_clicked()
     obj["name"] = _module();
     Session session(sModuleManager, "Activate",obj); //设备激活使用
     if(!gControl.SendAndWaitResult(session)){
-        ToolTip::ShowText(tr("设备打开串口失败:%1").arg(session.message), -1);
+        ToolTip::ShowText(tr("设备打开串口失败,错误:%1").arg(session.message), -1);
     }
 }
 
@@ -296,6 +504,9 @@ void TrolleyWidget::on_radioButton_Direction_Drive_clicked()
     // 改变行驶方向向前
     if(!SetDirection(01))
         ui->radioButton_Direction_Drive->setChecked(false);
+    else {
+        mainWindow->ui.radioButton_car_forward->setChecked(true);
+    }
 }
 
 
@@ -304,6 +515,9 @@ void TrolleyWidget::on_radioButton_Direction_Reverse_clicked()
     // if (gControl.carDirection == true) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
     if(!SetDirection(00))
         ui->radioButton_Direction_Reverse->setChecked(false);
+    else {
+        mainWindow->ui.radioButton_car_backward->setChecked(true);
+    }
 }
 
 void TrolleyWidget::on_horizontalScrollBar_car_travel_speed_valueChanged(int value)
@@ -382,27 +596,45 @@ Result TrolleyWidget::SetSpeed(qint16 speed)
     obj["data"] = QString(data.toHex());
     qDebug() <<"obj:"<< obj;
     Session session(_module(), "SetParameterByCode", obj);
-    if (!gControl.SendAndWaitResult(session)) {
+    if (!gControl.SendAndWaitResult(session,tr("设置行驶速度"))) {
         ToolTip::ShowText(tr("设置行驶速度失败"), -1);
         return false;
     }
     return true;
 }
 
-Result TrolleyWidget::SetDirection(qint8 direction)
+Result TrolleyWidget::SetDirection(bool isForward)
 {
-        QJsonObject obj;
-        obj["code"] = serial::CAR_CHANGING_OVER;//serial::CAR_CHANGING_OVER;
-        QByteArray data;
-        data.append(direction);
-        obj["data"] = QString(data.toHex());
-        Session session(_module(), "SetParameterByCode", obj);
-        if (!gControl.SendAndWaitResult(session)) {
-            // gControl.carDirection = false;
-            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
-            // ui->radioButton_Direction_Reverse->setChecked(false);
-            return false;
+    QJsonObject obj;
+    obj["code"] = serial::CAR_CHANGING_OVER;//serial::CAR_CHANGING_OVER;
+    QByteArray data;
+    data.append(isForward ? 0x01:0x00);
+    obj["data"] = QString(data.toHex());
+    Session session(_module(), "SetParameterByCode", obj);
+    if (!gControl.SendAndWaitResult(session)) {
+        // gControl.carDirection = false;
+        ToolTip::ShowText(tr("设置车辆方向失败"), -1);
+        // ui->radioButton_Direction_Reverse->setChecked(false);
+        return false;
+    }
+    return true;
+}
+
+Result TrolleyWidget::SetBatterySource(quint8 num)
+{
+    Session session = GetSession(_module(), "SetParameterByCode",serial::CAR_CHOOSE_BATTERY_SOURCE,Serializer::serialize(num));
+    if (!gControl.SendAndWaitResult(session,tr("设置使用的电池侧"))) {
+        if(session) return false;//点了取消,暂时不处理
+        QString msg;
+        switch (session.code) {
+        case 0:msg = tr("参数错误");break;
+        case 1:msg = tr("左侧电压低,无法切换");break;
+        case 2:msg = tr("右侧电压低,无法切换");break;
+        default:msg = tr("未知错误码%1").arg(session.code);break;
         }
-        return true;
+        ToolTip::ShowText(tr("设置使用的电池侧,失败:%1").arg(msg), -1);
+        return false;
+    }
+    return true;
 }
 

@@ -29,6 +29,8 @@ public:
 #ifdef DEVICE_TYPE_CAR
     //#属性设置接口
     Q_INVOKABLE void SetSpeedMultiplier(const Session& session); // 设置小车速度乘数
+    Q_INVOKABLE void ScanAutomationTimeSync(const Session& session); // 扫描仪自动化时间同步,与小车
+
 #endif // DEVICE_TYPE_CAR
 public slots:
     void initUi(const Session& session) final;//初始化UI,返回配置信息

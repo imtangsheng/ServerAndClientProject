@@ -77,6 +77,7 @@ void LineChartView::init()
 
     /*显示区域的初始化*/
     // setContentsMargins(0, 0, 0, 0);
+    update();
 }
 
 void LineChartView::append(const double &time, const double &mileage)
@@ -89,11 +90,13 @@ void LineChartView::append(const double &time, const double &mileage)
         MinTime = time;
         MaxTime = time+ AxisXMax;
         axisX->setRange(MinTime,MaxTime);
+        update();
     }
     while(time > MaxTime){
         MaxTime =time+ AxisXMax;
         axisX->setMax(MaxTime);
         qDebug() << "set time" << time <<MaxTime;
+        update();
     }
     if(MinMileage <= 0){
         MinMileage = mileage;
@@ -108,15 +111,12 @@ void LineChartView::append(const double &time, const double &mileage)
 
     lineSeriesUpper->append(time,mileage);
     lineSeriesLower->append(time,0);
-
-
-
 }
 
 void LineChartView::clear()
 {
     lineSeriesUpper->clear();
     lineSeriesLower->clear();
-    axisX->setMax(AxisXMax);
-    axisY->setMax(AxisYMax);
+    axisX->setRange(0, AxisXMax);
+    axisY->setRange(0, AxisYMax);
 }

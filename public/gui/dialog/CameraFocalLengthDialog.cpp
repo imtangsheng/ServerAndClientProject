@@ -127,7 +127,7 @@ void CameraFocalLengthDialog::on_pushButton_get_clicked()
 
     Session session(scanner->_module(), "GetCameraPositionDistance",res);
     // gControl.sendTextMessage(session.GetRequest());
-    if (gControl.SendAndWaitResult(session,tr("请等待执行完成"),-1)) {
+    if (gControl.SendAndWaitResult(session,tr("测量相机焦距"),tr("请等待执行完成"),-1)) {
     } else {
     ToolTip::ShowText(tr("测量相机焦距失败"), -1);
         return;

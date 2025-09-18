@@ -106,6 +106,10 @@ Result ScannerPlugin::OnStopped(CallbackResult callback)
     return gFaroCtrl->OnStopped(callback);
 }
 
+Result ScannerPlugin::Shutdown() {
+    return gFaroCtrl->shutdown();
+}
+
 //使用有线连接的时候,不会立马返回,而是超时,但其实已经连接
 Result ScannerPlugin::TryConnect() {
     qDebug() << "[#Faro]尝试连接";
@@ -134,6 +138,7 @@ Result ScannerPlugin::TryConnect() {
     res.code = ret;
     return res;
 }
+
 
 void ScannerPlugin::CheckConnect() {
     static int check_count = 45;

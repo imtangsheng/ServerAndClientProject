@@ -116,7 +116,7 @@ namespace serial {
         // 扫描仪指令
         SCANER_END_SCAN = 0x02,  // 结束扫描
         SCANER_INITIATE_SCAN = 0x03,  // 初始化扫描
-        SCANER_SET_AUTOMATION_TIME = 0x04,  // 设置自动化时间
+        AUTOMATION_TIME_SYNC = 0x04,  // 设置自动化时间,手动同步所有设备的时间
         SCANER_RECORD_PAUSE = 0x05,  // 开始/暂停记录扫描数据
         SCANER_DATA_MESSAGE = 0x06,  // 向扫描仪的点云数据中加入用户数据
         SCANER_SELF_TEST = 0x07,  // 自测
@@ -215,6 +215,7 @@ namespace serial {
 #pragma endregion
 
 #ifdef DEVICE_TYPE_CAR
+#pragma pack(push, 1)  // 设置1字节对齐，避免编译器自动填充
     /*小车数据格式定义*/
     struct CarInfo
     {
@@ -231,8 +232,17 @@ namespace serial {
         uint8_t scanner_power;//为扫描仪供电状态；0 不供电（默认），1 供电。（由 0x11 指令控制
         uint16_t speed_min; //为最小速度
         uint16_t speed_max;
-        int64_t time;//电路板时间；单位为（10 微秒）。如果有需求可以改为 1 微秒。
+        uint64_t time;//电路板时间；单位为（10 微秒）。如果有需求可以改为 1 微秒。
+
+        friend QDataStream& operator>>(QDataStream& stream, CarInfo& info) {
+            stream >> info.speed >> info.temperature_symbol >> info.temperature
+            >> info.direction >> info.moving >> info.battery_usage >> info.knob_state
+            >> info.encoder_mode >> info.key_mode >> info.scanner_power
+            >> info.speed_min >> info.speed_max >> info.time;
+            return stream;
+        }
     };
+#pragma pack(pop)
     struct ScannerAndCarTimeInfo
     {
         quint64 scanner{ 0 };        //扫描仪自动化时间 单位微秒
@@ -246,7 +256,7 @@ namespace serial {
         quint64 GetScanner(quint64 car_time) const {
             return car_time + difference;
         }
-
+        inline static bool isAwake{false};
     };
     struct BatteryInfo {
         uint8_t state; // 00 正常，其他异常
@@ -255,6 +265,37 @@ namespace serial {
         uint16_t remainingCapacity; // in mAh 为电池剩余容量
         uint16_t fullChargeCapacity; // in mAh 为电池满充容量
         uint16_t cycleCount; // 为电池循环次数
+        friend QDataStream& operator>>(QDataStream& stream, BatteryInfo& info) {
+            stream >> info.state >> info.voltage >> info.current >> info.remainingCapacity >> info.fullChargeCapacity >> info.cycleCount;
+            return stream;
+        }
+        Result isValid() const {
+            if (state == 0) {
+                return true;
+            }
+            //使用 bit位来表示异常 Bit 0 充电过流 1 放电过流 2 充电短路 3 放电短路 4 高温 5 过载 6 过压 7 欠压
+            // 构建错误信息
+            QStringList errors;
+            if(state & 0x01) errors << QObject::tr("充电过流");
+            if(state & 0x02) errors << QObject::tr("放电过流");
+            if(state & 0x04) errors << QObject::tr("充电短路");
+            if(state & 0x08) errors << QObject::tr("放电短路");
+            if(state & 0x10) errors << QObject::tr("高温");
+            if(state & 0x20) errors << QObject::tr("过载");
+            if(state & 0x40) errors << QObject::tr("过压");
+            if(state & 0x80) errors << QObject::tr("欠压");
+            return Result::Failure(errors.join(";"));
+        }
+        double GetVoltage() const { //转单位v
+            return static_cast<double>(voltage) / 1000.0;
+        }
+        int GetPercentage() const {
+            if (fullChargeCapacity == 0) {
+                qWarning() << "电池满充容量为0,错误";
+                return 0;
+            }
+            return static_cast<int>(remainingCapacity * 100.0 / fullChargeCapacity);
+        }
     };
     struct MileageInfo
     {

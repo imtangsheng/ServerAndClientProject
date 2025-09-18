@@ -17,10 +17,10 @@ void ChildWidget::initialize()
             mainWindow->ui.StackedWidgetDeviceItems->setCurrentWidget(GetWidgetDeviceManager());
         });
 
-        currentState.addHandler(DeviceState::Offline,[this](){
+        currentState.addHandler(StateEvent::Offline,[this](){
             onConnectionChanged(false);//离线状态显示
         });
-        currentState.setState(DeviceState::Offline);
+        currentState.setState(StateEvent::Offline);
         // onConnectionChanged(false);//离线状态显示
         //采集界面
         mainWindow->ui.LayoutRealtimeMonitoring->addWidget(GetWidgetAcquisitionMonitor());
@@ -31,10 +31,10 @@ void ChildWidget::initialize()
 
 void ChildWidget::onConnectionChanged(bool enable)
 {
-    bool isOffline = !enable;
+    isConnection = enable;
     switch (deviceType) {
     case Trolley:
-        if(isOffline){
+        if(!isConnection){
             mainWindow->ui.widget_device_trolley_is_connected->hide();
             mainWindow->ui.widget_device_trolley_not_connection->show();
         }else{
@@ -43,7 +43,7 @@ void ChildWidget::onConnectionChanged(bool enable)
         }
         break;
     case Scanner:
-        if(isOffline){
+        if(!isConnection){
             mainWindow->ui.widget_device_scanner_is_connected->hide();
             mainWindow->ui.widget_device_scanner_not_connection->show();
         }else{
@@ -52,7 +52,7 @@ void ChildWidget::onConnectionChanged(bool enable)
         }
         break;
     case Camera:
-        if(isOffline){
+        if(!isConnection){
             mainWindow->ui.widget_device_camera_is_connected->hide();
             mainWindow->ui.widget_device_network_not_connection->show();
         }else{

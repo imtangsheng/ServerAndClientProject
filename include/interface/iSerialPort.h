@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QAtomicInteger>
 #include "serialport_protocol.h"
+
 namespace serial {
 /*定义的串口方法*/
 class SerialPortTemplate : public QObject
@@ -17,7 +18,7 @@ class SerialPortTemplate : public QObject
     
 public:
     explicit SerialPortTemplate(QObject* parent = nullptr, QString portName = NULL)
-        : QObject(parent), serialPort(new QSerialPort(this)) {
+        : QObject(parent), serial(new QSerialPort(this)) {
         //open serial port
         if (!portName.isEmpty()) {
             if (GetAvailablePorts().contains(portName)) {
@@ -27,44 +28,47 @@ public:
                 qWarning() << GetAvailablePorts();
             }
         }
-        connect(serialPort, &QSerialPort::readyRead, this, &SerialPortTemplate::handleReadyRead);
-        connect(serialPort, &QSerialPort::errorOccurred, this, &SerialPortTemplate::handleError);
+        connect(serial, &QSerialPort::readyRead, this, &SerialPortTemplate::handleReadyRead);
+        connect(serial, &QSerialPort::errorOccurred, this, &SerialPortTemplate::handleError);
 
         uCurrentSerialDevice = gShare.RegisterSettings->value("type", 0).toInt();
     }
 
     virtual ~SerialPortTemplate() {
         close();
+        delete serial;
     };
 
     virtual bool isOpen() {
-        return serialPort->isOpen();
+        return serial->isOpen();
     }
 
     virtual QString GetPortName() {
-        return serialPort->portName();
+        return serial->portName();
     }
     // 打开串口
     bool open(const QString& port) {
         qDebug() << "准备打开串口:" << port;
-        serialPort->setPortName(port);
-        serialPort->setBaudRate(921600);
-        serialPort->setDataBits(QSerialPort::Data8);
-        serialPort->setStopBits(QSerialPort::OneStop);
-        serialPort->setParity(QSerialPort::NoParity);
+        serial->setPortName(port);
+        serial->setBaudRate(921600);
+        serial->setDataBits(QSerialPort::Data8);
+        serial->setStopBits(QSerialPort::OneStop);
+        serial->setParity(QSerialPort::NoParity);
 
-        if (serialPort->open(QIODevice::ReadWrite)) {
-            WriteData(0x00);
+        if (serial->open(QIODevice::ReadWrite)) {
+            WriteData(CODE_TEST);
+            //QThread::msleep(25); // 25ms 间隔不会有粘包的现象
+            //WriteData(AUTOMATION_TIME_SYNC);
             return true;
         }
-        LOG_ERROR(tr("打开串口%1失败,请检查是否被其他应用程序占用").arg(port));
+        
         return false;
     }
 
     // 关闭串口
     void close() {
-        if (serialPort->isOpen()) {
-            serialPort->close();
+        if (serial->isOpen()) {
+            serial->close();
         }
     }
 
@@ -72,7 +76,8 @@ public:
     bool WriteData(const QByteArray& data) {
         static QReadWriteLock write;
         QWriteLocker locker(&write);
-        return serialPort->write(data) == data.size();
+        //serial->flush(); // 强制立即发送,无用
+        return serial->write(data) == data.size();
     }
 
     // 发送数据
@@ -91,7 +96,7 @@ public:
     }
 
     QByteArray GetData() {
-        return serialPort->readAll();
+        return serial->readAll();
     }
 
     // 获取可用串口列表
@@ -105,7 +110,7 @@ public:
 
 protected:
     quint8 uCurrentSerialDevice;//保存当前串口类的设备型号数字 1 中控 2 三叶草 3 三叶草21机位
-    QSerialPort* serialPort;
+    QSerialPort* serial;
     qint8 i8result{ 0 };//缓存的执行结果,用于执行指令 -1 为失败 0 为成功 其他为错误码
     QString lastError;//0 正常, 非0为错误
 
@@ -117,13 +122,15 @@ protected:
         {
             QWriteLocker locker(&bufferLock_);
             //根据时间,大于5秒清空一次数据
-            static qint64 latency = QDateTime::currentMSecsSinceEpoch();
-            qint64 current = QDateTime::currentMSecsSinceEpoch();
-            if (current - latency > 5000 && !buffer_.isEmpty()) {//5秒 清除
-                qDebug() << "串口缓冲区数据清除:" << buffer_.toHex().toUpper();
-                buffer_.clear();
+            if (!buffer_.isEmpty()) {
+                static qint64 latency = QDateTime::currentMSecsSinceEpoch();
+                qint64 current = QDateTime::currentMSecsSinceEpoch();
+                if (current - latency > 5000) {//5秒 清除
+                    qDebug() << "串口缓冲区数据清除:" << buffer_.toHex().toUpper();
+                    buffer_.clear();
+                }
+                latency = current;
             }
-            latency = current;
             buffer_.append(data);
         }
         ProcessBuffer();
@@ -132,8 +139,8 @@ protected:
         if (error == QSerialPort::NoError) {
             return;
         }
-        LOG_ERROR(tr("串口错误:%1").arg(serialPort->errorString()));
-        lastError = serialPort->errorString();
+        LOG_ERROR(tr("串口错误:%1").arg(serial->errorString()));
+        lastError = serial->errorString();
     };
     // 处理接收数据的虚函数,子类实现具体的解析逻辑
     virtual void ProcessBuffer() {

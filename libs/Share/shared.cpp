@@ -29,7 +29,7 @@ Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {
     searchPaths << "../config/" + fileName;             // 上级目录
     searchPaths << QDir::currentPath() + "/" + fileName;  // 当前路径
     // 搜索文件
-    for (const QString& path : searchPaths) {
+    foreach(const QString& path , searchPaths) {
         if (QFile::exists(path)) {
             validConfigPath = path;
             break;
@@ -38,7 +38,7 @@ Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {
     // 如果未找到，记录错误信息
     if (validConfigPath.isEmpty()) {
         QString lastError = QString("配置文件'%1'未找到").arg(fileName);
-        for (const QString& path : searchPaths) {
+        foreach (const QString& path , searchPaths) {
             lastError += "\n" + path;
         }
         return Result::Failure(lastError);

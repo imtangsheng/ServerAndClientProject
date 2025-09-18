@@ -14,7 +14,7 @@ QPointer<TrolleyWidget>gTrolley;
     ((gTrolley) ? (gTrolley->expr) : false)
 
 QPointer<CameraWidget>gCamera;
-QPointer<ScannerWidget>gScanner;
+
 
 QDateTime gSearchStartDateTime;
 
@@ -34,7 +34,8 @@ MainWindow::MainWindow(QWidget* parent)
     //系统设置界面
 #pragma region settings系统设置数据界面
     //#网络设置
-    gWebWidget->url = gSettings->value("network/url", "ws://192.200.1.20:8080").toString();//192.200.1.20"ws://localhost:8080"
+    // gWebWidget->url = gSettings->value("network/url", "ws://192.200.1.20:8080").toString();//192.200.1.20"ws://localhost:8080"
+    gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();//192.200.1.20"ws://localhost:8080"
     ui.lineEdit_network_url->setText(gWebWidget->url);
     gWebWidget->isAutoReconnect = gSettings->value("network/AutoReconnect", true).toBool();
     ui.radioButton_network_reconnect_on->setChecked(gWebWidget->isAutoReconnect);
@@ -193,6 +194,10 @@ void MainWindow::GotoHomePage() {
 
 void MainWindow::onEnterProjectClicked() {//此处值应是全局项目值
     // qDebug() << "#Window::onEnterProjectClicked(QJsonObject project)"<<gProjectFileInfo->ToJsonObject();
+    if(gTrolley && gTrolley->AutomationTimeSync()){
+        ToolTip::ShowText(tr("服务端自动化时间同步失败,请确认设备连接状态,然后再次创建任务"), -1);
+        return;
+    }
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskHome); 
     if (ui.stackedWidget_task_param->currentWidget() != ui.page_task_param_first) {//显示任务参数设置第一页
         ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_first);
@@ -204,6 +209,7 @@ void MainWindow::onEnterProjectClicked() {//此处值应是全局项目值
     ui.label_current_task_name->hide();
     ui.label_current_project_name->setText(tr("当前项目:%1").arg(gProjectFileInfo->name));
     ui.lineEdit_task_param_content_name->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss"));
+
 }
 
 void MainWindow::onShowMessage(const QString& message,  double level) {
@@ -395,8 +401,11 @@ void MainWindow::on_toolButton_alarm_clicked() {
 
 
 void MainWindow::on_pushButton_shutdown_clicked() {
-    Session session(_module, "shutdown", QJsonArray());//关机函数执行
-    gControl.SendAndWaitResult(session);
+    Session session(_module, "shutdown");//关机函数执行
+    if (gControl.SendAndWaitResult(session,tr("等待设备执行关机"),tr("一键关机"))) {
+    } else {
+        ToolTip::ShowText(tr("执行一键关机失败"), -1);
+    }
 }
 
 #pragma region page_home系统设置页面
@@ -792,9 +801,17 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
 
     //进行参数检测
     if(gScanner){
-    QJsonObject parameter = content;
-    parameter["dir"] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
-    if(!gScanner->SetTaskParameter(parameter)) return;
+        if(!gScanner->isConnection){
+            ToolTip tip(ToolTip::Confirm,tr("设备未连接"),tr("扫描仪未连接,是否要继续"),-1,this);
+            if(QDialog::Rejected == tip.exec()){
+                return;
+            }
+        }else{
+            QJsonObject parameter = content;
+            parameter["dir"] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
+            if(!gScanner->SetTaskParameter(parameter))
+                return;
+        }
     }
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_last);
 }
@@ -901,7 +918,14 @@ void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
 
     //进行参数检测
     if(gTrolley){
-        if(!gTrolley->SetTaskParameter(content)) return;
+        if(!gTrolley->isConnection){
+            ToolTip tip(ToolTip::Confirm,tr("设备未连接"),tr("小车未连接,是否要继续"),-1,this);
+            if(QDialog::Rejected == tip.exec()){
+                return;
+            }
+        }else{
+            if(!gTrolley->SetTaskParameter(content)) return;
+        }
     }
 
     emit sigTaskConfigChanged(content);//更新参数
@@ -910,7 +934,7 @@ void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
 
 
     Session session(_module, "AddCurrentTask",gTaskFileInfo->ToJsonObject());
-    if(!gControl.SendAndWaitResult(session)) {
+    if(!gControl.SendAndWaitResult(session,tr("正在创建新任务"),tr("创建新任务"))) {
         qWarning() <<"创建新任务失败:" << session.message;
         ToolTip::ShowText(tr("提示:创建新任务失败"),session.message);
         return;
@@ -971,42 +995,6 @@ void MainWindow::on_radioButton_realtime_parsing_off_clicked()
     if (gControl.SendAndWaitResult(session)) {
     } else {
         ToolTip::ShowText(tr("设置实时解析失败"), -1);
-    }
-}
-
-void MainWindow::on_radioButton_car_forward_clicked()
-{
-    //setCheckable(false) 没有的时候,应该禁用或者不显示
-    if (gTrolley && gControl.carDirection == false) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
-        QJsonObject obj;
-        obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
-        QByteArray data;
-        obj["data"] = data.toStdString().c_str();
-        Session session(gTrolley->_module(), "SetParameterByCode", obj);
-        if (gControl.SendAndWaitResult(session)) {
-            gControl.carDirection = true;
-        } else {
-            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
-            ui.radioButton_car_forward->setChecked(false);
-        }
-    }
-}
-
-
-void MainWindow::on_radioButton_car_backward_clicked()
-{
-    if (gTrolley && gControl.carDirection == true) {//如果车辆方向不对,则先改变方向(不会影响车辆方向)
-        QJsonObject obj;
-        obj["code"] = 0x0D;//serial::CAR_CHANGING_OVER;
-        QByteArray data;
-        obj["data"] = data.toStdString().c_str();
-        Session session(gTrolley->_module(), "SetParameterByCode", obj);
-        if (gControl.SendAndWaitResult(session)) {
-            gControl.carDirection = false;
-        } else {
-            ToolTip::ShowText(tr("设置车辆方向失败"), -1);
-            ui.radioButton_car_backward->setChecked(false);
-        }
     }
 }
 

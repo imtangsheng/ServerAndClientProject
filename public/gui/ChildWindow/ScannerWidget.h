@@ -29,7 +29,7 @@ public:
     void UpdateTaskConfigSync(QJsonObject &content) final;
     void ShowMessage(const QString& msg);
     QJsonObject params;
-    void ScanPowerSwitch(bool flag=false);//控制扫描上电开关
+    void ScanPowerSwitch(bool open);//控制扫描上电开关
 public slots:
     void onConnectionChanged(bool enable=true) final;
     void initUi(const Session& session) final;
@@ -114,4 +114,5 @@ private:
     // void retranslate();
 };
 
+inline QPointer<ScannerWidget>gScanner;
 #endif // FAROWIDGET_H

@@ -60,7 +60,7 @@ class LeiShenLidarN10Plus :public QObject
     Q_OBJECT
 public:
     explicit LeiShenLidarN10Plus(QObject* parent = nullptr, QString portName = NULL)
-        : QObject(parent), serialPort(new QSerialPort(this)) {
+        : QObject(parent), serial(new QSerialPort(this)) {
         //open serial port
         if (!portName.isEmpty()) {
             if (GetAvailablePorts().contains(portName)) {
@@ -69,8 +69,8 @@ public:
                 LOG_ERROR(tr("Unable to scan the specified serial port:%1").arg(portName));
             }
         }
-        connect(serialPort, &QSerialPort::readyRead, this, &LeiShenLidarN10Plus::handleReadyRead);
-        connect(serialPort, &QSerialPort::errorOccurred, this, &LeiShenLidarN10Plus::handleError);
+        connect(serial, &QSerialPort::readyRead, this, &LeiShenLidarN10Plus::handleReadyRead);
+        connect(serial, &QSerialPort::errorOccurred, this, &LeiShenLidarN10Plus::handleError);
     }
 
     ~LeiShenLidarN10Plus() {
@@ -78,17 +78,17 @@ public:
     }
     // 打开串口
     virtual bool open(const QString& port) {
-        if (serialPort->isOpen()) {
+        if (serial->isOpen()) {
             LOG_WARNING(tr("Serial port %1 is already open").arg(port));
             return false;
         }
-        serialPort->setPortName(port);
-        serialPort->setBaudRate(LidarBaudRate);
-        serialPort->setDataBits(QSerialPort::Data8);
-        serialPort->setStopBits(QSerialPort::OneStop);
-        serialPort->setParity(QSerialPort::NoParity);
+        serial->setPortName(port);
+        serial->setBaudRate(LidarBaudRate);
+        serial->setDataBits(QSerialPort::Data8);
+        serial->setStopBits(QSerialPort::OneStop);
+        serial->setParity(QSerialPort::NoParity);
 
-        if (serialPort->open(QIODevice::ReadWrite)) {
+        if (serial->open(QIODevice::ReadWrite)) {
             return true;
         }
         LOG_ERROR(tr("Failed to open serial port %1").arg(port));
@@ -97,8 +97,8 @@ public:
 
     // 关闭串口
     virtual  void close() {
-        if (serialPort->isOpen()) {
-            serialPort->close();
+        if (serial->isOpen()) {
+            serial->close();
         }
     }
 
@@ -112,12 +112,12 @@ public:
     }
 
 protected:
-    QSerialPort* serialPort;
+    QSerialPort* serial;
     QByteArray buffer_;
     QReadWriteLock bufferLock_;
 
     void handleReadyRead() {
-        QByteArray data = serialPort->readAll();
+        QByteArray data = serial->readAll();
         {
             QWriteLocker locker(&bufferLock_);
             buffer_.append(data);
@@ -163,7 +163,7 @@ protected:
         if (error == QSerialPort::NoError) {
             return;
         }
-        LOG_ERROR(tr("Serial port error:%1").arg(serialPort->errorString()));
+        LOG_ERROR(tr("Serial port error:%1").arg(serial->errorString()));
     }
 
 };

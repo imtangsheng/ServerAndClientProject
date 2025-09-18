@@ -19,6 +19,10 @@ public:
     /*iController API 设备控制的接口方法*/
     void initialize() final;
     QString _module() const final;
+
+    void UpdateCarInfo();
+    Result AutomationTimeSync();
+
     Result SetTaskParameter(QJsonObject &data) final;
     void UpdateTaskConfigSync(QJsonObject &content) final;
     void test();
@@ -75,12 +79,11 @@ private slots:
 
     void on_radioButton_mileage_set_off_clicked();
 
-
-
 private:
     void retranslate();// 对自定义组件（如图表） 更新显示,重新翻译
     Result SetSpeed(qint16 speed);
-    Result SetDirection(qint8 direction);
+    Result SetDirection(bool isForward);
+    Result SetBatterySource(quint8 num);// 1 使用左侧电池， 2使用右侧电池
 };
 
 #endif // TROLLEYWIDGET_H
