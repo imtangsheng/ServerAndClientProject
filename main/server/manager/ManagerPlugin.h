@@ -10,13 +10,19 @@
  */
 class ManagerPlugin : public QObject {
     Q_OBJECT
-
+private:
+    struct PluginData {
+        QPluginLoader* loader{ nullptr };//插件的加载器,便于加载和卸载
+        IPluginDevice* ptr{ nullptr };//插件的指针引用
+        QJsonObject json;//插件信息
+    };
 public:
     explicit ManagerPlugin(QObject* parent = nullptr);
     ~ManagerPlugin();
 
-    QStringList pluginsAvailable;          // 可用的插件列表
+    QStringList pluginsAvailable;          // 有效的插件列表
     QStringList pluginsInvalid;//无效的插件列表
+    QMap<QString, PluginData> plugins;     // 已加载的插件映射
 
     Result start(QStringList& pluginsName);
     Result stop(QStringList& pluginsName);
@@ -53,15 +59,8 @@ public slots:
     void switch_plugin(const QString& pluginName,const bool& enable = false);
     void Activate(const Session& session);
 private:
-    struct PluginData {
-        QPluginLoader* loader{nullptr};//插件的加载器,便于加载和卸载
-        IPluginDevice* ptr{ nullptr };//插件的指针引用
-        QJsonObject json;//插件信息
-    };
-
     QDir m_pluginDir;                        // 插件目录
-    QMap<QString, PluginData> m_plugins;     // 已加载的插件映射
-    friend class UserServer;
+
    
 };
 

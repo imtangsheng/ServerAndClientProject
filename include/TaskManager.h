@@ -11,8 +11,8 @@
  *     @dir project_name.nfproj/ 项目文件夹
  *         @file project_info.json 项目信息json数据
  *         @dir task_name/
- *             @file task_info.json 任务信息json数据
- *             @dir PoiontCloud/ 扫描仪数据存储文件夹
+ *             @file task_info.json 任务信息 json数据
+ *             @dir PointCloud/ 扫描仪数据存储文件夹
  *                  @file Scan001.fls 法如生成的数据
  *             @dir Task/ 任务目录文件夹
  *                  @file FaroFileInfo.txt 法如文件信息,保存时间信息
@@ -153,14 +153,37 @@ struct FileInfoDetails
 
 };
 
-#define gTaskManager TaskManager::instance()
+
 
 //记录当前的项目和执行的任务信息
 extern SHAREDLIB_EXPORT  QSharedPointer<FileInfoDetails> gProjectFileInfo;//当前正在执行的项目信息(客户端使用)
 extern SHAREDLIB_EXPORT FileInfoDetails* gTaskFileInfo;//当前正在执行的任务信息
+
+
+using TaskStateType = quint8;
+
+/*任务状态枚举*/
+#define TaskEnumName(name) TaskState_##name
+enum TaskState : TaskStateType {
+    TaskEnumName(Unknown),//未知
+    TaskEnumName(Waiting),//等待
+    TaskEnumName(PreStart),//准备开始
+    TaskEnumName(Starting),//开始
+    TaskEnumName(Started),//已开始
+    TaskEnumName(Running),//运行中
+    TaskEnumName(Finished),//已完成
+    TaskEnumName(Paused),//暂停
+    TaskEnumName(Resumed),//恢复
+    TaskEnumName(Cancelled),//取消
+    TaskEnumName(Timeout),//超时
+    TaskEnumName(Failed),//失败
+    TaskEnumName(Stopped),//停止
+    TaskEnumName(Aborted),//中止
+    TaskEnumName(Error)//错误
+};
 inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
 
-
+#define gTaskManager TaskManager::instance()
 class SHAREDLIB_EXPORT TaskManager : public QObject
 {
     Q_OBJECT
@@ -170,15 +193,40 @@ public:
         return instance;
     }
     QJsonObject data;//工作目录下的json执行的任务信息数据,方便传输和交换
+    QAtomicInteger<TaskStateType> state{ TaskState_Waiting };
+    void setState(TaskState newState) {
+        TaskState oldState = static_cast<TaskState>(state.loadAcquire());
+        if (oldState != newState) {
+            state = newState;
+            QMutexLocker locker(&mutex);
+            emit stateChanged(newState);
+            if (handlers.contains(newState)) {
+                handlers[newState]();
+            }
+        }
+    }
+    void addHandler(TaskState state, StateHandler handler) {
+        QMutexLocker locker(&mutex);
+        handlers[state] = handler;
+    }
 
+    operator TaskState() const {
+        return static_cast<TaskState>(state.loadAcquire());
+    }
 protected:
     // 保护构造函数,只能继承使用
     explicit TaskManager(QObject* parent = nullptr) : QObject(parent) {
          qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
     }
     ~TaskManager() = default;
+
+    mutable QMutex mutex; // 保护 handlers的互斥锁
+    QMap<TaskState, StateHandler> handlers;
 signals:
-    void started();
+    void stateChanged(TaskState newState);
+signals:
+    void waiting();
+    void running();
     void finished();
 };
 
@@ -204,19 +252,26 @@ class SHAREDLIB_EXPORT SavaDataFile
 {
 public:
     SavaDataFile(const QString& filename, const QString& first_line) :filename(filename), first_line(first_line), file(nullptr){
-        QObject::connect(&gTaskManager, &TaskManager::started, [this]() {
-            initialize(); 
+        QObject::connect(&gTaskManager, &TaskManager::stateChanged, [this](TaskState newState) {
+            if(newState == TaskState::TaskState_Started){
+                create_file();
+            }else if(newState == TaskState::TaskState_Finished) {
+                close();
+            }
         });
-        QObject::connect(&gTaskManager, &TaskManager::finished,[this]() {
-            close();
-        });
+        //QObject::connect(&gTaskManager, &TaskManager::running, [this]() {
+        //    create_file(); 
+        //});
+        //QObject::connect(&gTaskManager, &TaskManager::finished,[this]() {
+        //    close();
+        //});
     }
     ~SavaDataFile() {
         close();
         qDebug() << "Destroying SavaDataFile for:" << filename;
     }
     bool isInitialized{ false };
-    Result initialize() {
+    Result create_file() {
         if (isInitialized) return true;
         if (gTaskFileInfo == nullptr) { //确保任务对象存在
             return Result::Failure(QObject::tr("任务对象不存在"));
@@ -271,7 +326,7 @@ class SHAREDLIB_EXPORT SavaRawData : public QObject
     Q_OBJECT
 public:
     explicit SavaRawData(const QString& filename) :filename(filename), file(nullptr) {
-        connect(&gTaskManager, &TaskManager::started, this, &SavaRawData::initialize);
+        connect(&gTaskManager, &TaskManager::running, this, &SavaRawData::create_file);
         connect(&gTaskManager, &TaskManager::finished, this, &SavaRawData::close);
     }
     ~SavaRawData() {
@@ -279,7 +334,7 @@ public:
         qDebug() << "Destroying SavaDataFile for:" << filename;
     }
     bool isInitialized{ false };
-    Result initialize() {
+    Result create_file() {
         if (isInitialized) return true;
         if (gTaskFileInfo == nullptr) { //确保任务对象存在
             return Result::Failure(tr("Task is not initialized."));

@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-class SHAREDLIB_EXPORT DeviceState: public QObject
+class SHAREDLIB_EXPORT StateEvent: public QObject
 {
     Q_OBJECT
 public:
@@ -22,12 +22,15 @@ public:
         Aborted,        // 中止
         Error           // 错误
     };
-    using StateHandler = std::function<void()>;
+    static StateEvent& TaskEvent() {
+        static StateEvent event;
+        return event;
+    };
 public:
     // 构造函数
-    DeviceState() = default;
-    DeviceState(double value) : state(static_cast<State>(value)) {}
-    DeviceState(State state) : state(state){}
+    StateEvent() = default;
+    StateEvent(double value) : state(static_cast<State>(value)) {}
+    StateEvent(State state) : state(state){}
     QAtomicInteger<StateType> state{ Waiting };
     //State state = Unknown;
     void setState(State newState) {
@@ -76,7 +79,7 @@ public:
     // 操作符重载
         // 赋值操作符
     // 赋值操作符 返回引用,可以支持链式赋值
-    DeviceState& operator=(double value) {
+    StateEvent& operator=(double value) {
         setState(static_cast<State>(value));
         return *this;
     }
@@ -84,10 +87,10 @@ public:
         setState(newState);
     }
 
-    bool operator==(const DeviceState& other) const {
+    bool operator==(const StateEvent& other) const {
         return state.loadAcquire() == other.state.loadAcquire();
     }
-    bool operator!=(const DeviceState& other) const {
+    bool operator!=(const StateEvent& other) const {
         return !(*this == other);
     }
 
@@ -99,5 +102,5 @@ protected:
     mutable QMutex mutex; // 保护 handlers的互斥锁
     QMap<State, StateHandler> handlers;
 signals:
-    void stateChanged(DeviceState::State newState);
+    void stateChanged(StateEvent::State newState);
 };

@@ -92,7 +92,6 @@ void UserServer::initialize(quint16 port_ws, quint16 port_http) {
     }
     gWebSocketServer = new WebSocketServer(port_ws, this);
     gWebSocketServer->initialize();
-    //connect(gWebSocketServer, &WebSocketServer::closed, &app, &QCoreApplication::quit);
 
     QString path = gShare.RegisterSettings->value(TASK_KEY_DATAPAHT,gShare.appPath+"/data").toString();
     UpdateProjectDir(path, gTaskManager.data); //更新项目信息
@@ -100,8 +99,6 @@ void UserServer::initialize(quint16 port_ws, quint16 port_http) {
     gManagerPlugin = new ManagerPlugin(this);
     if (gManagerPlugin->PluginsScan()) {
         for (QString& pluginName : gManagerPlugin->pluginsAvailable) {
-            //是否是无效插件
-            if (gManagerPlugin->pluginsInvalid.contains(pluginName)) continue;
             gManagerPlugin->PluginLoad(pluginName);//加载插件
         }
     }
@@ -110,9 +107,9 @@ void UserServer::initialize(quint16 port_ws, quint16 port_http) {
 
 void UserServer::onDeviceStateChanged(const Session &session) {
     qDebug() << "UserServer::onDeviceStateChanged";
-    for (auto& plugin : gManagerPlugin->m_plugins) {
+    for (auto& plugin : gManagerPlugin->plugins) {
         gShare.on_session(Session::RequestString(plugin.ptr->GetModuleName(),
-            session.method ,QJsonArray{ plugin.ptr->state_->toDouble() }), session.socket);//double 类型传输值 message用于显示信息
+            session.method ,QJsonArray{ plugin.ptr->state_.toDouble() }), session.socket);//double 类型传输值 message用于显示信息
     }
 }
 
@@ -162,7 +159,7 @@ void UserServer::SetRegisterSettings(const Session& session) {
 }
 
 void UserServer::GetTaskData(const Session& session) {
-    qDebug() << "update task data get:" << gTaskManager.data;
+    qDebug() << "获取项目任务数据库:" << gTaskManager.data;
     gShare.on_session(session.ResponseSuccess(gTaskManager.data), session.socket);
 }
 
@@ -326,7 +323,9 @@ void UserServer::onStart(const Session& session, bool isContinue) {
     static QStringList started_devices_all;//已经启动的设备
     if (!isContinue) {
         order_devices.clear(); started_devices_all.clear();
-        QStringList devicesList = gManagerPlugin->m_plugins.keys();
+        gTaskState == TaskState_Running;
+        emit gTaskManager.running();
+        QStringList devicesList = gManagerPlugin->plugins.keys();
         for (const auto& device : START_ORDER) {
             if (devicesList.contains(device)) {
                 order_devices << device;
@@ -342,7 +341,7 @@ void UserServer::onStart(const Session& session, bool isContinue) {
     }
     // 按照预定义顺序执行
     QString device = order_devices.takeFirst();
-    gManagerPlugin->m_plugins[device].ptr->OnStarted([device,session, this](const qint8& code, const QJsonValue& value) {
+    gManagerPlugin->plugins[device].ptr->OnStarted([device,session, this](const qint8& code, const QJsonValue& value) {
         if (Result(code)) {
             this->onStart(session,true); //启动后,再继续执行
             started_devices_all << device;
@@ -363,8 +362,9 @@ void UserServer::onStop(const Session& session, bool isContinue) {
     };
     static QStringList order_devices;// 按顺序重新排列设备列表
     if (!isContinue) {
+        
         order_devices.clear();
-        QStringList devices = gManagerPlugin->m_plugins.keys();
+        QStringList devices = gManagerPlugin->plugins.keys();
         for (const auto& device : STOP_ORDER) {
             if (devices.contains(device)) {
                 order_devices << device;
@@ -376,11 +376,13 @@ void UserServer::onStop(const Session& session, bool isContinue) {
     }
     if (order_devices.isEmpty()) {//完成,返回成功
         gShare.on_send(Result::Success(), session);
+        gTaskState = TaskState_Finished;
+        emit gTaskManager.finished();
         return;
     }
     // 按照预定义顺序执行
     QString device = order_devices.takeFirst();
-    gManagerPlugin->m_plugins[device].ptr->OnStopped([session, this](const qint8& code, const QJsonValue& value) {
+    gManagerPlugin->plugins[device].ptr->OnStopped([session, this](const qint8& code, const QJsonValue& value) {
         if (Result(code)) {
             this->onStop(session,true); //启动后,再继续执行
         } else {
@@ -389,6 +391,65 @@ void UserServer::onStop(const Session& session, bool isContinue) {
     });
 }
 
-void UserServer::shutdown() {
-    emit closed();
+#include <QProcess>
+void UserServer::shutdown(const Session& session) {
+    //先 扫描仪关机,后电脑关机
+    if (gManagerPlugin->plugins.keys().contains(sModuleScanner)) {
+        Result result = gManagerPlugin->plugins[sModuleScanner].ptr->Shutdown();
+        if(!result) {
+            gShare.on_session(session.Finished(result.code, tr("扫描仪关机失败,错误码: %1").arg(result.code)), session.socket);
+            return;
+        }
+    }
+
+    // 等待3秒，让其他操作完成
+    //QThread::msleep(3000);
+    QString command;
+    QStringList arguments;
+#ifdef Q_OS_WIN
+    command = "shutdown";
+    arguments << "-s" << "-t" << "0";
+#elif defined(Q_OS_MAC)
+    command = "sudo";
+    arguments << "shutdown" << "-h" << "now";
+#elif defined(Q_OS_LINUX)
+    command = "sudo";
+    arguments << "shutdown" << "now";
+#else
+    gShare.on_session(session.Finished(-1, tr("不支持的操作系统")), session.socket);
+    return;
+#endif
+    // 尝试多种关机方式
+    QProcess process;
+    process.start(command, arguments);
+
+    if (!process.waitForStarted()) {
+        // 第一种方式失败，尝试直接使用 shutdown
+        process.start("shutdown", arguments);
+                if (!process.waitForStarted()) {
+#ifdef Q_OS_WIN
+            // Windows下最后尝试使用 system32下的 shutdown
+            process.start("C:/Windows/System32/shutdown.exe", arguments);
+            if (!process.waitForStarted()) {
+                gShare.on_session(session.Finished(-1, tr("关机命令执行失败，请检查权限")), session.socket);
+                return;
+            }
+#else
+            gShare.on_session(session.Finished(-1, tr("关机命令执行失败，请检查权限")), session.socket);
+            return;
+#endif
+        }
+    }
+
+    // 等待命令执行完成
+    process.waitForFinished(3000);
+
+    // 检查执行结果
+    if (process.exitCode() != 0) {
+        QString errorMsg = tr("关机命令执行失败: %1").arg(QString::fromLocal8Bit(process.readAllStandardError()));
+        gShare.on_session(session.Finished(-1, errorMsg), session.socket);
+        return;
+    }
+    gShare.on_success(tr("正在关机..."), session);
+    QCoreApplication::quit();
 }

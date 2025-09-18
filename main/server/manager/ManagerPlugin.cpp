@@ -12,14 +12,14 @@ ManagerPlugin::~ManagerPlugin()
 {
 	qDebug() << "ManagerPlugin::~ManagerPlugin() 析构函数";
 	// 卸载所有插件
-	for (const auto& pluginName : m_plugins.keys()) {
+	for (const auto& pluginName : plugins.keys()) {
 		PluginUnload(pluginName);
 	}
 }
 Result ManagerPlugin::start(QStringList& pluginsName) {
     Result result(true);
 	for (const auto& name: pluginsName) {
-		result = m_plugins[name].ptr->OnStarted();
+		result = plugins[name].ptr->OnStarted();
         if (!result) break;
 	}
     return result;
@@ -28,7 +28,7 @@ Result ManagerPlugin::start(QStringList& pluginsName) {
 Result ManagerPlugin::stop(QStringList& pluginsName) {
 	Result ret(true);
 	for (const auto& name : pluginsName) {
-		ret = m_plugins[name].ptr->OnStopped();
+		ret = plugins[name].ptr->OnStopped();
         if (!ret) break;
 	}
     return ret;
@@ -47,16 +47,19 @@ Result ManagerPlugin::PluginsScan(const QString& pluginDir)
 #else
 	filters << "*.so";
 #endif
-	pluginsAvailable = m_pluginDir.entryList(filters, QDir::Files);
-	qInfo() << "Found" << pluginsAvailable.size() << "plugins in" << pluginDir;
+	QStringList pluginsList = m_pluginDir.entryList(filters, QDir::Files);
+	qInfo() << "Found" << pluginsList.size() << "plugins in" << pluginDir;
 
 	// 移除文件扩展名
-	for (int i = 0; i < pluginsAvailable.size(); ++i) {
-		QString& pluginName = pluginsAvailable[i];
+	for (int i = 0; i < pluginsList.size(); ++i) {
+		QString pluginName = pluginsList.at(i);
 		int lastDot = pluginName.lastIndexOf('.');
 		if (lastDot > 0) {
 			pluginName = pluginName.left(lastDot);
 		}
+		//移除排除的插件
+		if(pluginsInvalid.contains(pluginName)) continue;
+		pluginsAvailable.append(pluginName);
 	}
 	return Result::Success();
 }
@@ -64,7 +67,7 @@ Result ManagerPlugin::PluginsScan(const QString& pluginDir)
 Result ManagerPlugin::PluginLoad(const QString& pluginName)
 {
 	// 检查插件是否已加载
-	if (m_plugins.contains(pluginName)) {
+	if (plugins.contains(pluginName)) {
 		qInfo() << "Plugin already loaded:" << pluginName;
 		return true;
 	}
@@ -120,7 +123,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	pluginData.loader = loader;
 	pluginData.ptr = plugin;
 	pluginData.json = jsonFile;
-	m_plugins.insert(plugin->GetModuleName(), pluginData);
+	plugins.insert(plugin->GetModuleName(), pluginData);
 	qInfo() << "Plugin loaded:" << pluginName << "version:" << plugin->version() << "name:" << plugin->name();
 	return Result::Success();
 }
@@ -128,12 +131,12 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 Result ManagerPlugin::PluginUnload(const QString& pluginName)
 {
 	// 检查插件是否已加载
-	if (!m_plugins.contains(pluginName)) {
+	if (!plugins.contains(pluginName)) {
 		qWarning() << "Plugin not loaded:" << pluginName;
 		return Result::Failure("Plugin not loaded");
 	}
 	// 获取插件数据
-	PluginData pluginData = m_plugins.take(pluginName);
+	PluginData pluginData = plugins.take(pluginName);
 
 	// 卸载插件
 	if (!pluginData.loader->unload()) {
@@ -142,17 +145,17 @@ Result ManagerPlugin::PluginUnload(const QString& pluginName)
 	}
 	//清理资源
 	delete pluginData.loader;
-	m_plugins.remove(pluginName);
+	plugins.remove(pluginName);
 	qInfo() << "Plugin unloaded:" << pluginName;
 	return Result::Success();
 }
 
 IPluginDevice* ManagerPlugin::PluginGetPtr(const QString& pluginName)
 {
-	if (!m_plugins.contains(pluginName)) {
+	if (!plugins.contains(pluginName)) {
 		return nullptr;
 	}
-	return m_plugins[pluginName].ptr;
+	return plugins[pluginName].ptr;
 }
 
 void ManagerPlugin::switch_plugin(const QString& pluginName, const bool& enable)
@@ -170,12 +173,12 @@ void ManagerPlugin::switch_plugin(const QString& pluginName, const bool& enable)
 void ManagerPlugin::Activate(const Session& session) {
 	QJsonObject param = session.params.toObject();
 	QString name = param.value("name").toString();
-	if (!m_plugins.contains(name)) {
+	if (!plugins.contains(name)) {
 		qWarning() << "插件不存在" << name;
 		gShare.on_send(-1, session);
 		return;
 	}
-	gShare.on_send(m_plugins.value(name).ptr->Activate_(param), session);
+	gShare.on_send(plugins.value(name).ptr->Activate_(param), session);
 
 }
 

@@ -52,10 +52,9 @@ public slots:
     /**
      * @brief 关闭用户服务
      */
-    void shutdown();
+    void shutdown(const Session& session);
 
 private:
     QTranslator translator;
 signals:
-    void closed();
 };

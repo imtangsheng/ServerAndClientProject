@@ -19,12 +19,11 @@ public:
     }
     virtual ~IPluginDevice() {
         qDebug() << "IPluginDevice()析构函数被调用";
-        delete state_;
     }
 
     virtual QString GetModuleName() const = 0;//记录当前设备模块名称 必要用于注册设备
 
-    QPointer<DeviceState> state_;//记录设备状态值,int类型,double类型用于json数据网络传输
+    StateEvent state_;//记录设备状态值,int类型,double类型用于 json数据网络传输
     QJsonObject config_;//设备配置参数 json格式
     TaskState taskState{ TaskState::TaskState_Waiting };//任务状态
 
@@ -61,7 +60,7 @@ public:
 
     // 获取错误信息
     virtual QString GetLastError() { return lastError; };
-
+    virtual Result Shutdown() { return true; }//设备关机目前只有扫描仪有
 public slots:
     virtual void initUi(const Session& session) = 0;//初始化UI,返回配置信息
     virtual void SaveConfig(const Session& session) {//保存配置
