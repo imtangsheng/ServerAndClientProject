@@ -1,5 +1,5 @@
 ﻿#pragma once
-
+using StateHandler = std::function<void()>;
 class SHAREDLIB_EXPORT StateEvent: public QObject
 {
     Q_OBJECT
@@ -36,17 +36,20 @@ public:
     void setState(State newState) {
         State oldState = static_cast<State>(state.loadAcquire());
         if (oldState != newState) {
-            state = newState;
-            QMutexLocker locker(&mutex);
-            emit stateChanged(newState);
-            if (handlers.contains(newState)) {
-                handlers[newState]();
+            state.storeRelease(newState);
+            QReadLocker locker(&lock);
+            emit state_changed(newState);
+            auto it = handlers.find(newState);
+            if (it != handlers.end()) {
+                StateHandler handler = it.value(); 
+                locker.unlock();
+                handler();
             }
         }
     }
-    void addHandler(State state, StateHandler handler) {
-        QMutexLocker locker(&mutex);
-        handlers[state] = handler;
+    void addHandler(State newState, StateHandler handler) {
+        QWriteLocker locker(&lock);
+        handlers[newState] = handler;
     }
 
     // 状态转换为字符串
@@ -83,7 +86,7 @@ public:
         setState(static_cast<State>(value));
         return *this;
     }
-    void operator=(State newState) {
+    void operator=(const State &newState) {
         setState(newState);
     }
 
@@ -97,10 +100,10 @@ public:
     operator State() const {
         return static_cast<State>(state.loadAcquire());
     }
-
+    
 protected:
-    mutable QMutex mutex; // 保护 handlers的互斥锁
+    mutable QReadWriteLock lock; // 保护 handlers的互斥锁
     QMap<State, StateHandler> handlers;
 signals:
-    void stateChanged(StateEvent::State newState);
+    void state_changed(StateEvent::State newState);
 };
