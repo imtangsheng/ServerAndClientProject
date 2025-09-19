@@ -30,6 +30,7 @@ namespace serial {
     // 标识符 - 直接初始化为 QByteArray
     static inline const QByteArray HEADER_BYTES = QByteArrayLiteral("\x41\x54");  // 'A''T'
     inline static constexpr quint8 HEADER_BYTE_LEN = 2;
+    inline static constexpr quint8 DATA_LEN_POS = 2; //数据长度的位置
     // 本机地址
     inline static constexpr quint8 LOCAL_ADDRESS = 0x64; //
     // 功能码
