@@ -31,6 +31,7 @@ void ChildWidget::initialize()
 
 void ChildWidget::onConnectionChanged(bool enable)
 {
+    if(enable) gControl.sendTextMessage(Session::RequestString(_module(),"onUpdateUi"));
     isConnection = enable;
     switch (deviceType) {
     case Trolley:

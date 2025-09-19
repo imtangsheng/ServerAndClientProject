@@ -43,6 +43,5 @@ signals:
     void onParamTemplateClicked(int id);
 
 public slots:
-     void onEnableChanged(bool enable=true);
 };
 #endif // MAINCONTROL_H

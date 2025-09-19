@@ -36,8 +36,7 @@ public:
 
     void handle_binary_message(const QByteArray &bytes);
 public slots:
-    // void onEnableChanged(bool enable=true) final;
-    void initUi(const Session& session) final;
+    void onUpdateUi(const QJsonObject& value) final;
     void onConfigChanged(QJsonObject config) final;
     void onDeviceStateChanged(double state) final;
 
@@ -73,7 +72,7 @@ private slots:
 
     void on_pushButton_set_car_speed_clicked();
 
-    void on_comboBox_speed_multiplier_activated(int index);
+    void on_pushButton_set_car_speed_multiplier_clicked();
 
     void on_radioButton_mileage_set_on_clicked();
 

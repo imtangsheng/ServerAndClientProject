@@ -34,7 +34,7 @@ public:
     void handle_binary_message(const QByteArray &bytes);
 public slots:
     void onConnectionChanged(bool enable=true) final;
-    void initUi(const Session& session) final;
+    void onUpdateUi(const QJsonObject& value) final;
     void onDeviceStateChanged(double state) final;
     void onConfigChanged(QJsonObject config);
     void onImageInfoChanged(const Session& session);

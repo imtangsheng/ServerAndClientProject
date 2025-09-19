@@ -59,7 +59,7 @@ Q_DECLARE_METATYPE(Result)
 
 // 定义回调函数类型（支持异步回调函数lambda）
 using CallbackResult = std::function<void(const qint8&, const QJsonValue&)>;
-using StateHandler = std::function<void()>;
+
 /**定义一个原子类的结构体**/
 #include <QAtomicInteger>
 template<typename T>

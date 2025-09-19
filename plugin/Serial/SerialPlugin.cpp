@@ -18,7 +18,6 @@ static ActiveSerial* gSerial{ nullptr };// = new ActiveSerial();
 SerialPlugin::SerialPlugin() {
     IPluginDevice::initialize();
     qDebug() << "[#Serial]构造函数";
-    gShare.RegisterHandler(GetModuleName(), this);
 }
 
 SerialPlugin::~SerialPlugin() {
@@ -38,12 +37,13 @@ Result SerialPlugin::Activate_(QJsonObject param) {
     if (gSerial->isOpen()) {
         if (port == gSerial->GetPortName())//不用重复打开同一个串口
             return Result::Failure(tr("串口已打开,不能重复打开"));
-        else 
+        else
             gSerial->close();
     }
     if (gSerial->open(port)) {
         config_["port"] = port;
         WriteJsonFile(ConfigFilePath(), config_);
+        state_ = StateEvent::Waiting;
         return true;
     }
     return Result::Failure(tr("打开串口%1失败,请检查是否被其他应用程序占用").arg(port));
@@ -51,6 +51,7 @@ Result SerialPlugin::Activate_(QJsonObject param) {
 
 Result SerialPlugin::initialize() {
     gSerial = new ActiveSerial(this, config_.value("port").toString());
+    if(gSerial->isOpen()) state_ = StateEvent::Waiting;
     QJsonObject general = config_.value("general").toObject();
 #ifdef DEVICE_TYPE_CAR
     //读取小车速度乘数
@@ -146,14 +147,14 @@ void SerialPlugin::ScanAutomationTimeSync(const Session& session) {
     }
 }
 #endif // DEVICE_TYPE_CAR
-void SerialPlugin::initUi(const Session& session) {
+void SerialPlugin::onUpdateUi(const Session& session) {
     QJsonObject obj;
 #ifdef DEVICE_TYPE_CAR
     obj["mileage_multiplier"] = MILEAGE_MULTIPLIER.keys().join(",");
 #endif // DEVICE_TYPE_CAR
-    emit gSigSent(session.ResponseSuccess(obj, tr("succeed")), session.socket);
     //主动请求一次配置更新
-    emit gSigSent(Session::RequestString(2, GetModuleName(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
+    emit gSigSent(Session::RequestString(session.id, session.module,session.method ,QJsonArray{ obj }), session.socket);
+
     /*小车的界面信息定时更新*/
     static const int time_sync_interval = 30 * 1000; // 30秒
     static QTimer timer(gSerial);

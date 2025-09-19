@@ -22,12 +22,11 @@ public:
     QString name() const final;    // 设备名称
     QString version() const final; // 版本
 
-    bool RegisterServerHandler();//注册服务,延迟注册
     //直接调用 使用回调函数在执行特定顺序的任务
     Result OnStarted(CallbackResult callback = nullptr) final;
     Result OnStopped(CallbackResult callback = nullptr) final;
 
-    Result Shutdown() final;
+    Q_INVOKABLE Result Shutdown() final;
 private:
     Result TryConnect();
     void CheckConnect();

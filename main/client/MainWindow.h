@@ -30,7 +30,6 @@ public:
     QJsonArray parameterTemplatesInfo; //参数模板数组信息
     QStandardItemModel paramNamesModel;//参数模板数据
 public slots:
-    void onEnableChanged(bool enable=true);
     void onSignIn(QJsonObject obj);
     void onShowMessage(const QString& message, double level);//Q_ARG 使用 const 引用
 protected:

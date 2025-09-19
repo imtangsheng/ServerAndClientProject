@@ -93,11 +93,9 @@ void ScannerWidget::onConnectionChanged(bool enable)
     }
 }
 
-void ScannerWidget::initUi(const Session &session)
+void ScannerWidget::onUpdateUi(const QJsonObject& value)
 {
-    QJsonObject obj = session.result.toObject();
-    if(obj.isEmpty()) return;
-    isInitUi = true;
+    if(value.isEmpty()) return;
 }
 
 void ScannerWidget::onConfigChanged(QJsonObject config)
@@ -185,9 +183,7 @@ void ScannerWidget::on_pushButton_power_switch_clicked()
 
 void ScannerWidget::on_pushButton_power_off_clicked()
 {
-    QJsonArray param;
-    param.append("shutdown");
-    Session session(_module(), "execute",param);
+    Session session(_module(), "Shutdown");
     gControl.sendTextMessage(session.GetRequest());
 
 }

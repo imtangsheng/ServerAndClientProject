@@ -16,7 +16,6 @@ public:
     // 基本数据定义
     QString GetModuleName() const override;    // 设备名称
     // 基本操作接口
-    Q_INVOKABLE Result Activate_(QJsonObject param) final;//激活设备,注册加载初始化等操作
     Result initialize() override;
     Result disconnect() override;
     QString name() const override;    // 设备名称
@@ -33,7 +32,8 @@ public:
 
 #endif // DEVICE_TYPE_CAR
 public slots:
-    void initUi(const Session& session) final;//初始化UI,返回配置信息
+    void onUpdateUi(const Session& session) final;//初始化UI,返回配置信息
+    Result Activate_(QJsonObject param) final;//激活设备,注册加载初始化等操作
     // 执行约定的方法
     void execute(const QString& method) final; // 执行特定功能
     //interface IControllerSDK

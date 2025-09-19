@@ -32,7 +32,7 @@ public:
     void ScanPowerSwitch(bool open);//控制扫描上电开关
 public slots:
     void onConnectionChanged(bool enable=true) final;
-    void initUi(const Session& session) final;
+    void onUpdateUi(const QJsonObject& value) final;
     void onConfigChanged(QJsonObject config) final;
     void onDeviceStateChanged(double state) final;
     void onWatcherFilesChanged(QJsonObject obj);

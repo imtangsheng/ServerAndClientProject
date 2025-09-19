@@ -17,7 +17,7 @@ public:
     explicit FaroControl(QObject *parent = nullptr);
     ~FaroControl();
 
-    QString ip;
+    QString ip{ "172.17.9.20" };
     QString flsDir;
     Atomic<int> ret;//法如执行反馈结果错误码  ErrorNumbers :int 在头文件中定义错误信息枚举
     bool isConnect();

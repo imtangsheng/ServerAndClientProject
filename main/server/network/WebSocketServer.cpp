@@ -139,8 +139,11 @@ void WebSocketServer::verify_device_type(const QString& message)
 			});
         deviceType = SessionType::Client;//设备初始化信息,界面信息初始化
 		for (auto& plugin : gManagerPlugin->plugins) {
-			newSocket->sendTextMessage(Session::RequestString(plugin.ptr->GetModuleName(), "onConnectionChanged", QJsonArray{ true }));
-			//newSocket->sendTextMessage(Session::RequestString(plugin.ptr->GetModuleName(),"onDeviceStateChanged", QJsonArray{ plugin.ptr->state_.toDouble() }));
+			QString name_id = plugin.ptr->GetModuleName();
+			newSocket->sendTextMessage(Session::RequestString(name_id, "onConnectionChanged",
+				QJsonArray{ gShare.GetHandlerList().contains(name_id)}));
+			//newSocket->sendTextMessage(Session::RequestString(name_id,"onDeviceStateChanged", 
+			//	QJsonArray{ plugin.ptr->state_.toDouble() }));
 		}
 		SentMessageToClients();//发送之前缓存信息
 		break;

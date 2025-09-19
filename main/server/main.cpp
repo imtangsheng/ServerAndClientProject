@@ -46,10 +46,9 @@ int main(int argc, char* argv[])
         }
     });
     UserServer user(&app);
-    user.initialize(port,12346);//因为80端口给http代理,故使用其他http的端口
+    user.initialize(port,12346);//因为80端口给 http代理,故使用其他 http的端口
     qDebug() << "WebSocket server listening on port" << port;
     gShare.RegisterHandler(user.module_, &user);
-    QObject::connect(&user, &UserServer::closed, &app, &QCoreApplication::quit);
 
     return app.exec();
 }

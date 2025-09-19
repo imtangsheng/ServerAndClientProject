@@ -34,8 +34,8 @@ MainWindow::MainWindow(QWidget* parent)
     //系统设置界面
 #pragma region settings系统设置数据界面
     //#网络设置
-    // gWebWidget->url = gSettings->value("network/url", "ws://192.200.1.20:8080").toString();//192.200.1.20"ws://localhost:8080"
-    gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();//192.200.1.20"ws://localhost:8080"
+    gWebWidget->url = gSettings->value("network/url", "ws://192.200.1.20:8080").toString();//192.200.1.20"ws://localhost:8080"
+    // gWebWidget->url = gSettings->value("network/url", "ws://localhost:8080").toString();//192.200.1.20"ws://localhost:8080"
     ui.lineEdit_network_url->setText(gWebWidget->url);
     gWebWidget->isAutoReconnect = gSettings->value("network/AutoReconnect", true).toBool();
     ui.radioButton_network_reconnect_on->setChecked(gWebWidget->isAutoReconnect);
@@ -162,16 +162,6 @@ void MainWindow::SetLogLevel(LogLevel level)
     }
 }
 
-void MainWindow::onEnableChanged(bool enable)
-{
-    qDebug() <<"MainWindow" << "模块已经加载,指令控制状态"<<enable;
-    if(enable){
-        ui.pushButton_network_not_connect->hide();//首页网络连接状态显示
-    }else{
-        ui.pushButton_network_not_connect->show();
-    }
-}
-
 void MainWindow::onSignIn(QJsonObject obj)
 {
     int type = obj.value("type").toInt();
@@ -268,10 +258,12 @@ void MainWindow::onConnectSocket() {
 
     ui.pushButton_network_connect->setText(tr("断开"));
     gControl.sockets.insert(gWebWidget->socket);//添加到全局
+    ui.pushButton_network_not_connect->hide();//首页网络连接状态显示
 }
 
 void MainWindow::onDisconnectSocket() {
     ui.pushButton_network_connect->setText(tr("连接"));
+    ui.pushButton_network_not_connect->show();
 
     if(gWebWidget->isAutoReconnect){
         gWebWidget->reconnectTimer.start(gWebWidget->reconnectInterval);
@@ -345,6 +337,8 @@ void MainWindow::on_action_stop_triggered()
 
 void MainWindow::on_pushButton_test_clicked()
 {
+    QJsonValue value = 1;
+    gControl.sendTextMessage(Session::RequestString(Session::NextId(),_module,"onTest",QJsonArray{ value }));
 }
 
 void MainWindow::on_pushButton_network_not_connect_clicked()

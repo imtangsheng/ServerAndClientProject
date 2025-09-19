@@ -7,11 +7,6 @@ MainControl::MainControl(QObject *parent) : QObject(parent)
     gShare.RegisterHandler(module_, this);
 }
 
-void MainControl::onEnableChanged(bool enable)
-{
-    qDebug() <<module_<< "#MainControl::模块已经加载,指令控制状态"<<enable;
-}
-
 void MainControl::sendTextMessage(const QString &message)
 {
     for (const auto& client : std::as_const(sockets)) {//标准 C++，避免容器分离

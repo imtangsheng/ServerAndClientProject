@@ -159,9 +159,8 @@ struct FileInfoDetails
 extern SHAREDLIB_EXPORT  QSharedPointer<FileInfoDetails> gProjectFileInfo;//当前正在执行的项目信息(客户端使用)
 extern SHAREDLIB_EXPORT FileInfoDetails* gTaskFileInfo;//当前正在执行的任务信息
 
-
 using TaskStateType = quint8;
-
+using TaskStateHandler = std::function<void()>;
 /*任务状态枚举*/
 #define TaskEnumName(name) TaskState_##name
 enum TaskState : TaskStateType {
@@ -205,7 +204,7 @@ public:
             }
         }
     }
-    void addHandler(TaskState state, StateHandler handler) {
+    void addHandler(TaskState state, TaskStateHandler handler) {
         QMutexLocker locker(&mutex);
         handlers[state] = handler;
     }
@@ -221,7 +220,7 @@ protected:
     ~TaskManager() = default;
 
     mutable QMutex mutex; // 保护 handlers的互斥锁
-    QMap<TaskState, StateHandler> handlers;
+    QMap<TaskState, TaskStateHandler> handlers;
 signals:
     void stateChanged(TaskState newState);
 signals:

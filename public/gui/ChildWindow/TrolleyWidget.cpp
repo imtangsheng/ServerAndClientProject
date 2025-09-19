@@ -369,14 +369,12 @@ void TrolleyWidget::handle_binary_message(const QByteArray &bytes)
 }
 
 
-void TrolleyWidget::initUi(const Session &session)
+void TrolleyWidget::onUpdateUi(const QJsonObject& value)
 {
-    QJsonObject obj = session.result.toObject();
-    if(obj.isEmpty()) return;
-    isInitUi = true;
-    if(obj.contains("mileage_multiplier")){
+    if(value.isEmpty()) return;
+    if(value.contains("mileage_multiplier")){
         ui->comboBox_speed_multiplier->clear();
-        ui->comboBox_speed_multiplier->addItems(obj.value("mileage_multiplier").toString().split(","));
+        ui->comboBox_speed_multiplier->addItems(value.value("mileage_multiplier").toString().split(","));
     }
 }
 
@@ -543,8 +541,7 @@ void TrolleyWidget::on_pushButton_set_car_speed_clicked()
     SetSpeed(speed);
 }
 
-
-void TrolleyWidget::on_comboBox_speed_multiplier_activated(int index)
+void TrolleyWidget::on_pushButton_set_car_speed_multiplier_clicked()
 {
     QString multiplier = ui->comboBox_speed_multiplier->currentText();
     general["mileage_multiplier"] = multiplier;
@@ -553,7 +550,6 @@ void TrolleyWidget::on_comboBox_speed_multiplier_activated(int index)
         ToolTip::ShowText(tr("设置车辆里程系数失败"), -1);
     }
 }
-
 
 void TrolleyWidget::on_radioButton_mileage_set_on_clicked()
 {
@@ -627,9 +623,10 @@ Result TrolleyWidget::SetBatterySource(quint8 num)
         if(session) return false;//点了取消,暂时不处理
         QString msg;
         switch (session.code) {
-        case 0:msg = tr("参数错误");break;
-        case 1:msg = tr("左侧电压低,无法切换");break;
-        case 2:msg = tr("右侧电压低,无法切换");break;
+        case 0x01:msg = tr("正在使用中,无法切换");break;
+        case 0x02:msg = tr("左侧电压低,无法切换");break;
+        case 0x03:msg = tr("右侧电压低,无法切换");break;
+        case 0x04:msg = tr("参数错误");break;
         default:msg = tr("未知错误码%1").arg(session.code);break;
         }
         ToolTip::ShowText(tr("设置使用的电池侧,失败:%1").arg(msg), -1);
@@ -637,4 +634,5 @@ Result TrolleyWidget::SetBatterySource(quint8 num)
     }
     return true;
 }
+
 

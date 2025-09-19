@@ -23,11 +23,18 @@ public:
 
     virtual QString GetModuleName() const = 0;//记录当前设备模块名称 必要用于注册设备
 
-    StateEvent state_;//记录设备状态值,int类型,double类型用于 json数据网络传输
+    StateEvent state_{ StateEvent::Offline };//记录设备状态值,int类型,double类型用于 json数据网络传输
     QJsonObject config_;//设备配置参数 json格式
-    TaskState taskState{ TaskState::TaskState_Waiting };//任务状态
-
-    Q_INVOKABLE virtual Result Activate_(QJsonObject param) { return true; } //激活设备,注册服务 或者重新激活
+    Atomic<bool> isActivated;//设备是否已经激活的判断,主要显示在线还是离线
+    virtual Result SetActivate(bool enable) {
+        PushClients("onConnectionChanged", QJsonArray{ enable }, GetModuleName());//是否在线设置
+        if (isActivated == enable) return false;
+        if (enable) {
+            gShare.RegisterHandler(GetModuleName(), this);
+        }
+        isActivated = enable;
+        return true;
+    };
     // 基本操作接口 默认设计的是首先要执行一次,执行初始化变量赋值等操作
     virtual Result initialize() {
         if (!translator.load(":/" + name() + "/" + zh_CN)) {
@@ -44,6 +51,10 @@ public:
             }
             });
 
+        state_.addHandler(StateEvent::Waiting, [this]() {
+            SetActivate(true);
+            });
+        connect(&state_, &StateEvent::state_changed, this, &IPluginDevice::onStateChanged);
         return LoadConfigFromFile(name() + ".json");//加载配置文件到 params_
 
         //注册设备控制模块 该为设备验证后注册服务
@@ -62,7 +73,12 @@ public:
     virtual QString GetLastError() { return lastError; };
     virtual Result Shutdown() { return true; }//设备关机目前只有扫描仪有
 public slots:
-    virtual void initUi(const Session& session) = 0;//初始化UI,返回配置信息
+    virtual void onUpdateUi(const Session& session) = 0;//初始化UI,返回配置信息
+    virtual Result Activate_(QJsonObject value) { return true; } //激活设备,注册服务 或者重新激活
+    virtual void onStateChanged(const StateEvent::State &state) {
+        double value = state;
+        PushClients("onDeviceStateChanged", QJsonArray{ value }, GetModuleName());
+    }
     virtual void SaveConfig(const Session& session) {//保存配置
         config_ = session.params.toObject();
         Result result = WriteJsonFile(ConfigFilePath(), config_);

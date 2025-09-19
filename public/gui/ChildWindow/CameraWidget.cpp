@@ -140,14 +140,12 @@ void CameraWidget::onConnectionChanged(bool enable)
     ChildWidget::onConnectionChanged(enable);
 }
 
-void CameraWidget::initUi(const Session &session)
+void CameraWidget::onUpdateUi(const QJsonObject& value)
 {
-    QJsonObject obj = session.result.toObject();
-    if(obj.isEmpty()) return;
-    isInitUi = true;
-    if(obj.contains("format")){
+    if(value.isEmpty()) return;
+    if(value.contains("format")){
         ui->comboBox_image_format->clear();
-        ui->comboBox_image_format->addItems(obj.value("format").toString().split(","));
+        ui->comboBox_image_format->addItems(value.value("format").toString().split(","));
     }
 }
 

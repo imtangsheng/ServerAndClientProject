@@ -17,10 +17,10 @@ ScannerPlugin::ScannerPlugin()
     qDebug() << "[#Scanner]构造函数" << QThread::currentThread();
     gFaroCtrl = new FaroControl(this);
     gFaroHandle = new FaroHandle();
-    //gShare.RegisterHandler(GetModuleName(), this);// 设备连接前不加入注册服务中
 
-    gFaroCtrl->SetScanCompletedCallback([]() {
+    gFaroCtrl->SetScanCompletedCallback([this]() {
         qDebug() << "[#Scanner]扫描完成";
+        state_ = StateEvent::Finished;
     });
 }
 
@@ -39,7 +39,7 @@ Result ScannerPlugin::Activate_(QJsonObject param)
 {
     //判断是否连接,此处设备只有一个,不用对比ip是否一样,直接判断
     if (gFaroCtrl->isConnect()) {
-        RegisterServerHandler();
+        state_ = StateEvent::Waiting;
         return true;
     }
     //检测是否更换ip地址了
@@ -80,15 +80,6 @@ QString ScannerPlugin::version() const
     return QString("0.0.1");
 }
 
-bool ScannerPlugin::RegisterServerHandler() {
-    static bool isRegister = false;
-    if (isRegister) return isRegister;
-    gShare.RegisterHandler(GetModuleName(), this);// 设备连接前不加入注册服务中
-    // PushClients("initUi", config_,GetModuleName()); //推送,初始化界面
-    isRegister = true;
-    return isRegister;
-}
-
 Result ScannerPlugin::OnStarted(CallbackResult callback)
 {
     return gFaroCtrl->OnStarted(callback);
@@ -119,7 +110,7 @@ Result ScannerPlugin::TryConnect() {
     case static_cast<int>(faro::OK)://0
         qDebug() << "连接成功";
         if (gFaroCtrl->isConnect()) {
-            RegisterServerHandler();//立马就连接上了
+            state_ = StateEvent::Waiting;
             return true;
         } else {
             res.message = tr("[#Faro]连接执行结果成功,但是连接状态显示未连接");
@@ -144,7 +135,7 @@ void ScannerPlugin::CheckConnect() {
     static int check_count = 45;
     qDebug() << "检测设备连接状态:" << check_count;
     if (gFaroCtrl->isConnect()) {
-        RegisterServerHandler();
+        state_ = StateEvent::Waiting;
         return;
     }
     check_count--;
@@ -170,14 +161,6 @@ void ScannerPlugin::initUi(const Session &session)
 void ScannerPlugin::execute(const QString &method)
 {
     qDebug() << "[#Scanner]执行方法" << method;
-    //if (method == "shutdown") {
-    //    gFaroCtrl->shutdown();
-    //}
-    if(gFaroHandle != nullptr){
-        gFaroHandle->deleteLater();
-        gFaroHandle = nullptr;
-    }
-    
 }
 
 void ScannerPlugin::ScanConnect(const Session& session) {

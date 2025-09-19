@@ -25,12 +25,8 @@ public:
     QJsonObject parameter; //统一的置参数界面json对象
     QJsonObject task; //执行任务的时候的参数
     QJsonObject general;//通用配置参数
-    // QJsonObject GetGeneral(){
-    //     return config_.value("general").toObject();//返回的是临时对象
-    // }
 
     virtual void initialize();
-    bool isInitUi{false};
     bool isConnection{false};
     /*同步更新任务配置相关,以及同步设置任务参数*/
     virtual Result SetTaskParameter(QJsonObject &data) = 0;
@@ -39,13 +35,10 @@ public:
     void stop();//停止任务执行
 public slots:
     virtual void onConnectionChanged(bool enable=true);//设备模块是否激活,在线状态显示
-    virtual void initUi(const Session& session) = 0;
+    virtual void onUpdateUi(const QJsonObject& value) = 0;
     virtual void onConfigChanged(QJsonObject config) = 0;
     virtual void onDeviceStateChanged(double state){//设备登录状态显示
-        if(!isInitUi){//初始状态变化后,连接请求更新显示信息
-            qDebug() << _module() <<"连接请求更新显示信息";
-            gControl.sendTextMessage(Session::RequestString(_module(),"initUi"));
-        }
+        //连接状态变化是否更新 显示断开连接的话,显示连接上了
         currentState = state;
     }
 protected:
