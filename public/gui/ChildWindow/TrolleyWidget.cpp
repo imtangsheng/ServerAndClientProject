@@ -12,63 +12,6 @@ static CarInfo gCarInfo;
 static BatteryInfo gBatteryInfoLeft;
 static BatteryInfo gBatteryInfoRight;
 
-class Serializer {
-public:
-// 版本1：处理算术类型（int, float, double等）
-template<typename T>
-static typename std::enable_if<std::is_arithmetic<T>::value, QByteArray>::type
-serialize(T value) {
-    // std::is_arithmetic<T>::value 检查T是否为算术类型
-    // 如果是true，enable_if有::type成员，定义为QByteArray
-    // 如果是false，这个函数模板会被SFINAE排除，不参与重载决议
-    static_assert(std::is_trivially_copyable_v<T>, "类型必须是简单可复制的");
-    QByteArray result(sizeof(T), 0);
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        result[i] = static_cast<char>((value >> (i * 8)) & 0xFF);
-    }
-    return result;
-}
-
-// 对其他类型使用QDataStream 如非算术类型（QString, QVector等）
-template<typename T>
-static typename std::enable_if<!std::is_arithmetic<T>::value, QByteArray>::type
-serialize(T value) {
-    QByteArray buffer;
-    QDataStream stream(&buffer, QIODevice::WriteOnly);
-    stream.setByteOrder(QDataStream::LittleEndian);
-    stream << value;
-    return buffer;
-}
-
-// 多个值的序列化
-template<typename... Args>
-static QByteArray serialize(Args... args) {
-    QByteArray result;
-    ((result.append(serialize(args))), ...);
-    return result;
-}
-
-// 检测系统字节序
-static bool isSystemLittleEndian() {
-    const uint16_t test = 0x0102;
-    return reinterpret_cast<const uint8_t*>(&test)[0] == 0x02;
-}
-// 算术类型序列化（支持字节序）
-template<typename T>
-static QByteArray serializeBig(T value) {
-    static_assert(std::is_arithmetic_v<T>, "T 必须是算术类型序");
-    QByteArray result(sizeof(T), 0);
-    uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
-    // 无论系统字节序如何，都转为大端序
-    for (size_t i = 0; i < sizeof(T); ++i) {
-        result[i] = bytes[sizeof(T) - 1 - i];  // 总是反转字节顺序
-    }
-    return result;
-}
-
-};
-
-
 inline Session GetSession(const QString& module, const QString& method, FunctionCodeEnum code,QByteArray data)
 {
     QJsonObject obj;
@@ -226,7 +169,7 @@ Result TrolleyWidget::SetTaskParameter(QJsonObject &data)
     }
     Session session(_module(), "SetParameterByCode");
     if(gCarInfo.speed != speed){
-        SessionParameterByCode(serial::CAR_SET_SPEED,Serializer::serialize(speed),session);
+        SessionParameterByCode(serial::CAR_SET_SPEED,Serialize::Byte(speed),session);
         if (!gControl.SendAndWaitResult(session,tr("设置行驶速度"),tr("正在设置行驶速度"))) {
             ToolTip::ShowText(tr("设置行驶速度失败"), -1);
             return false;
@@ -281,7 +224,7 @@ void TrolleyWidget::ShowMessage(const QString &msg)
 void TrolleyWidget::AddMileage(quint8 symbol,double mileage, qint64 time_us) const
 {
     double time_s = time_us / 1000000.0; //us->s
-    qDebug() <<"AddMileage:"<< time_s<< mileage;//10us m bug切换方向中,里程是返回的绝对值,所以会减小
+    qDebug() <<"AddMileage: 时间s-里程m"<< time_s<< mileage;//10us m bug切换方向中,里程是返回的绝对值,所以会减小
     qint8 flag = symbol ? -1:1;
     double car_speed = 0.00;
     double car_mileage = 0;
@@ -618,7 +561,7 @@ Result TrolleyWidget::SetDirection(bool isForward)
 
 Result TrolleyWidget::SetBatterySource(quint8 num)
 {
-    Session session = GetSession(_module(), "SetParameterByCode",serial::CAR_CHOOSE_BATTERY_SOURCE,Serializer::serialize(num));
+    Session session = GetSession(_module(), "SetParameterByCode",serial::CAR_CHOOSE_BATTERY_SOURCE,Serialize::Byte(num));
     if (!gControl.SendAndWaitResult(session,tr("设置使用的电池侧"))) {
         if(session) return false;//点了取消,暂时不处理
         QString msg;

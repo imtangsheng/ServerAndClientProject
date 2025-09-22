@@ -10,19 +10,19 @@ static constexpr int MIN_HISTORY_SIZE = 5;               // 计算平均速度�
 static constexpr double OUTLIER_THRESHOLD = 2.0;         // 异常值检测阈值（标准差倍数）
 
 struct struMileage {
-    qint64 pulse{-1};  // 脉冲数
-    qint64 time{-1};   // 时间戳
+    qint64 pulse{ -1 };  // 脉冲数
+    qint64 time{ -1 };   // 时间戳
     bool isValid() const {
         return pulse >= 0 && time > 0;
     }
 };
 
-// 计算速度（脉冲/毫秒）
+// 计算速度（脉冲/毫秒）异常值,时间时正数,考虑里程不变的情况,直接给最小速度值,不考虑倒退的情况
 inline static double CalculateSpeed(const struMileage& current, const struMileage& previous) {
     qint64 time_diff = current.time - previous.time;
     qint64 pulse_diff = current.pulse - previous.pulse;
-    if (time_diff <= 0 || pulse_diff < 0) {
-        return 0.0;
+    if (time_diff <= 0 || pulse_diff <= 0) {
+        return MIN_SPEED_THRESHOLD;
     }
     //不会出现负数
     return static_cast<double>(pulse_diff) / time_diff;
@@ -31,8 +31,7 @@ inline static double CalculateSpeed(const struMileage& current, const struMileag
 // 获取历史平均速度
 inline static double GetAverageSpeed(const QQueue<double>& speed) {
     if (speed.isEmpty()) {
-        qFatal("获取历史平均速度,结果数据是空,不能为空");
-        return 0.0;//MIN_SPEED_THRESHOLD
+        return MIN_SPEED_THRESHOLD;
     }
     double sum = 0.0;
     for (double s : speed) {
@@ -41,25 +40,26 @@ inline static double GetAverageSpeed(const QQueue<double>& speed) {
     return sum / speed.size();
 }
 // 获取历史平均速度和标准差
-inline static std::pair<double, double> GetSpeedStats(const QQueue<double>& speed) {
+inline static void GetSpeedStats(const QQueue<double>& speed, double& mean, double& stddev) {
     if (speed.size() < MIN_HISTORY_SIZE) {
-        return { 0.0, 0.0 };
+        mean = MIN_SPEED_THRESHOLD;
+        stddev = MIN_SPEED_THRESHOLD;
+        return;
     }
 
     double sum = 0.0;
     for (double s : speed) {
         sum += s;
     }
-    double mean = sum / speed.size();
+    mean = sum / speed.size();
 
     // 计算标准差
     double variance = 0.0;
     for (double s : speed) {
         variance += (s - mean) * (s - mean);
     }
-    double stddev = std::sqrt(variance / speed.size());
+    stddev = std::sqrt(variance / speed.size());
 
-    return { mean, stddev };
 }
 
 class MileageUnitSpeed {
@@ -68,7 +68,7 @@ public:
     QQueue<double> speed_history;   // 左轮速度历史
     struMileage last_mileage;//最后收到的里程值
     // 更新历史数据
-    void updateHistory(const struMileage& current) {
+    void updateSpeedHistory(const struMileage& current) {
         if (!last_mileage.isValid()) {
             last_mileage = current;
             return;
@@ -80,16 +80,15 @@ public:
         }
         last_mileage = current;
     }
-    double getAverageSpeed() const {
-        return GetSpeedStats(speed_history).first;
-    }
+
     // 检测异常值
     bool isOutlier(double current_speed) const {
-        auto [mean, stddev] = GetSpeedStats(speed_history);
+        double mean, stddev;
+        GetSpeedStats(speed_history, mean, stddev);
         if (stddev < MIN_SPEED_THRESHOLD) {
             return false; // 速度变化很小，不认为是异常
         }
-
+        //正态分布中: 95%落在平均值±2个标准差内
         return std::abs(current_speed - mean) > OUTLIER_THRESHOLD * stddev;
     }
 
@@ -123,11 +122,22 @@ public:
         right_wheel.reset();
         is_need_initialized = true;
     }
+    /*传入的值应该有效的值,时间为非0值*/
     struMileage Correct(qint64 left_time, qint64 left_pulse, qint64 right_time, qint64 right_pulse) {
+        qDebug() << "里程校准:" << left_time << left_pulse << right_time << right_pulse;
         struMileage left, right;
         left.time = left_time; left.pulse = left_pulse;
         right.time = right_time; right.pulse = right_pulse;
-        return Correct(left, right);
+        //两个值都有效,则使用校准
+        if (left.isValid()) {
+            if (right.isValid()) {
+                return Correct(left, right);
+            } else {
+                return left;
+            }
+        } else {
+            return right;
+        }
     }
     struMileage Correct(const struMileage& left, const struMileage& right) {
         //#1.首次数据处理,初始化判断
@@ -142,11 +152,11 @@ public:
                 // 需要收集足够的历史数据才能进行校正
                 if (left_wheel.speed_history.size() >= MIN_HISTORY_SIZE &&
                     right_wheel.speed_history.size() >= MIN_HISTORY_SIZE) {
-                    is_need_initialized = true;
+                    is_need_initialized = false;
                 }
-                
-                left_wheel.updateHistory(left);
-                right_wheel.updateHistory(right);
+
+                left_wheel.updateSpeedHistory(left);
+                right_wheel.updateSpeedHistory(right);
             }
             return current_mileage;
         }
@@ -157,9 +167,9 @@ public:
         // 获取历史平均速度
         double avg_left_speed = GetAverageSpeed(left_wheel.speed_history);
         double avg_right_speed = GetAverageSpeed(right_wheel.speed_history);
-        // 计算速度偏差比
-        double left_deviation_ratio = (left_speed - avg_left_speed) / avg_left_speed;
-        double right_deviation_ratio = (right_speed - avg_right_speed) / avg_right_speed;
+        // 计算速度偏差比 选择偏离平均值较小的轮子
+        double left_deviation_ratio = std::abs(left_speed - avg_left_speed) / avg_left_speed;
+        double right_deviation_ratio = std::abs(right_speed - avg_right_speed) / avg_right_speed;
 
         // 计算脉冲和时间增量
         qint64 left_pulse_diff = left.pulse - left_wheel.last_mileage.pulse;
@@ -170,9 +180,8 @@ public:
         qint64 pulse_increment;
         qint64 time_increment;
         /*出现的情况有:1.转弯,一边速度快,一边慢 2.轮子打滑,空转速度快 3.轮子卡住,速度慢 4.正常启动加速,后稳定匀速,同时快*/
-        if (left_deviation_ratio > MAX_SPEED_DEVIATION_RATIO) { //左边过快,加速
-            if (right_deviation_ratio > MAX_SPEED_DEVIATION_RATIO) { //右边也同时过快,或者加速
-                // 两边都过快,取平均值
+        if (left_deviation_ratio > MAX_SPEED_DEVIATION_RATIO) { //左边速度偏差比,异常:加速,减速等
+            if (right_deviation_ratio > MAX_SPEED_DEVIATION_RATIO) { //右边也同时异常
                 //pulse_increment = (left_pulse_diff + right_pulse_diff) / 2;
                 //time_increment = (left_time_diff + right_time_diff) / 2;
                 // 选择偏离平均值较小的轮子
@@ -183,37 +192,14 @@ public:
                     pulse_increment = right_pulse_diff;
                     time_increment = right_time_diff;
                 }
-            } else if (right_deviation_ratio < MAX_SPEED_DEVIATION_RATIO) { //转弯之类的不合理速度
-                // 左边过快,右边慢，取平均值  其他:转弯时，使用较慢轮子的数据（内轮）
-                pulse_increment = (left_pulse_diff + right_pulse_diff) / 2;
-                time_increment = (left_time_diff + right_time_diff) / 2;
             } else {
                 // 右边正常，左边异常
                 pulse_increment = right_pulse_diff;
                 time_increment = right_time_diff;
             }
-        
-        } else if (left_deviation_ratio < MAX_SPEED_DEVIATION_RATIO) { //左边慢,不转之类情况
-            if (right_deviation_ratio < MAX_SPEED_DEVIATION_RATIO) {
-                // 两边都过慢,取平均值
-                pulse_increment = (left_pulse_diff + right_pulse_diff) / 2;
-                time_increment = (left_time_diff + right_time_diff) / 2;
-            } else if (right_deviation_ratio > MAX_SPEED_DEVIATION_RATIO) { //转弯之类的不合理速度
-                // 右边快，取平均值
-                pulse_increment = (left_pulse_diff + right_pulse_diff) / 2;
-                time_increment = (left_time_diff + right_time_diff) / 2;
-            } else {
-                // 右边正常，左边异常
-                pulse_increment = right_pulse_diff;
-                time_increment = right_time_diff;
-            }
+
         } else {
-            if (right_deviation_ratio < MAX_SPEED_DEVIATION_RATIO) { //右边过快,或者加速
-                // 左边正常
-                pulse_increment = left_pulse_diff;
-                time_increment = left_time_diff;
-            } else if (right_deviation_ratio > MAX_SPEED_DEVIATION_RATIO) { //转弯之类的不合理速度
-                // 左边正常
+            if (right_deviation_ratio > MAX_SPEED_DEVIATION_RATIO) { //右边异常,速度变化大
                 pulse_increment = left_pulse_diff;
                 time_increment = left_time_diff;
             } else {
@@ -228,8 +214,8 @@ public:
         current_mileage.time += time_increment;
 
         // 更新历史数据
-        left_wheel.updateHistory(left);
-        right_wheel.updateHistory(right);
+        left_wheel.updateSpeedHistory(left);
+        right_wheel.updateSpeedHistory(right);
         return current_mileage;
     }
 

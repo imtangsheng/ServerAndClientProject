@@ -62,7 +62,7 @@ static void RecvScannerTimeData() {//扫描仪时间数据
     static QString header = "ID\tTrolleyTime\tScannerTime\n";
     static SavaDataFile scanner_time_file(QString("%1/scannerTime.txt").arg(kTaskDirCarName), header);
     //扫描仪时间数据
-    if (gTaskState == TaskState_Running && scanner_time_file.create_file()) {
+    if (scanner_time_file.create_file()) {
         QString str = QString("%1\t%2\t%3\n").arg(gGetScannerTimeCount)
             .arg(gScannerCarTimeSync.car)
             .arg(gScannerCarTimeSync.scanner);
@@ -106,7 +106,7 @@ static void RecvCameraPositionData(const CloverTriggerInfo& data) {
 #pragma endregion
 
 ActiveSerial::~ActiveSerial() {
-
+    qDebug() << "模块~ActiveSerial 退出" << QThread::currentThread();
 }
 
 Result ActiveSerial::SetConfig(const QJsonObject& config) {
@@ -235,10 +235,10 @@ Result ActiveSerial::OnStopped(CallbackResult callback) {
 bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data) {
     qDebug() << "#Received Code:" << QString::number(code, 16).rightJustified(2, '0').toUpper() << "Data:" << data.toHex().toUpper();
     //if (data.isEmpty()) return;
+    static quint8 invoke_trolley = share::ModuleName::trolley;
     static auto push_car = [&code,&data]() {
-        static quint8 trolley = share::ModuleName::trolley;
-        QByteArray bytes = QByteArray(1, trolley) + QByteArray(1, code) + data;
-        //bytes.append(trolley).append(code).append(data);
+        QByteArray bytes = QByteArray(1, invoke_trolley) + QByteArray(1, code) + data;
+        //bytes.append(invoke_trolley).append(code).append(data);
         qDebug() << "bytes:" << bytes.toHex().toUpper();
         emit gShare.sigSentBinary(bytes);//推送二进制数据
     };
@@ -295,18 +295,21 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
 #ifdef DEVICE_TYPE_CAR
     case SCANER_GET_AUTOMATION_TIME:
     {
+        gGetScannerTimeCount++;
         quint64 autotimer;
         stream >> autotimer >> gScannerCarTimeSync.car;
         //获取扫描仪时间失败,返回0 应该执行任务回调
         if (autotimer == 0) {
             LOG_ERROR(tr("获取扫描仪时间同步失败,返回 扫描仪值:%1 小车值:%2,原始数据").arg(autotimer).arg(gScannerCarTimeSync.car).arg(data.toHex().toUpper()));
             i8result = -1;
-            return false;
+            break;
         }
         gScannerCarTimeSync.scanner = autotimer;
-        RecvScannerTimeData();//扫描仪时间数据的任务处理
+        if (gTaskState == TaskState::TaskState_Running) {
+            RecvScannerTimeData();//扫描仪时间数据的任务处理
+        }
         i8result = 0;
-    }return true;
+    }break;
     case CAR_GET_MSG:
     {
         push_car();
@@ -343,19 +346,14 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
             LOG_WARNING(tr("[#串口]左右里程数据符号不一致 左: %1 右: %2").arg(left.symbol,0,16).arg(right.symbol,0,16));
             qWarning() << left.symbol << left.pulse << left.time;
             qWarning() << right.symbol << right.pulse << right.time;
-            return true;//这个时候抛弃掉数据就好了
+            //return true;//这个时候抛弃掉数据就好了
         }
         left.time *= 10; right.time *= 10;//时间单位为10us,需要*10改为us的单位
         struMileage mileage = MileageCorrector::instance().Correct(left.time, left.pulse, right.time, right.pulse);
         //里程数据 推送到订阅的客户端
         if (g_mileage_count % kMileageUpdateInterval == 0) {
             //二进制数据 发送
-            static quint8 invoke = share::ModuleName::trolley;
-            QByteArray bytes;
-            QDataStream out(&bytes, QIODevice::WriteOnly);
-            //推送里程为m
-            out << invoke << code << g_mileage_count << left.symbol << mileage.pulse *g_mileage_multiplier << mileage.time;
-            qDebug() << "data.size" << bytes.size();
+            QByteArray bytes = Serialize::Bytes(invoke_trolley, code, g_mileage_count, left.symbol, mileage.pulse * g_mileage_multiplier, mileage.time);
             emit gShare.sigSentBinary(bytes);//推送二进制数据
         }
         if (gTaskState == TaskState::TaskState_Running) {

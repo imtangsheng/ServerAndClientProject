@@ -396,5 +396,73 @@ namespace serial {
 #else
     inline static constexpr SerialDeviceType kSupportSerialClover = SERIAL_NONE;
 #endif
+
 }//end namespace serial
+
+
+class Serialize {
+public:
+    // 版本1：处理算术类型（int, float, double等）
+    template<typename T>
+    static typename std::enable_if<std::is_arithmetic<T>::value, QByteArray>::type
+        Byte(T value) {
+        // std::is_arithmetic<T>::value 检查T是否为算术类型
+        // 如果是 true，enable_if有::type成员，定义为QByteArray
+        // 如果是 false，这个函数模板会被SFINAE排除，不参与重载决议
+        static_assert(std::is_trivially_copyable_v<T>, "类型必须是简单可复制的");
+        QByteArray result(sizeof(T), 0);
+        for (size_t i = 0; i < sizeof(T); ++i) {
+            result[i] = static_cast<char>((value >> (i * 8)) & 0xFF);
+        }
+        return result;
+    }
+
+    // 对其他类型使用QDataStream 如非算术类型（QString, QVector等）
+    template<typename T>
+    static typename std::enable_if<!std::is_arithmetic<T>::value, QByteArray>::type
+        Byte(T value) {
+        QByteArray buffer;
+        QDataStream stream(&buffer, QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        stream << value;
+        return buffer;
+    }
+
+    // 多个值的序列化
+    template<typename... Args>
+    static QByteArray GetByte(Args... args) {
+        QByteArray result;
+        ((result.append(Byte(args))), ...);
+        return result;
+    }
+
+    // 检测系统字节序
+    static bool isSystemLittleEndian() {
+        const uint16_t test = 0x0102;
+        return reinterpret_cast<const uint8_t*>(&test)[0] == 0x02;
+    }
+    // 算术类型序列化（支持字节序）
+    template<typename T>
+    static QByteArray GetBigEndianByte(T value) {
+        static_assert(std::is_arithmetic_v<T>, "T 必须是算术类型序");
+        QByteArray result(sizeof(T), 0);
+        uint8_t* bytes = reinterpret_cast<uint8_t*>(&value);
+        // 无论系统字节序如何，都转为大端序
+        for (size_t i = 0; i < sizeof(T); ++i) {
+            result[i] = bytes[sizeof(T) - 1 - i];  // 总是反转字节顺序
+        }
+        return result;
+    }
+
+    // 多个值的序列化
+    template<typename... Args>
+    static QByteArray Bytes(Args... args) {
+        QByteArray buffer;
+        QDataStream stream(&buffer, QIODevice::WriteOnly);
+        stream.setByteOrder(QDataStream::LittleEndian);
+        (stream << ... << args);  // 折叠表达式
+        return buffer;
+    }
+
+};
 #endif

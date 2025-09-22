@@ -10,6 +10,7 @@
 #include <QAtomicInteger>
 #include "serialport_protocol.h"
 
+#define SUPPORT_MS201
 namespace serial {
 
 /*定义的串口方法*/
@@ -21,6 +22,7 @@ public:
     explicit SerialPortTemplate(QObject* parent = nullptr, QString portName = NULL)
         : QObject(parent), serial(new QSerialPort(this)) {
         //open serial port
+        qDebug() << "模块SerialPortTemplate" << QThread::currentThread();
         if (!portName.isEmpty()) {
             if (GetAvailablePorts().contains(portName)) {
                 open(portName);
@@ -149,8 +151,8 @@ protected:
     };
     // 处理接收数据的虚函数,子类实现具体的解析逻辑
     virtual void ProcessBuffer() {
-        // 获取当前接收缓冲区数据
-        while (!buffer_.isEmpty()) {
+        // 获取当前接收缓冲区数据 ,数据长度需要大于6 ASSERT: "n <= d.size - pos"
+        while (buffer_.size() >= 6) {
             QByteArray receivedData = buffer_; // 假设m_buffer是存储接收数据的成员变量
             qsizetype frameStart = receivedData.indexOf(HEADER_BYTES);
             if (frameStart == -1) {

@@ -104,9 +104,12 @@ Result Shared::invoke(const Session& session) {
                 tempStorage.append(param.toDouble()); argv[i] = QGenericArgument("double", &tempStorage.last());
             } else if (param.isObject()) {
                 tempStorage.append(param.toObject()); argv[i] = QGenericArgument("QJsonObject", reinterpret_cast<const void*>(&tempStorage.last()));
-            } else {
-                delete[] argv;tempStorage.clear();  // 释放内存
-                return Result(false, session.Finished(-2, tr("发送的参数类型是不支持的参数类型")));
+            } else { //QJsonValue::Null QJsonValue::Array QJsonValue::Undefined 添加支持
+                tempStorage.append(QVariant::fromValue(param));
+                const QJsonValue& actualValue = tempStorage.last().toJsonValue();
+                argv[i] = QGenericArgument("QJsonValue", &actualValue);
+                //delete[] argv;tempStorage.clear();  // 释放内存
+                //return Result(false, session.Finished(-2, tr("发送的参数类型是不支持的参数类型")));
             }
         }
         switch (paramCount) {

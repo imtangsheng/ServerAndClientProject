@@ -121,6 +121,7 @@ public:
 public slots:
     void on_success(const QString& msg, const Session& session);//发送成功消息
     void on_send(const Result& result, const Session& session);//结果自动发送消息
+    //void SentBinary(const QByteArray& message, QObject* client = nullptr);//发送二进制数据
 protected:
     // 保护构造函数,只能继承使用
     explicit Shared(QObject* parent = nullptr) : QObject(parent) {
@@ -147,7 +148,7 @@ signals:
 }//end namespace share
 
 //向所有ws的客户端推送消息
-inline void PushClients(const QString& method, const QJsonValue& params, const QString& module) {
+inline void PushClients(const QString& method, const QJsonValue& params, const QString& module = sModuleUser) {
     emit gSigSent(Session::RequestString(module, method, params));
 }
 //向指定的ws的客户端发送消息
