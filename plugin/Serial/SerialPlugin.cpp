@@ -17,11 +17,12 @@ static ActiveSerial* gSerial{ nullptr };// = new ActiveSerial();
 
 SerialPlugin::SerialPlugin() {
     IPluginDevice::initialize();
-    qDebug() << "[#Serial]构造函数";
+    qDebug() << "[#Serial]构造函数" << QThread::currentThread();
 }
 
 SerialPlugin::~SerialPlugin() {
-    qDebug() << "[#Serial]析构函数";
+    qDebug() << "[#Serial]析构函数"<< QThread::currentThread();
+    delete gSerial;
 }
 
 QString SerialPlugin::GetModuleName() const {
@@ -117,7 +118,7 @@ void SerialPlugin::SetSpeedMultiplier(const Session& session) {
 
 void SerialPlugin::ScanAutomationTimeSync(const Session& session) {
     static const int time_sync_interval = 30 * 1000; // 30秒
-    static QTimer timer(gSerial);
+    static QTimer timer;
     if (ScannerAndCarTimeInfo::isAwake) {//要先判断是否在开机后进行设置了自动化时间同步,目前设计客户端也会实现一次同步
         bool enable = session.params.toBool(true);
         if (enable) {
@@ -157,7 +158,7 @@ void SerialPlugin::onUpdateUi(const Session& session) {
 
     /*小车的界面信息定时更新*/
     static const int time_sync_interval = 30 * 1000; // 30秒
-    static QTimer timer(gSerial);
+    static QTimer *timer = new QTimer(gSerial);
     static auto SyncInfo = [this]() {
         /*此处应更新同步的主要的两个电池使用的是哪一个,还有一个是电量电压信息,因为下位机不会缓存指令,需要等待执行完一条指令后再执行下一条*/
         gSerial->WriteData(CAR_GET_MSG);
@@ -166,11 +167,11 @@ void SerialPlugin::onUpdateUi(const Session& session) {
     };
     static bool isInitConnect = false;
     if (!isInitConnect) {
-        connect(&timer, &QTimer::timeout, this, SyncInfo);
-        connect(&gTaskManager, &TaskManager::running, &timer, &QTimer::stop);
+        connect(timer, &QTimer::timeout, this, SyncInfo);
+        connect(&gTaskManager, &TaskManager::running, timer, &QTimer::stop);
         connect(&gTaskManager, &TaskManager::waiting, [this]() {
             if (gSerial->isOpen()) {
-                timer.start(time_sync_interval);
+                timer->start(time_sync_interval);
             }
             });
         isInitConnect = true;
