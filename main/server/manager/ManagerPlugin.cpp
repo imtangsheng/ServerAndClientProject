@@ -124,7 +124,7 @@ Result ManagerPlugin::PluginLoad(const QString& pluginName)
 	pluginData.ptr = plugin;
 	pluginData.json = jsonFile;
 	plugins.insert(plugin->GetModuleName(), pluginData);
-	qInfo() << "Plugin loaded:" << pluginName << "version:" << plugin->version() << "name:" << plugin->name();
+	qInfo() << "加载插件:" << pluginName << "version:" << plugin->version() << "name:" << plugin->name();
 	return Result::Success();
 }
 
@@ -146,7 +146,7 @@ Result ManagerPlugin::PluginUnload(const QString& pluginName)
 	//清理资源
 	delete pluginData.loader;
 	plugins.remove(pluginName);
-	qInfo() << "Plugin unloaded:" << pluginName;
+	qInfo() << "插件卸载:" << pluginName;
 	return Result::Success();
 }
 
@@ -174,7 +174,7 @@ void ManagerPlugin::Activate(const Session& session) {
 	QJsonObject param = session.params.toObject();
 	QString name = param.value("name").toString();
 	if (!plugins.contains(name)) {
-		qWarning() << "插件不存在" << name;
+		LOG_WARNING(tr("插件不存在:%1").arg(name));
 		gShare.on_send(-1, session);
 		return;
 	}

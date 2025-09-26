@@ -18,6 +18,7 @@ static ActiveSerial* gSerial{ nullptr };// = new ActiveSerial();
 SerialPlugin::SerialPlugin() {
     IPluginDevice::initialize();
     qDebug() << "[#Serial]构造函数" << QThread::currentThread();
+
 }
 
 SerialPlugin::~SerialPlugin() {
@@ -69,7 +70,7 @@ Result SerialPlugin::initialize() {
     return true;
 }
 
-Result SerialPlugin::disconnect() {
+Result SerialPlugin::disactivate() {
     qDebug() << "[#Serial]断开连接";
     return Result();
 }
@@ -84,11 +85,11 @@ QString SerialPlugin::version() const {
     return QString("0.0.1");
 }
 
-Result SerialPlugin::OnStarted(CallbackResult callback) {
+Result SerialPlugin::OnStarted(const CallbackResult& callback) {
     return gSerial->OnStarted(callback);
 }
 
-Result SerialPlugin::OnStopped(CallbackResult callback) {
+Result SerialPlugin::OnStopped(const CallbackResult& callback) {
     return gSerial->OnStopped(callback);
 }
 
@@ -124,7 +125,8 @@ void SerialPlugin::ScanAutomationTimeSync(const Session& session) {
         if (enable) {
             gSerial->WriteData(SCANER_GET_AUTOMATION_TIME);
             g_serial_session.addSession(SCANER_GET_AUTOMATION_TIME, session);
-            //if(timer.isActive() == false) //是否激活启动过的判断
+            //if (timer.isActive()) return; //是否启动过的判断
+            disconnect(&timer, &QTimer::timeout, nullptr, nullptr);//	只断开timeout信号的所有连接
             connect(&timer, &QTimer::timeout, this, []() {// 每次调用都会添加新连接
                 gSerial->WriteData(SCANER_GET_AUTOMATION_TIME);
                 });
@@ -132,7 +134,7 @@ void SerialPlugin::ScanAutomationTimeSync(const Session& session) {
             connect(&gTaskManager, &TaskManager::finished, &timer, &QTimer::stop, Qt::UniqueConnection);
             timer.start(time_sync_interval);
         } else {
-            timer.disconnect();
+            timer.disconnect();//断开timer的所有信号连接
             timer.stop();
             gShare.on_success(tr("关闭成功"), session);
         }
@@ -151,7 +153,15 @@ void SerialPlugin::ScanAutomationTimeSync(const Session& session) {
 void SerialPlugin::onUpdateUi(const Session& session) {
     QJsonObject obj;
 #ifdef DEVICE_TYPE_CAR
-    obj["mileage_multiplier"] = MILEAGE_MULTIPLIER.keys().join(",");
+    obj["mileage_multiplier_list"] = MILEAGE_MULTIPLIER.keys().join(",");
+    QJsonObject general = config_.value("general").toObject();
+    if (general.contains("mileage_multiplier")) {
+        obj["mileage_multiplier_value"] = general["mileage_multiplier"].toString();
+    }
+    //主动发送更新数据
+    //CarInfo::get().speed;
+    //gSerial->WriteData(CAR_GET_MSG);
+
 #endif // DEVICE_TYPE_CAR
     //主动请求一次配置更新
     emit gSigSent(Session::RequestString(session.id, session.module,session.method ,QJsonArray{ obj }), session.socket);
@@ -161,7 +171,11 @@ void SerialPlugin::onUpdateUi(const Session& session) {
     static QTimer *timer = new QTimer(gSerial);
     static auto SyncInfo = [this]() {
         /*此处应更新同步的主要的两个电池使用的是哪一个,还有一个是电量电压信息,因为下位机不会缓存指令,需要等待执行完一条指令后再执行下一条*/
+#ifdef __DEVICE_TYPE_MS301__
+        gSerial->WriteData(CAR_GET_INFO);
+#else
         gSerial->WriteData(CAR_GET_MSG);
+#endif
         //QThread::msleep(25); // 25ms 间隔不会有粘包的现象
         //gSerial->WriteData(CAR_GET_BATTERY_MSG);
     };
@@ -175,6 +189,7 @@ void SerialPlugin::onUpdateUi(const Session& session) {
             }
             });
         isInitConnect = true;
+        timer->start(time_sync_interval);
     }
     SyncInfo();
 }
@@ -184,9 +199,6 @@ void SerialPlugin::execute(const QString& method) {
     qDebug() << "[#Serial]执行方法" << method;
 }
 
-void SerialPlugin::scan(const Session& session) {
-    gShare.on_session(session.ResponseSuccess(gSerial->GetAvailablePorts().join(",")), session.socket);
-}
 
 void SerialPlugin::start(const Session& session) {
     gSerial->start(session);
@@ -219,10 +231,6 @@ void SerialPlugin::SetParameterByCode(const Session& session) {
     } else {
         gShare.on_send(Result::Failure(tr("没有找到关键字\"code\",请确认命令是否正确")), session);
     }
-}
-
-void SerialPlugin::onConfigChanged() const {
-    emit gSigSent(Session::RequestString(2, GetModuleName(), "onConfigChanged", QJsonArray{ config_ }));
 }
 
 void SerialPlugin::SetConfig(const Session& session) {

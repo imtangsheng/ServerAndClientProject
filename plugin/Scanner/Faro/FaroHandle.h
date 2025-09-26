@@ -12,6 +12,7 @@ public:
     QThread* thread;
 
     Session session;//记录当前最后的会话用于返回
+    void Test();
 /*槽函数在线程中运行,使用信号调用*/
 public slots:
     void awake();

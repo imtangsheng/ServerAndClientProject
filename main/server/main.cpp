@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     QDir appDir(QCoreApplication::applicationDirPath()); appDir.cdUp();
     qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
     qDebug() << "软件运行时间: " << __DATE__ << " " << __TIME__ << "Qt 版本:" << QT_VERSION_STR << "C++ 版本:" << __cplusplus;
-    gShare.sessiontype_ = int(SessionType::Server);
+    gShare.session_type_ = int(SessionType::Server);
     gShare.awake(appDir.absolutePath(), "server");//初始化配置文件路径,名称
     
     // 设置语言
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
         }
     });
     UserServer user(&app);
-    user.initialize(port,12346);//因为80端口给 http代理,故使用其他 http的端口
+    user.initialize(port,12345);//因为80端口给 http代理,故使用其他 http的端口
     qDebug() << "WebSocket server listening on port" << port;
     gShare.RegisterHandler(user.module_, &user);
 

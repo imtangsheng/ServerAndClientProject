@@ -30,6 +30,7 @@ public:
     //    static UserServer self(&gUserObject);
     //    return &self;
     //}
+    Q_INVOKABLE void onTest();
     //无论是否使用 const Session& ,Qt 的元对象系统（MOC）会将 Q_INVOKABLE 方法编译 都能被统一调用   
     Q_INVOKABLE void onDeviceStateChanged(const Session &session);
     Q_INVOKABLE void SetRealtimeParsing(Session session);
@@ -40,6 +41,7 @@ public slots:
     void onLogLevelChanged(const Session& session);
     //设置注册表参数 配置
     void SetRegisterSettings(const Session& session);
+    void GetAvailableSerialPorts(const Session& session);
     // 任务执行方法
     void GetTaskData(const Session& session);// 获取所有的任务数据信息
     void AddNewProject(const Session& session);// 添加新的项目

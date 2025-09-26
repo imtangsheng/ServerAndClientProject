@@ -16,7 +16,6 @@ class FaroControl : public QObject
 public:
     explicit FaroControl(QObject *parent = nullptr);
     ~FaroControl();
-
     QString ip{ "172.17.9.20" };
     QString flsDir;
     Atomic<int> ret;//法如执行反馈结果错误码  ErrorNumbers :int 在头文件中定义错误信息枚举
@@ -34,8 +33,8 @@ public:
     int errorNumbers = 0;
 
     //直接调用 使用回调函数在执行特定顺序的任务
-    Result OnStarted(CallbackResult callback = nullptr);
-    Result OnStopped(CallbackResult callback = nullptr);
+    Result OnStarted(const CallbackResult& callback = nullptr);
+    Result OnStopped(const CallbackResult& callback = nullptr);
 
     QAtomicInteger<bool> isNextStopToggled = false;//The next stop triggers完成一个文件,判断是否停止的标志
     QFileSystemWatcher watcher;

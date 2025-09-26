@@ -9,6 +9,8 @@ using namespace faro;
 */
 static IiQLicensedInterfaceIfPtr liPtr{ nullptr }; //许可
 static IiQLibIfPtr libRef{ nullptr }; //reference 指向变量或对象的引用
+
+
 static bool gIsFaroInitialized = false;//法如初始化标志
 static void FaroCleanup() {
     if (gIsFaroInitialized) {
@@ -76,6 +78,62 @@ FaroHandle::~FaroHandle() {
     //delete thread; // 安全删除线程对象
 }
 
+void FaroHandle::Test() {
+    //QString currentFiles = "E:\\Test\\faro\\1030_042.fls";
+    QString currentFiles = "E:\\Test\\Scan001.fls";
+    Result ret;
+    ret = LoadFlsFile(currentFiles);
+    qDebug() << libRef->getScanLoadState(0);
+    qDebug() << libRef->getNumScans() << libRef->getScanNumCols(0);
+    
+    IiQObjectIfPtr iqScan = libRef->getScanObject(0);
+    _bstr_t scanName = iqScan->getName();
+    IiQScanObjIfPtr realScan = iqScan->getScanObjSpecificIf();
+    int res;
+    // Date
+    int year, month, day, hour, min, sec, msec;
+    res = realScan->getDate(&year, &month, &day, &hour, &min, &sec, &msec);
+
+    // Hardware infos
+    BSTR ID;//LLS082016679
+    BSTR Type;
+    BSTR Serial; //LLS082016679
+    BSTR Info;
+    double Range;
+    res = realScan->getHardwareInfo(&ID, &Type, &Serial, &Info, &Range);
+
+    
+    // Angles
+    IFAROScanAnglesIfPtr angles = realScan->getAnglesIf();
+    double startHori;
+    double deltaHori;
+    angles->getHorizontalAngles(0, &startHori, &deltaHori);
+
+    // Calibration
+    double distOffset;
+    double distFactor;
+    double mirrorAdjustment;
+    double mirrorAxisAdjustment;
+    double horLaserAdjustment;
+    double vertLaserAdjustment;
+    double addtlAmplOffset;
+    double addtlAmplFactor;
+    double distCalibAngle;
+    double distCalibLength;
+    double triggerOffset;
+    res = realScan->getCalibInfo(&distOffset, &distFactor,
+        &mirrorAdjustment, &mirrorAxisAdjustment,
+        &horLaserAdjustment, &vertLaserAdjustment,
+        &addtlAmplOffset, &addtlAmplFactor,
+        &distCalibAngle, &distCalibLength,
+        &triggerOffset);
+        
+    //scanRef->load();
+    double x, y, z;
+    res = realScan->getInclinometerAxis(&x, &y, &z); //0.0189163 0.0417076 0.998951 架站的有值
+    qDebug() << x << y << z;
+}
+
 void FaroHandle::awake() {
     qDebug() << "[FaroHandle]awake初始化构造:" << QThread::currentThread();
     FaroInitialized();
@@ -86,12 +144,14 @@ Result FaroHandle::LoadFlsFile(QString filepath) {
         // 加载FLS文件 行 列  4268 5000 13722 ms
         static QDateTime startTime = QDateTime::currentDateTime();
         _bstr_t filepathBstr(filepath.toStdString().c_str());
-        // 加载文件不支持多个实例多线程,有锁
+        // 加载文件不支持多个实例多线程,有锁 169错误是文件不存在
+        libRef->setAttribute("#app/ScanLoadColor", "0"); // usefull for fls
         int ret = libRef->load(filepathBstr);//Return Values: 	0, 11, 12, 13, 25
         if (ret != 0) {
             throw QObject::tr("[#Faro]文件格式错误,错误码%1").arg(ret);//11 没有工作空间 No workspace 
+            return false;
         }
-        qDebug() << "#Faro:加载FLS文件:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
+        qDebug() << "#Faro:加载FLS文件:" <<ret<< startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
         return true;
     } catch (const QString error) {
         return Result::Failure(tr("#Faro:FLS解析错误: %1").arg(error));
@@ -107,7 +167,7 @@ static ScanPointPolar PointSphericalOriginalShiftUp(ScanPointPolar original, dou
     if (original.r < InvalidValue) {
         return newPoint;
     }
-    // 2. 计算新的r和theta
+    // 2. 计算新的r和 theta
     double x = original.r * cos(original.theta) * cos(original.phi);
     double y = original.r * cos(original.theta) * sin(original.phi);
     double z = original.r * sin(original.theta);
@@ -115,7 +175,7 @@ static ScanPointPolar PointSphericalOriginalShiftUp(ScanPointPolar original, dou
     z -= shiftUp;
     // 3. 新的距离r
     newPoint.r = sqrt(x * x + y * y + z * z);
-    // 4. 新的天顶角theta atan(y/x) 只能返回 -π/2 到 π/2 的角度 atan2(y, x) 可以返回完整的 -π 到 π 范围它考虑了 x 和 y 的符号，能正确判断角度在哪个象限
+    // 4. 新的天顶角 theta atan(y/x) 只能返回 -π/2 到 π/2 的角度 atan2(y, x) 可以返回完整的 -π 到 π 范围它考虑了 x 和 y 的符号，能正确判断角度在哪个象限
     //newPoint.theta = atan2(horizontalDist,verticalDist);
     newPoint.theta = asin(z / newPoint.r);
     return newPoint;
@@ -179,6 +239,10 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     Result ret;
     ret = LoadFlsFile(currentFiles.at(0).absoluteFilePath());
     if (!ret) { LOG_ERROR(ret.message); return; }
+    if (libRef->getScanLoadState(0) == 0) {
+        LOG_ERROR(tr("FLS文件加载完成,但是无数据加载成功!"));
+        return;
+    }
     int numRows = libRef->getScanNumRows(0);
     int numCols = libRef->getScanNumCols(0);
     qDebug() << "#Faro:FLS文件加载完成,列数 行数" << libRef->getScanNumCols(0) << libRef->getScanNumRows(0);

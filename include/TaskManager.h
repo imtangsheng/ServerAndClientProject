@@ -153,8 +153,6 @@ struct FileInfoDetails
 
 };
 
-
-
 //记录当前的项目和执行的任务信息
 extern SHAREDLIB_EXPORT  QSharedPointer<FileInfoDetails> gProjectFileInfo;//当前正在执行的项目信息(客户端使用)
 extern SHAREDLIB_EXPORT FileInfoDetails* gTaskFileInfo;//当前正在执行的任务信息
@@ -180,9 +178,9 @@ enum TaskState : TaskStateType {
     TaskEnumName(Aborted),//中止
     TaskEnumName(Error)//错误
 };
-inline static Atomic<TaskStateType> gTaskState{ TaskState::TaskState_Waiting };//记录当前设备状态值 QAtomicInteger 类型
 
 #define gTaskManager TaskManager::instance()
+#define gTaskState TaskManager::instance().state
 class SHAREDLIB_EXPORT TaskManager : public QObject
 {
     Q_OBJECT
@@ -192,11 +190,15 @@ public:
         return instance;
     }
     QJsonObject data;//工作目录下的json执行的任务信息数据,方便传输和交换
+    QJsonObject GetProjects() {
+        QMutexLocker locker(&mutex_data);
+        return data.value(cKeyContent).toObject();
+    }
     QAtomicInteger<TaskStateType> state{ TaskState_Waiting };
     void setState(TaskState newState) {
         TaskState oldState = static_cast<TaskState>(state.loadAcquire());
         if (oldState != newState) {
-            state = newState;
+            state.storeRelease(newState);
             QMutexLocker locker(&mutex);
             emit stateChanged(newState);
             if (handlers.contains(newState)) {
@@ -218,7 +220,7 @@ protected:
          qDebug() << ("TaskManager - Current thread:") << QThread::currentThread();
     }
     ~TaskManager() = default;
-
+    mutable QMutex mutex_data;
     mutable QMutex mutex; // 保护 handlers的互斥锁
     QMap<TaskState, TaskStateHandler> handlers;
 signals:
@@ -233,8 +235,16 @@ inline static QString GetProjectName(const QString& name) {
     return name + cProjectNameSuffix;
 }
 
+inline static QString GetProjectNameNotSuffix(const QString& name) {
+    int suffixIndex = name.lastIndexOf(cProjectNameSuffix);
+    if (suffixIndex != -1) {
+        return name.left(suffixIndex);
+    }
+    return name;
+}
+
 inline static QString GetProjectPath(const QString& name) {
-    return gTaskManager.data.value(cKeyPath).toString("../data") + "/" + name;
+    return gTaskManager.data.value(cKeyPath).toString("../data") + "/" + name + cProjectNameSuffix;
 }
 inline static bool GetProjectName(const QString& path, QString& name) {
     name = QFileInfo(path).baseName();
@@ -252,7 +262,8 @@ class SHAREDLIB_EXPORT SavaDataFile
 public:
     SavaDataFile(const QString& filename, const QString& first_line) :filename(filename), first_line(first_line), file(nullptr){
         QObject::connect(&gTaskManager, &TaskManager::stateChanged, [this](TaskState newState) {
-            if(newState == TaskState::TaskState_Started){
+            qDebug() << "Task state changed to:" << newState;
+            if(newState == TaskState::TaskState_Running){
                 create_file();
             }else if(newState == TaskState::TaskState_Finished) {
                 close();
@@ -262,6 +273,7 @@ public:
         //    create_file(); 
         //});
         //QObject::connect(&gTaskManager, &TaskManager::finished,[this]() {
+        //    qDebug() << "TaskManager::finished 信号"<< this->filename;
         //    close();
         //});
     }
@@ -272,21 +284,25 @@ public:
     bool isInitialized{ false };
     Result create_file() {
         if (isInitialized) return true;
+        qDebug() << "开始创建文件:" << filename;
         if (gTaskFileInfo == nullptr) { //确保任务对象存在
-            return Result::Failure(QObject::tr("任务对象不存在"));
+            LOG_WARNING(QObject::tr("任务对象不存在"));
+            return false;
         }
         QString filepath = gTaskFileInfo->path + "/" + filename;
         // 确保目录存在
         QFileInfo fileInfo(filepath);
         QDir dir = fileInfo.dir();
         if (!dir.exists() && !dir.mkpath(".")) {//确保在写入文件之前,相应的目录结构已经存在
-            return Result::Failure(QObject::tr("创建新目录失败: %1").arg(dir.absolutePath()));
+            LOG_WARNING(QObject::tr("创建新目录失败: %1").arg(dir.absolutePath()));
+            return false;
         }
         // 打开文件
         file = new QFile(filepath);//缓冲区大小由 Qt 的底层实现和操作系统决定（通常为 4KB 或 16KB，具体取决于平台）
         if (!file->open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Append)) {//使用 QIODevice::Unbuffered 标志打开文件，禁用 Qt 的内部缓冲，直接写入磁盘
             delete file; file = nullptr;
-            return Result::Failure(QObject::tr("打开文件写入失败: %1").arg(filepath));
+            LOG_WARNING(QObject::tr("打开文件写入失败: %1").arg(filepath));
+            return false;
         }
         stream = new QTextStream(file);
         WriteLine(first_line);//写入第一行数据
@@ -297,13 +313,19 @@ public:
 
     void WriteLine(const QString& line) {//Write a line of data
         *stream << line;
-        //stream->flush(); //立即刷新缓冲区,写入数据到文件
+        static int flushInterval = 20;
+        static int lineCount=0;
+        
+        lineCount++;
+        if(lineCount % flushInterval == false)
+        stream->flush(); //立即刷新缓冲区,写入数据到文件
     }
     void WriteLineAndFlush(const QString& line) {//Write a line of data
         *stream << line;
         stream->flush(); //立即刷新缓冲区,写入数据到文件
     }
     void close() {
+        qDebug() << "写入数据到文件并关闭文件句柄:" << filename;
         if (stream) {
             stream->device()->close();//立即将缓冲区数据写入文件并关闭文件句柄
             delete stream; stream = nullptr;

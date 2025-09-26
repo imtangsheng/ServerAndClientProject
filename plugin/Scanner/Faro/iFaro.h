@@ -69,8 +69,9 @@ namespace faro
         double r{ 0 }, phi{ 0 }, theta{ 0 };
     };
 
-    inline static BSTR FaroSring(QString str) {
-        return _bstr_t(str.toStdString().c_str());
+    inline static BSTR FaroString(QString str) {
+        return SysAllocString(reinterpret_cast<const OLECHAR*>(str.utf16()));
+        //return _bstr_t(str.toStdString().c_str());//不支持中文
     }
     //Nc = 2f * t / r 线数Number of San Lines= 2*频率(Hz)*时间(秒)*分辨率(1/10倍数)
     inline static int GetNumColumns(int t, int r, int quality = 8) {

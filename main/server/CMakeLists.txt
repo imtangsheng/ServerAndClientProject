@@ -1,8 +1,8 @@
 # 设置可执行文件名称
 set(APP_NAME server)
 # 查找所需的 Qt 组件
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Network WebSockets HttpServer LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Network WebSockets HttpServer LinguistTools)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Network WebSockets HttpServer SerialPort LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Network WebSockets HttpServer SerialPort LinguistTools)
 
 
 # 将源文件组织在变量中
@@ -50,6 +50,7 @@ target_link_libraries(${APP_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::Network
     Qt${QT_VERSION_MAJOR}::WebSockets
     Qt${QT_VERSION_MAJOR}::HttpServer
+    Qt${QT_VERSION_MAJOR}::SerialPort
     ${SHARE_NAME}
 )
 
@@ -59,4 +60,4 @@ set_target_properties(${APP_NAME} PROPERTIES
 )
 
 # 确保插件和应用依赖共享库
-add_dependencies(${APP_NAME} Serial)
+add_dependencies(${APP_NAME} Serial Faro)

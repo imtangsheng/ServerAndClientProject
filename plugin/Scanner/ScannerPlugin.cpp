@@ -20,8 +20,9 @@ ScannerPlugin::ScannerPlugin()
 
     gFaroCtrl->SetScanCompletedCallback([this]() {
         qDebug() << "[#Scanner]扫描完成";
-        state_ = StateEvent::Finished;
+        //state_ = StateEvent::Finished;
     });
+    //state_ = StateEvent::Waiting;
 }
 
 ScannerPlugin::~ScannerPlugin()
@@ -46,6 +47,8 @@ Result ScannerPlugin::Activate_(QJsonObject param)
     QString ip = param.value("ip").toString();
     if (gFaroCtrl->ip != ip && !ip.isEmpty()) {
         gFaroCtrl->ip = ip;
+        config_["ip"] = ip;
+        WriteJsonFile(ConfigFilePath(), config_);
     }
     if (!TryConnect()) {
         CheckConnect();
@@ -56,16 +59,17 @@ Result ScannerPlugin::Activate_(QJsonObject param)
 
 Result ScannerPlugin::initialize()
 {
+    QString ip = config_.value("ip").toString();
+    if (!ip.isEmpty()) gFaroCtrl->ip = ip;
     QTimer::singleShot(5000, this, [this]() {
         if (!TryConnect()) {
             CheckConnect();
         }
     });
-
     return true;//有线连接必失败,所以不记录错误信息
 }
 
-Result ScannerPlugin::disconnect()
+Result ScannerPlugin::disactivate()
 {
     return Result::Success();
 }
@@ -80,7 +84,7 @@ QString ScannerPlugin::version() const
     return QString("0.0.1");
 }
 
-Result ScannerPlugin::OnStarted(CallbackResult callback)
+Result ScannerPlugin::OnStarted(const CallbackResult& callback)
 {
     return gFaroCtrl->OnStarted(callback);
     //QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
@@ -92,7 +96,7 @@ Result ScannerPlugin::OnStarted(CallbackResult callback)
     //return ret;
 }
 
-Result ScannerPlugin::OnStopped(CallbackResult callback)
+Result ScannerPlugin::OnStopped(const CallbackResult& callback)
 {
     return gFaroCtrl->OnStopped(callback);
 }
@@ -147,20 +151,19 @@ void ScannerPlugin::CheckConnect() {
     }
 }
 
-void ScannerPlugin::initUi(const Session &session)
+void ScannerPlugin::onUpdateUi(const Session &session)
 {
-    QJsonObject obj;
-    obj.insert("name", "Faro");
-    obj.insert("version", "0.0.1");
-    obj.insert("isConnect", gFaroCtrl->isConnect());
     qDebug() << "[时间]" << QDateTime::currentDateTime().toString("hh:mm:ss.zzz") << "[#Faro]连接状态查询" << gFaroCtrl->isConnect();
-    gShare.on_session(session.ResponseSuccess(obj),session.socket);
+    emit gSigSent(Session::RequestString(session.id, session.module, session.method, QJsonArray{ config_ }), session.socket);
 }
 
 
 void ScannerPlugin::execute(const QString &method)
 {
     qDebug() << "[#Scanner]执行方法" << method;
+    //getInclinometerAxis
+    gFaroHandle->Test();
+    
 }
 
 void ScannerPlugin::ScanConnect(const Session& session) {
@@ -199,7 +202,7 @@ void ScannerPlugin::ScanConnect(const Session& session) {
 void ScannerPlugin::SetParameter(const Session& session) {
     qDebug() << "[#Scanner]";
     QJsonObject param = session.params.toObject();
-    gShare.on_session(session.Finished(gFaroCtrl->SetParameters(param),"参数设置"), session.socket);
+    gShare.on_send(gFaroCtrl->SetParameters(param), session);
 }
 
 void ScannerPlugin::ScanStart(const Session& session) {
@@ -262,4 +265,49 @@ void ScannerPlugin::GetCameraPositionDistance(const Session& session) {
     QMetaObject::invokeMethod(gFaroHandle, "CreateCameraFocalByScanFile",
         Qt::QueuedConnection,
         Q_ARG(QJsonObject, param));
+}
+
+
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+void ScannerPlugin::GetSerialNumber(const Session& session) {
+    //使用web api获取
+    // 创建QNetworkAccessManager
+    QNetworkAccessManager* manager = new QNetworkAccessManager(this);
+    //构造URL
+    QUrl url(QString("http://%1/lswebapi/scanner-infos").arg(gFaroCtrl->ip));
+    qDebug() << "完整URL:" << url.toString();
+    // 创建请求
+    QNetworkRequest request(url);
+    // 创建事件循环使请求同步
+    QEventLoop loop;
+    // 发送GET请求
+    QNetworkReply* reply = manager->get(request);
+    // 连接事件循环
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();  // 等待请求完成
+    if (reply->error() == QNetworkReply::NoError) {
+        //qInfo() << "HTTP状态码:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray responseData = reply->readAll();
+        //qInfo() << "响应体:" << QString(responseData);
+        // 解析JSON
+        QJsonDocument doc = QJsonDocument::fromJson(responseData);
+        if (!doc.isNull() && doc.isObject()) {
+            QJsonObject obj = doc.object();
+            QString serialNumber = obj.value("serial-number").toString(); // 假设JSON包含 serial number字段
+            config_["serial-number"] = serialNumber;
+            WriteJsonFile(ConfigFilePath(), config_);
+            gShare.on_session(session.ResponseSuccess(serialNumber), session.socket);
+        } else {
+            qWarning() << "JSON解析失败";
+        }
+    } else {
+        qWarning() << "网络错误:" << reply->errorString();
+        qWarning() << "HTTP状态码:" << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    }
+    // 清理
+    reply->deleteLater();
+    manager->deleteLater();
+
 }

@@ -1,4 +1,4 @@
-#include "UserServer.h"
+﻿#include "UserServer.h"
 #include "network/HttpServer.h"
 #include "network/WebSocketServer.h"
 #include "manager/ManagerPlugin.h"
@@ -42,15 +42,15 @@ static Result UpdateProjectDir(const QString& path_project, QJsonObject& data) {
         QJsonObject objTasks;
         for (auto& taskDir : taskNameList) {
             //添加任务
-            QString absiluteTaskPath = dirTask.absoluteFilePath(taskDir);//获取任务绝对路径
-            QString taskFilePath = absiluteTaskPath + "/" + kTaskInfoFileName;
+            QString absoluteTaskPath = dirTask.absoluteFilePath(taskDir);//获取任务绝对路径
+            QString taskFilePath = absoluteTaskPath + "/" + kTaskInfoFileName;
             QJsonObject task_obj;
             if (!GetJsonValue(taskFilePath, task_obj)) {
                 continue;
             }
             QJsonObject objTask;
             objTask[cKeyName] = taskDir;
-            objTask[cKeyPath] = absiluteTaskPath;
+            objTask[cKeyPath] = absoluteTaskPath;
             objTask[cKeyData] = task_obj;
             objTasks[taskDir] = objTask;//使用文件名作为唯一 key
         }
@@ -104,6 +104,8 @@ void UserServer::initialize(quint16 port_ws, quint16 port_http) {
     }
 }
 
+void UserServer::onTest() {
+}
 
 void UserServer::onDeviceStateChanged(const Session &session) {
     qDebug() << "UserServer::onDeviceStateChanged";
@@ -157,6 +159,14 @@ void UserServer::SetRegisterSettings(const Session& session) {
     }
     gShare.on_send(Result::Success(), session);
 }
+#include<QSerialPortInfo>
+void UserServer::GetAvailableSerialPorts(const Session& session) {
+    QStringList ports;
+    foreach(const QSerialPortInfo & info, QSerialPortInfo::availablePorts()) {
+        ports << info.portName();
+    }
+    gShare.on_session(session.ResponseSuccess(ports.join(",")), session.socket);
+}
 
 void UserServer::GetTaskData(const Session& session) {
     qDebug() << "获取项目任务数据库:" << gTaskManager.data;
@@ -184,8 +194,8 @@ void UserServer::AddNewProject(const Session& session) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("项目目录已经存在")), session.socket);
     }
     //判断是否存在同名项目
-    QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-    if (projects.contains(project.name)) {
+    QJsonObject projects = gTaskManager.GetProjects();
+    if (SafeHasKey(projects.keys(),project.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("项目名称已经存在,请更换名称.")),session.socket);
     }
     //写入 json 配置到文件中
@@ -215,7 +225,7 @@ void UserServer::DeleteProject(const Session& session) {
     }
     //判断是否存在同名项目
     QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-    if (!projects.contains(project.name)) {
+    if (!SafeHasKey(projects.keys(),project.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("要操作的项目名称不存在,请确认名称.")), session.socket);
     }
     //删除文件夹
@@ -249,12 +259,12 @@ void UserServer::AddCurrentTask(const Session& session) {
     }
     QString projectName = dir.dirName();
     QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-    if (projectName.isEmpty() || !projects.contains(projectName)) {
+    if (projectName.isEmpty() || !SafeHasKey(projects.keys(),projectName)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow,tr("找不到对应的项目名称: %1.").arg(projectName)));
     }
     QJsonObject project = projects.value(projectName).toObject();
     QJsonObject tasks = project.value(cKeyContent).toObject();
-    if (task.name.isEmpty() || tasks.contains(task.name)) {
+    if (task.name.isEmpty() || SafeHasKey(tasks.keys(), task.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("任务名称已经存在: %1.").arg(task.name)));
     }
 
@@ -291,12 +301,12 @@ void UserServer::DeleteTask(const Session& session) {
     }
     QString projectName = dir.dirName();
     QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-    if (projectName.isEmpty() || !projects.contains(projectName)) {
+    if (projectName.isEmpty() || !SafeHasKey(projects.keys(), projectName)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("项目目录不存在: %1.").arg(projectName)));
     }
     QJsonObject project = projects.value(projectName).toObject();
     QJsonObject tasks = project.value(cKeyContent).toObject();
-    if (task.name.isEmpty() || !tasks.contains(task.name)) {
+    if (task.name.isEmpty() || !SafeHasKey(tasks.keys(),task.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("任务不存:在%1.").arg(task.name)));
     }
     //删除任务文件夹
@@ -323,7 +333,7 @@ void UserServer::onStart(const Session& session, bool isContinue) {
     static QStringList started_devices_all;//已经启动的设备
     if (!isContinue) {
         order_devices.clear(); started_devices_all.clear();
-        gTaskState == TaskState_Running;
+        gTaskManager.setState(TaskState::TaskState_Running);
         emit gTaskManager.running();
         QStringList devicesList = gManagerPlugin->plugins.keys();
         for (const auto& device : START_ORDER) {
@@ -376,7 +386,7 @@ void UserServer::onStop(const Session& session, bool isContinue) {
     }
     if (order_devices.isEmpty()) {//完成,返回成功
         gShare.on_send(Result::Success(), session);
-        gTaskState = TaskState_Finished;
+        gTaskManager.setState(TaskState_Finished);
         emit gTaskManager.finished();
         return;
     }

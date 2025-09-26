@@ -2,8 +2,8 @@
 # 设置可执行文件名称
 set(PLUGIN_NAME Faro)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Concurrent) 
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Concurrent)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Network) 
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Network)
 
 # 设置插件输出目录 ${CMAKE_BINARY_DIR} 表示构建目录（通常是 build/）。
 set(PLUGIN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/plugins)
@@ -37,7 +37,7 @@ add_dependencies(${PLUGIN_NAME} ${SHARE_NAME})
 
 target_link_libraries(${PLUGIN_NAME} PRIVATE
 	Qt${QT_VERSION_MAJOR}::Core
-    Qt${QT_VERSION_MAJOR}::Concurrent
+    Qt${QT_VERSION_MAJOR}::Network
     ${SHARE_NAME}
 )
 

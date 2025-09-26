@@ -18,13 +18,13 @@ public:
     // 基本操作接口
     Q_INVOKABLE Result Activate_(QJsonObject param) final;//激活设备,注册加载初始化等操作
     Result initialize() final;
-    Result disconnect() final;
+    Result disactivate() final;
     QString name() const final;    // 设备名称
     QString version() const final; // 版本
 
     //直接调用 使用回调函数在执行特定顺序的任务
-    Result OnStarted(CallbackResult callback = nullptr) final;
-    Result OnStopped(CallbackResult callback = nullptr) final;
+    Result OnStarted(const CallbackResult& callback = nullptr) final;
+    Result OnStopped(const CallbackResult& callback = nullptr) final;
 
     Q_INVOKABLE Result Shutdown() final;
 private:
@@ -32,11 +32,11 @@ private:
     void CheckConnect();
 
 public slots:
-    void initUi(const Session& session) final;//初始化UI,返回配置信息
+    void onUpdateUi(const Session& session) final;//初始化UI,返回配置信息
     // 执行约定的方法
     void execute(const QString& method) final; // 执行特定功能
     
-    //暂时测试使用
+    //操作方法
     void ScanConnect(const Session& session);
     void SetParameter(const Session& session);
     void ScanStart(const Session& session);
@@ -46,5 +46,7 @@ public slots:
     void GetProgressPercent(const Session& session);
     
     void GetCameraPositionDistance(const Session& session);//计算相机的机位到物理的距离值,即焦距值计算
+
+    void GetSerialNumber(const Session& session); //获取更新扫描仪序列号
 
 };
