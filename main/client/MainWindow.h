@@ -186,8 +186,6 @@ private slots:
     //设备管理界面
     void on_pushButton_log_info_clicked();
 
-
-
 private:
 
     void _retranslate();//更新文本翻译
@@ -206,6 +204,8 @@ private:
 signals:
     void languageChanged();
     void sigTaskConfigChanged(QJsonObject &obj);
+    void sigTaskConfigCheck(QJsonObject &obj);
+    void awake_project();//任务前检查,比如自动化时间同步,容量等
 };
 
 #endif

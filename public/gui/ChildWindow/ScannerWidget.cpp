@@ -34,6 +34,10 @@ QString ScannerWidget::_module() const
 
 Result ScannerWidget::SetTaskParameter(QJsonObject &data)
 {
+    if(!isConnection){
+        ToolTip tip(ToolTip::Confirm,tr("扫描仪设备未连接"),tr("扫描仪未连接,确认任务参数失败,请确认连接状态"),-1,this);
+        return QDialog::Rejected == tip.exec();
+    }
     //获取扫描仪时间同步,每次任务前
     Session session_car(sModuleSerial,"ScanAutomationTimeSync",true);
     if (!gControl.SendAndWaitResult(session_car,tr("扫描仪与小车时间同步"),tr("正在扫描仪与小车时间同步"))) {
@@ -42,12 +46,12 @@ Result ScannerWidget::SetTaskParameter(QJsonObject &data)
     }
 
     Session session(_module(), "SetParameter", data);
-    if (!gControl.SendAndWaitResult(session)) {
+    if (!gControl.SendAndWaitResult(session,tr("等待扫描仪确认参数"))) {
         ToolTip::ShowText(tr("设置参数失败"), -1);
         return Result::Failure(tr("设置参数失败"));
     }
 
-    return Result();
+    return true;
 }
 
 void ScannerWidget::UpdateTaskConfigSync(QJsonObject &content)
@@ -55,10 +59,9 @@ void ScannerWidget::UpdateTaskConfigSync(QJsonObject &content)
     qDebug() <<"# ScannerWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
     if(!general.isEmpty())
     {
-        content[JSON_SCAN_HEIGHT] =  general.value(JSON_SCAN_HEIGHT).toDouble();
         content[JSON_SCAN_SN] = general.value(JSON_SCAN_SN).toString();
     }
-
+    content["dir"] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
 }
 
 
@@ -80,6 +83,8 @@ void ScannerWidget::ScanPowerSwitch(bool open)
                 stop:1 rgba(240, 112, 79, 255));
         )");
     }
+
+    isPowerSupply = open;
 }
 
 void ScannerWidget::onConnectionChanged(bool enable)
@@ -93,9 +98,16 @@ void ScannerWidget::onConnectionChanged(bool enable)
     }
 }
 
-void ScannerWidget::onUpdateUi(const QJsonObject& value)
+void ScannerWidget::onUpdateUi(const QJsonObject& obj)
 {
-    if(value.isEmpty()) return;
+    qDebug() <<_module()<< "nUpdateUi"<<obj;
+    if(obj.isEmpty()) return;
+    QString ip = obj.value("ip").toString();
+    if(!ip.isEmpty()) ui->lineEdit_scanner_ip->setText(ip);
+    //序列号更新
+    QString sn = obj.value("serial-number").toString();
+    if(!sn.isEmpty()) ui->lineEdit_serial_number->setText(sn);
+
 }
 
 void ScannerWidget::onConfigChanged(QJsonObject config)
@@ -113,7 +125,11 @@ void ScannerWidget::onDeviceStateChanged(double state)
 
 void ScannerWidget::onWatcherFilesChanged(QJsonObject obj)
 {
-    qDebug() <<"file changed:"<< obj;
+    qDebug() <<"onWatcherFilesChanged:"<< obj;
+    QString filenames = obj.value("FileNames").toString();
+    if(filenames.isEmpty()) return;
+    ui->plainTextEdit_WatcherFiles->setPlainText(filenames);
+    ui->plainTextEdit_WatcherFiles->moveCursor(QTextCursor::End);
 }
 
 QRadioButton *ScannerWidget::GetButtonDeviceManager()
@@ -150,11 +166,28 @@ void ScannerWidget::on_pushButton_connect_clicked()
 
 void ScannerWidget::on_pushButton_update_clicked()
 {
-    Session session(_module(), "initUi");
+    // Session session(_module(), "onUpdateUi");
+    // if (!gControl.SendAndWaitResult(session)) {
+    //     ToolTip::ShowText(tr("更新信息失败"), -1);
+    //     return;
+    // }
+    Session session(_module(), "execute",QJsonArray{"test"});
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(tr("execute更新信息失败"), -1);
+        return;
+    }
+
+}
+
+void ScannerWidget::on_pushButton_serial_number_update_clicked()
+{
+    Session session(_module(), "GetSerialNumber");
     if (!gControl.SendAndWaitResult(session)) {
         ToolTip::ShowText(tr("更新信息失败"), -1);
         return;
     }
+    QString sn = session.result.toString();
+    ui->lineEdit_serial_number->setText(sn);
 }
 
 void ScannerWidget::on_comboBox_param_templates_activated(int index)
@@ -165,19 +198,22 @@ void ScannerWidget::on_comboBox_param_templates_activated(int index)
 
 void ScannerWidget::on_pushButton_power_switch_clicked()
 {
-    qDebug() <<"void ScannerWidget::on_pushButton_power_on_clicked()";
-    static bool flag = true;
-    QJsonObject obj;
-    obj["code"] = 0x11;//CAR_SCANER_PWR_CTRL
-    QByteArray data = QByteArray(1, static_cast<char>(flag ? 0x01 : 0x00));//01 为打开电源，00 为关闭电源。
-    obj["data"] = QString(data.toHex());
-    Session session(sModuleSerial, "SetParameterByCode", obj);
-    if (!gControl.SendAndWaitResult(session,tr("等待扫描仪上电"))) {
-        ToolTip::ShowText(tr("扫描仪上电失败"), -1);
+    qDebug() <<"void ScannerWidget::on_pushButton_power_on_clicked()"<<isPowerSupply;
+    thread_local int isSupply;
+    if(isPowerSupply) {
+        if(ToolTip::ShowText(tr("请确认是否关闭扫描仪供电"), -1) != QDialog::Accepted)
         return;
     }
-    flag = !flag;
-    ScanPowerSwitch(flag);
+    QJsonObject obj;
+    obj["code"] = 0x11;//CAR_SCANER_PWR_CTRL
+    QByteArray data = QByteArray(1, static_cast<char>(isPowerSupply ? 0x00 : 0x01));//01 为打开电源，00 为关闭电源。
+    obj["data"] = QString(data.toHex());
+    Session session(sModuleSerial, "SetParameterByCode", obj);
+    if (!gControl.SendAndWaitResult(session,tr("等待扫描仪设置供电"))) {
+        ToolTip::ShowText(tr("扫描仪供电设置失败"), -1);
+        return;
+    }
+    ScanPowerSwitch(!isPowerSupply);
 }
 
 
@@ -485,24 +521,19 @@ void ScannerWidget::on_radioButton_resolution_32_clicked()
 void ScannerWidget::on_pushButton_ScanStart_clicked()
 {
     QString cmd,text;
-    cmd = "ScanStart";text = tr("启动失败");
+    cmd = "ScanStart";text = tr("启动失败:");
     Session session(_module(), cmd);
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(text, -1);
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(text+session.message, -1);
     }
 }
 
 
 void ScannerWidget::on_pushButton_ScanRecord_clicked()
 {
-    QString cmd,text;
-    cmd = "ScanRecord";text = tr("开始录制数据失败");
-
-    Session session(_module(), cmd);
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(text, -1);
+    Session session(_module(), "ScanRecord");
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(session.message, -1);
     }
 }
 
@@ -510,9 +541,8 @@ void ScannerWidget::on_pushButton_ScanRecord_clicked()
 void ScannerWidget::on_pushButton_ScanPause_clicked()
 {
     Session session(_module(), "ScanPause");
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(tr("暂停扫描失败"), -1);
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(session.message, -1);
     }
 }
 
@@ -520,9 +550,8 @@ void ScannerWidget::on_pushButton_ScanPause_clicked()
 void ScannerWidget::on_pushButton_ScanStop_clicked()
 {
     Session session(_module(), "ScanStop");
-    if (gControl.SendAndWaitResult(session)) {
-    } else {
-        ToolTip::ShowText(tr("立即停止扫描失败"), -1);
+    if (!gControl.SendAndWaitResult(session)) {
+        ToolTip::ShowText(session.message, -1);
     }
 }
 
@@ -532,8 +561,8 @@ void ScannerWidget::on_pushButton_ScanSetParameter_clicked()
     parameter["dir"] = gShare.info.value("dir").toString() + "/config/faro/test";
     // SetTaskParameter(parameter);
     Session session(_module(), "SetParameter", parameter);
-    if (!gControl.SendAndWaitResult(session)) {
-        ToolTip::ShowText(tr("设置参数失败"), -1);
+    if (!gControl.SendAndWaitResult(session,tr("设置扫描仪参数"))) {
+        ToolTip::ShowText(session.message, -1);
     }
 
 }

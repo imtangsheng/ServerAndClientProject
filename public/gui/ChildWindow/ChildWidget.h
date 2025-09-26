@@ -28,14 +28,14 @@ public:
 
     virtual void initialize();
     bool isConnection{false};
-    /*同步更新任务配置相关,以及同步设置任务参数*/
+    /*同步更新任务配置相关,以及同步设置任务参数 先更新所有参数配置,最后设备确认设置*/
     virtual Result SetTaskParameter(QJsonObject &data) = 0;
     virtual void UpdateTaskConfigSync(QJsonObject &content) = 0;
 
     void stop();//停止任务执行
 public slots:
     virtual void onConnectionChanged(bool enable=true);//设备模块是否激活,在线状态显示
-    virtual void onUpdateUi(const QJsonObject& value) = 0;
+    virtual void onUpdateUi(const QJsonObject& obj) = 0;
     virtual void onConfigChanged(QJsonObject config) = 0;
     virtual void onDeviceStateChanged(double state){//设备登录状态显示
         //连接状态变化是否更新 显示断开连接的话,显示连接上了

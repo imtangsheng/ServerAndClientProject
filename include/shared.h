@@ -71,14 +71,13 @@ public:
         // 方法2：直接使用 QVariant
         //return QVariant(name).value<ModuleName>();
     }
-    int sessiontype_{ 0 };//注册会话通话的类型,用于验证设备通信是否连接正确
+    int session_type_{ 0 };//注册会话通话的类型,用于验证设备通信是否连接正确
     static QString GetVersion ();//项目版本信息 宏定义
     QString language;//记录当前显示语言
 
     QString appPath{ "../" };
     QJsonObject info;//程序应用信息
     QSharedPointer<QSettings> RegisterSettings;//注册表设置,使用 invokeMethod方法调用函数
-    bool isCarDriving{ false };//判断小车的行驶状态
 
     QMap<ModuleName, BinarySessionHandler> handlerBinarySession;
     void awake(const QString& path, const QString& appName);

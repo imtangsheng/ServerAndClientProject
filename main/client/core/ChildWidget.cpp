@@ -26,6 +26,8 @@ void ChildWidget::initialize()
         mainWindow->ui.LayoutRealtimeMonitoring->addWidget(GetWidgetAcquisitionMonitor());
         // 连接的是派生类函数 可用 lambda 表达式显示调用
         connect(mainWindow, &MainWindow::sigTaskConfigChanged,this, &ChildWidget::UpdateTaskConfigSync,Qt::DirectConnection);
+        connect(mainWindow, &MainWindow::sigTaskConfigCheck,this, &ChildWidget::SetTaskParameter,Qt::DirectConnection);
+
     }
 }
 

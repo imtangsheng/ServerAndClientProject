@@ -184,10 +184,7 @@ void MainWindow::GotoHomePage() {
 
 void MainWindow::onEnterProjectClicked() {//此处值应是全局项目值
     // qDebug() << "#Window::onEnterProjectClicked(QJsonObject project)"<<gProjectFileInfo->ToJsonObject();
-    if(gTrolley && gTrolley->AutomationTimeSync()){
-        ToolTip::ShowText(tr("服务端自动化时间同步失败,请确认设备连接状态,然后再次创建任务"), -1);
-        return;
-    }
+    emit awake_project();
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskHome); 
     if (ui.stackedWidget_task_param->currentWidget() != ui.page_task_param_first) {//显示任务参数设置第一页
         ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_first);
@@ -197,7 +194,7 @@ void MainWindow::onEnterProjectClicked() {//此处值应是全局项目值
         ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub);
     }
     ui.label_current_task_name->hide();
-    ui.label_current_project_name->setText(tr("当前项目:%1").arg(gProjectFileInfo->name));
+    ui.label_current_project_name->setText(tr("当前项目:%1").arg(GetProjectNameNotSuffix(gProjectFileInfo->name)));
     ui.lineEdit_task_param_content_name->setText(QDateTime::currentDateTime().toString("yyyy-MM-dd_HH-mm-ss"));
 
 }
@@ -253,7 +250,7 @@ void MainWindow::changeEvent(QEvent* event) {
 }
 
 void MainWindow::onConnectSocket() {
-    gWebWidget->socket->sendTextMessage(Session::RequestString(Session::NextId(),_module,"login",gShare.sessiontype_));
+    gWebWidget->socket->sendTextMessage(Session::RequestString(Session::NextId(),_module,"login",gShare.session_type_));
     gWebWidget->reconnectTimer.stop();
 
     ui.pushButton_network_connect->setText(tr("断开"));
@@ -313,6 +310,7 @@ void MainWindow::on_action_start_triggered()
             return;
         }
         ui.pushButton_acquisition_start->hide();
+        gTaskState = TaskState::TaskState_Running;
     }else {
         if(gProjectFileInfo)
         onEnterProjectClicked();//创建任务
@@ -337,8 +335,7 @@ void MainWindow::on_action_stop_triggered()
 
 void MainWindow::on_pushButton_test_clicked()
 {
-    QJsonValue value = 1;
-    gControl.sendTextMessage(Session::RequestString(Session::NextId(),_module,"onTest",QJsonArray{ value }));
+    gControl.sendTextMessage(Session::RequestString(Session::NextId(),_module,"onTest",QJsonArray{}));
 }
 
 void MainWindow::on_pushButton_network_not_connect_clicked()
@@ -395,10 +392,13 @@ void MainWindow::on_toolButton_alarm_clicked() {
 
 
 void MainWindow::on_pushButton_shutdown_clicked() {
+
+    if(ToolTip::ShowText(tr("确认执行一键关机?"), -1) != QDialog::Accepted){
+        return;
+    }
     Session session(_module, "shutdown");//关机函数执行
-    if (gControl.SendAndWaitResult(session,tr("等待设备执行关机"),tr("一键关机"))) {
-    } else {
-        ToolTip::ShowText(tr("执行一键关机失败"), -1);
+    if (!gControl.SendAndWaitResult(session,tr("等待设备执行关机"),tr("一键关机"))) {
+        ToolTip::ShowText(session.message, -1);
     }
 }
 
@@ -792,21 +792,7 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
     ui.label_current_task_name->setText(tr("当前任务:%1").arg(name));
     ui.label_current_task_name->show();
     gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
-
-    //进行参数检测
-    if(gScanner){
-        if(!gScanner->isConnection){
-            ToolTip tip(ToolTip::Confirm,tr("设备未连接"),tr("扫描仪未连接,是否要继续"),-1,this);
-            if(QDialog::Rejected == tip.exec()){
-                return;
-            }
-        }else{
-            QJsonObject parameter = content;
-            parameter["dir"] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
-            if(!gScanner->SetTaskParameter(parameter))
-                return;
-        }
-    }
+    //确定任务名称,路径
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_last);
 }
 
@@ -909,23 +895,9 @@ void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
     content[JSON_ACCURACY] = ui.doubleSpinBox_task_scanner_accuracy->value();
     content[JSON_SPEED] = ui.spinBox_task_car_travel_speed->value();
     content[JSON_DIRECTION] = GetCarDirection(gControl.carDirection); //0后退 1 前进
-
-    //进行参数检测
-    if(gTrolley){
-        if(!gTrolley->isConnection){
-            ToolTip tip(ToolTip::Confirm,tr("设备未连接"),tr("小车未连接,是否要继续"),-1,this);
-            if(QDialog::Rejected == tip.exec()){
-                return;
-            }
-        }else{
-            if(!gTrolley->SetTaskParameter(content)) return;
-        }
-    }
-
     emit sigTaskConfigChanged(content);//更新参数
     content[JSON_CREATE_TIME] = GetCurrentDateTime();
     gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
-
 
     Session session(_module, "AddCurrentTask",gTaskFileInfo->ToJsonObject());
     if(!gControl.SendAndWaitResult(session,tr("正在创建新任务"),tr("创建新任务"))) {
@@ -933,12 +905,14 @@ void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
         ToolTip::ShowText(tr("提示:创建新任务失败"),session.message);
         return;
     }
+    emit sigTaskConfigCheck(content);//确认设置参数
+
     //进入任务采集界面 使用信号槽连接,变化才有值,故使用手动设置
     ui.pushButton_acquisition_start->setText(tr("开始采集"));
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskAcquisition);
-    ui.label_acquisition_project_name->setText(gProjectFileInfo->name);
+    ui.label_acquisition_project_name->setText(GetProjectNameNotSuffix(gProjectFileInfo->name));
     ui.label_acquisition_task_name->setText(gTaskFileInfo->name);
-    ui.label_acquisition_tunnel_diameter->setText(QString("%1mm").arg(content.value(JSON_DIAMETER).toDouble(), 'f', 1));
+    ui.label_acquisition_tunnel_diameter->setText(QString("%1mm").arg(content.value(JSON_DIAMETER).toDouble(),0, 'f', 1));
     ui.label_task_param_line_type->setText(ui.comboBox_task_param_line_type->currentText());
     ui.label_task_param_interval_name->setText(content.value(JSON_TMP_BETWEEN_NAME).toString());
     ui.label_task_param_creation_time->setText(content.value(JSON_CREATE_TIME).toString());
@@ -1259,7 +1233,6 @@ QJsonObject MainWindow::GetParamTemplate()
     param[Json_MeasurementRate] = ui.comboBox_template_scanner_MeasurementRate->currentText().toInt();//int类型
     param[Json_SplitAfterLines] = ui.spinBox_template_scanner_SplitAfterLines->value();
     param[Json_Resolution] = ui.comboBox_template_scanner_Resolution->currentText().toInt();
-    param[JSON_SCAN_HEIGHT] = ui.doubleSpinBox_template_scanner_height->value();
     param[Json_CameraTemplate] = ui.comboBox_template_camera->currentText();
 
     return param;
@@ -1274,6 +1247,5 @@ void MainWindow::SetParamTemplate(QJsonObject param)
     ui.comboBox_template_scanner_MeasurementRate->setCurrentText(QString::number(param[Json_MeasurementRate].toInt()));//int类型
     ui.spinBox_template_scanner_SplitAfterLines->setValue(param[Json_SplitAfterLines].toInt());
     ui.comboBox_template_scanner_Resolution->setCurrentText(QString::number(param[Json_Resolution].toInt()));//int类型
-    ui.doubleSpinBox_template_scanner_height->setValue(param[JSON_SCAN_HEIGHT].toDouble());
     ui.comboBox_template_camera->setCurrentText(param[Json_CameraTemplate].toString());
 }

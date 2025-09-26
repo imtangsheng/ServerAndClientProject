@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
     gShare.awake(appDir.absolutePath(), "client");//初始化配置文件路径,名称
 
-    gShare.sessiontype_ = static_cast<int>(SessionType::Client);
+    gShare.session_type_ = static_cast<int>(SessionType::Client);
     MainWindow window;
 
     gShare.RegisterHandler(window._module, &window);

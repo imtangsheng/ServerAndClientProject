@@ -32,7 +32,7 @@ public:
     void ScanPowerSwitch(bool open);//控制扫描上电开关
 public slots:
     void onConnectionChanged(bool enable=true) final;
-    void onUpdateUi(const QJsonObject& value) final;
+    void onUpdateUi(const QJsonObject& obj) final;
     void onConfigChanged(QJsonObject config) final;
     void onDeviceStateChanged(double state) final;
     void onWatcherFilesChanged(QJsonObject obj);
@@ -47,6 +47,8 @@ private slots:
     void on_pushButton_connect_clicked();
 
     void on_pushButton_update_clicked();
+    //全局类参数
+    void on_pushButton_serial_number_update_clicked();
 
     void on_comboBox_param_templates_activated(int index);
 
@@ -110,8 +112,11 @@ private slots:
 
     void on_pushButton_ScanSetParameter_clicked();
 
+
+
 private:
     // void retranslate();
+    bool isPowerSupply{false};//是否处于供电状态
 };
 
 inline QPointer<ScannerWidget>gScanner;

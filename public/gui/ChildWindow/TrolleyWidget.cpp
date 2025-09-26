@@ -22,7 +22,7 @@ inline Session GetSession(const QString& module, const QString& method, Function
 
 inline void SessionParameterByCode(FunctionCodeEnum code,QByteArray data,Session &session){
     QJsonObject obj;
-    obj["code"] = serial::CAR_SET_SPEED;
+    obj["code"] = code;
     obj["data"] = QString(data.toHex());
     session.params = obj;
 }
@@ -83,6 +83,9 @@ void TrolleyWidget::initialize()
     connect(mainWindow->ui.pushButton_battery_right,&QPushButton::clicked,this,[this](){
         SetBatterySource(2);
     });
+
+
+    connect(mainWindow, &MainWindow::awake_project,this, &TrolleyWidget::AwakeProjectSync,Qt::DirectConnection);
 }
 
 QString TrolleyWidget::_module() const
@@ -94,6 +97,11 @@ QString TrolleyWidget::_module() const
 void TrolleyWidget::UpdateCarInfo()
 {
     static CarInfo lastCarInfo;
+    //更新速度
+    if(lastCarInfo.speed != gCarInfo.speed){
+        ui->spinBox_car_travel_speed->setValue(gCarInfo.speed);
+    }
+
     qDebug() <<"UpdateCarInfo" << gCarInfo.temperature;
     // 温度
     if(lastCarInfo.temperature != gCarInfo.temperature){
@@ -134,35 +142,37 @@ void TrolleyWidget::UpdateCarInfo()
     //旋钮状态；1 到 5 分别表示旋钮的状态 1 到 5。
 
     //为目前使用的是哪个编码器；1 左侧，2 右侧，3 同时使用两个编码器 备注:目前固定值3
-    if(gCarInfo.encoder_mode != 3){
-        qWarning() << "gCarInfo.encoder_mode:"<<gCarInfo.encoder_mode;
+    if(lastCarInfo.encoder_mode != gCarInfo.encoder_mode){
+        ui->spinBox_encoder_mode->setValue(gCarInfo.encoder_mode);
+    }
+    qDebug() <<"gCarInfo.key_mode:"<< gCarInfo.key_mode;
+    if(lastCarInfo.key_mode != gCarInfo.key_mode){
+        ui->spinBox_knob_state->setValue(gCarInfo.key_mode);
     }
     //扫描仪供电状态；0 不供电（默认），1 供电。（由 0x11 指令控制）
     if(lastCarInfo.scanner_power != gCarInfo.scanner_power){
         if(gScanner)
             gScanner->ScanPowerSwitch(gCarInfo.scanner_power==0);
     }
-}
 
-
-Result TrolleyWidget::AutomationTimeSync()
-{
-    //进行自动化时间同步,手动同步,如果此命令发送时,有设备未同步,则自动化时间会出错,故把同步流程放到此进入任务前
-    static bool is_devices_time_sync = false;
-    if(!is_devices_time_sync){
-        Session session(sModuleSerial, "SetParameterByCode");
-        SessionParameterByCode(serial::AUTOMATION_TIME_SYNC,QByteArray(),session);
-        if (gControl.SendAndWaitResult(session,tr("设备自动化时间同步"),tr("正在进行自动化时间同步"))) {
-            is_devices_time_sync = true;
-        }
+    if(lastCarInfo.battery_switch_voltage != gCarInfo.battery_switch_voltage){
+        ui->doubleSpinBox_battery_switch_voltage->setValue(gCarInfo.battery_switch_voltage/10.0);
     }
-    return is_devices_time_sync;
+
+    if(lastCarInfo.scanner_height != gCarInfo.scanner_height){
+        ui->doubleSpinBox_scanner_height->setValue(gCarInfo.scanner_height/10.0);//单位是0.1mm
+    }
+    lastCarInfo = gCarInfo;
 }
+
 
 Result TrolleyWidget::SetTaskParameter(QJsonObject &data)
 {
-    qint32 speed = data.value(JSON_SPEED).toInt();
-
+    if(!isConnection){
+        ToolTip tip(ToolTip::Confirm,tr("小车串口检测未打开"),tr("确认任务参数失败,请确认连接状态"),-1,this);
+        return QDialog::Rejected == tip.exec();
+    }
+    quint16 speed = data.value(JSON_SPEED).toInt();
     if(speed < 50 || speed > 5500){
         ToolTip::ShowText(tr("设置的行驶速度超过范围:%1-%2,当前设置%3").arg(50,5500,speed), -1);
         return false;
@@ -184,12 +194,17 @@ Result TrolleyWidget::SetTaskParameter(QJsonObject &data)
 void TrolleyWidget::UpdateTaskConfigSync(QJsonObject &content)
 {
     qDebug() << "#TrolleyWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
+    //扫描仪高度
+    if(gCarInfo.scanner_height >0){
+        content[JSON_SCAN_HEIGHT] =  gCarInfo.scanner_height / 10.0;
+    }
     //小车是否使用额定里程,满足该里程自动停止任务
     isUseRatedMileage = mainWindow->ui.radioButton_task_car_rated_mileage_on->isChecked();
     if (isUseRatedMileage) {
         carRatedMileage  = mainWindow->ui.spinBox_task_car_rated_mileage->value();
         content[JSON_CAR_RATED_MILEAGE] = carRatedMileage ;
     }
+
 
 }
 
@@ -277,6 +292,10 @@ void TrolleyWidget::handle_binary_message(const QByteArray &bytes)
         stream >> gCarInfo;
         UpdateCarInfo();
     }break;
+    case CAR_GET_INFO:{
+        gCarInfo.serialize(stream);
+        UpdateCarInfo();
+    }break;
     case CAR_GET_BATTERY_MSG:{
         stream >> gBatteryInfoLeft >> gBatteryInfoRight;
         Result ret = gBatteryInfoLeft.isValid();
@@ -312,13 +331,19 @@ void TrolleyWidget::handle_binary_message(const QByteArray &bytes)
 }
 
 
-void TrolleyWidget::onUpdateUi(const QJsonObject& value)
+void TrolleyWidget::onUpdateUi(const QJsonObject& obj)
 {
-    if(value.isEmpty()) return;
-    if(value.contains("mileage_multiplier")){
+    if(obj.isEmpty()) return;
+    //里程系数
+    if(obj.contains("mileage_multiplier_list")){
         ui->comboBox_speed_multiplier->clear();
-        ui->comboBox_speed_multiplier->addItems(value.value("mileage_multiplier").toString().split(","));
+        ui->comboBox_speed_multiplier->addItems(obj.value("mileage_multiplier_list").toString().split(","));
+        QString currentMultiplier = obj.value("mileage_multiplier_value").toString();
+        ui->comboBox_speed_multiplier->setCurrentText(currentMultiplier);
     }
+    //速度 ,方向等小车参数转发解析
+
+
 }
 
 void TrolleyWidget::onConfigChanged(QJsonObject config)
@@ -336,6 +361,20 @@ void TrolleyWidget::onConfigChanged(QJsonObject config)
 void TrolleyWidget::onDeviceStateChanged(double state)
 {
     return ChildWidget::onDeviceStateChanged(state);
+}
+
+bool TrolleyWidget::AwakeProjectSync()
+{
+    //进行自动化时间同步,手动同步,如果此命令发送时,有设备未同步,则自动化时间会出错,故把同步流程放到此进入任务前
+    static bool is_devices_time_sync = false;
+    if(!is_devices_time_sync){
+        Session session(sModuleSerial, "SetParameterByCode");
+        SessionParameterByCode(serial::AUTOMATION_TIME_SYNC,QByteArray(),session);
+        if (gControl.SendAndWaitResult(session,tr("设备自动化时间同步"),tr("正在进行自动化时间同步"))) {
+            is_devices_time_sync = true;
+        }
+    }
+    return is_devices_time_sync;
 }
 
 QRadioButton *TrolleyWidget::GetButtonDeviceManager()
@@ -379,7 +418,12 @@ void TrolleyWidget::on_pushButton_save_clicked()
 
 void TrolleyWidget::on_pushButton_scan_clicked()
 {
-    Session session(_module() ,"scan");
+    QString cmd,module;
+    // if(isConnection){ cmd = "scan";module=_module();}
+    // else{
+        cmd = "GetAvailableSerialPorts";module=sModuleUser;
+    // }
+    Session session( module,cmd);
     if(!gControl.SendAndWaitResult(session)){
         qDebug() << "QDialog::Rejected"<<QDialog::Rejected;
         return;
@@ -480,7 +524,7 @@ void TrolleyWidget::on_spinBox_car_travel_speed_valueChanged(int arg1)
 
 void TrolleyWidget::on_pushButton_set_car_speed_clicked()
 {
-    qint16 speed = ui->spinBox_car_travel_speed->value();
+    quint16 speed = ui->spinBox_car_travel_speed->value();
     SetSpeed(speed);
 }
 
@@ -520,7 +564,7 @@ void TrolleyWidget::retranslate()
     update();
 }
 
-Result TrolleyWidget::SetSpeed(qint16 speed)
+Result TrolleyWidget::SetSpeed(quint16 speed)
 {
     if(speed < 50 || speed > 5500){
         ToolTip::ShowText(tr("设置的行驶速度超过范围:%1-%2,当前设置%3").arg(50,5500,speed), -1);
@@ -533,7 +577,7 @@ Result TrolleyWidget::SetSpeed(qint16 speed)
     stream.setByteOrder(QDataStream::LittleEndian);  // 设置字节序
     stream << speed;
     obj["data"] = QString(data.toHex());
-    qDebug() <<"obj:"<< obj;
+    qDebug() <<"设置的行驶速度:"<< obj;
     Session session(_module(), "SetParameterByCode", obj);
     if (!gControl.SendAndWaitResult(session,tr("设置行驶速度"))) {
         ToolTip::ShowText(tr("设置行驶速度失败"), -1);
@@ -578,4 +622,63 @@ Result TrolleyWidget::SetBatterySource(quint8 num)
     return true;
 }
 
+
+
+#include <QPropertyAnimation>
+#include <QGraphicsOpacityEffect>
+void TrolleyWidget::on_pushButton_show_parameters_clicked()
+{
+    // 设置窗口属性
+    ui->widget_car_parameter->setWindowFlags(Qt::Dialog);// | Qt::FramelessWindowHint);
+    ui->widget_car_parameter->setWindowModality(Qt::ApplicationModal);
+    ui->widget_car_parameter->setWindowTitle(tr("参数概览"));
+
+    // 设置半透明效果
+    QGraphicsOpacityEffect* effect = new QGraphicsOpacityEffect(ui->widget_car_parameter);
+    ui->widget_car_parameter->setGraphicsEffect(effect);
+
+    // 创建动画
+    QPropertyAnimation* animation = new QPropertyAnimation(effect, "opacity");
+    animation->setDuration(300);
+    animation->setStartValue(0.0);
+    animation->setEndValue(1.0);
+
+    // 显示并启动动画
+    ui->widget_car_parameter->show();
+    animation->start();
+}
+
+
+void TrolleyWidget::on_pushButton_set_scanner_height_clicked()
+{
+    quint16 value = ui->doubleSpinBox_scanner_height->value() * 10;
+    Session session = GetSession(_module(), "SetParameterByCode",serial::CAR_SET_SCANNER_HEIGHT,Serialize::Byte(value));
+    if (!gControl.SendAndWaitResult(session,tr("设置扫描仪高度"),tr("等待设置扫描仪高度参数"))){
+        ToolTip::ShowText(tr("设置扫描仪高度失败"), -1);
+        return;
+    }
+    // gCarInfo.scanner_height = value;
+}
+void TrolleyWidget::on_pushButton_set_encoder_mode_clicked()
+{
+    quint8 value = ui->spinBox_encoder_mode->value();
+    Session session = GetSession(_module(), "SetParameterByCode",serial::CAR_SET_ENCODER_USAGE,Serialize::Byte(value));
+    if (!gControl.SendAndWaitResult(session,tr("设置扫描仪高度"),tr("等待设置扫描仪高度参数"))){
+        ToolTip::ShowText(tr("设置扫描仪高度失败"), -1);
+        return;
+    }
+    // gCarInfo.encoder_mode = value;
+}
+
+
+void TrolleyWidget::on_pushButton_set_battery_switch_voltage_clicked()
+{
+    quint16 value = ui->doubleSpinBox_battery_switch_voltage->value() * 10;
+    Session session = GetSession(_module(), "SetParameterByCode",serial::CAR_SWITCH_VOLTAGE_CTRL,Serialize::Byte(value));
+    if (!gControl.SendAndWaitResult(session,tr("设置切换电压"),tr("等待设置切换电压"))){
+        ToolTip::ShowText(tr("设置切换电压失败"), -1);
+        return;
+    }
+    // gCarInfo.battery_switch_voltage = value;
+}
 

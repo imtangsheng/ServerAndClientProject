@@ -21,7 +21,6 @@ public:
     QString _module() const final;
 
     void UpdateCarInfo();
-    Result AutomationTimeSync();
 
     Result SetTaskParameter(QJsonObject &data) final;
     void UpdateTaskConfigSync(QJsonObject &content) final;
@@ -36,10 +35,10 @@ public:
 
     void handle_binary_message(const QByteArray &bytes);
 public slots:
-    void onUpdateUi(const QJsonObject& value) final;
+    void onUpdateUi(const QJsonObject& obj) final;
     void onConfigChanged(QJsonObject config) final;
     void onDeviceStateChanged(double state) final;
-
+    bool AwakeProjectSync();
 protected:
     QRadioButton* GetButtonDeviceManager() final;
     QWidget* GetWidgetDeviceManager() final;
@@ -49,6 +48,7 @@ protected slots:
     void retranslate_ui() final; //更新显示语言
     void showEvent(QShowEvent *) override;;//打开窗口时执行
 private slots:
+    void on_pushButton_show_parameters_clicked();
     void on_pushButton_save_clicked();
     //设备串口选择
     void on_pushButton_scan_clicked();
@@ -77,10 +77,16 @@ private slots:
     void on_radioButton_mileage_set_on_clicked();
 
     void on_radioButton_mileage_set_off_clicked();
+    //其他参数设置
+    void on_pushButton_set_scanner_height_clicked();
+
+    void on_pushButton_set_encoder_mode_clicked();
+
+    void on_pushButton_set_battery_switch_voltage_clicked();
 
 private:
     void retranslate();// 对自定义组件（如图表） 更新显示,重新翻译
-    Result SetSpeed(qint16 speed);
+    Result SetSpeed(quint16 speed);
     Result SetDirection(bool isForward);
     Result SetBatterySource(quint8 num);// 1 使用左侧电池， 2使用右侧电池
 };

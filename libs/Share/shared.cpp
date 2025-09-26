@@ -15,7 +15,7 @@ void Shared::awake(const QString& path, const QString& appName) {
     RegisterSettings.reset(new QSettings("South_Software", appName));
     GetConfigSettings().reset(new QSettings(QString("%1/config/%2.ini").arg(appPath,appName), QSettings::IniFormat));
     info["dir"] = appPath;
-    info["type"] = sessiontype_;
+    info["type"] = session_type_;
     info["version"] = VERSION_STR;
 }
 
