@@ -43,12 +43,12 @@ ToolTip::~ToolTip()
     delete ui;
 }
 
-void ToolTip::ShowText(const QString &text, int msecShowTime)
+int ToolTip::ShowText(const QString &text, int msecShowTime)
 {
-    ShowText(tr("提示"), text, msecShowTime);
+    return ShowText(tr("提示"), text, msecShowTime);
 }
 
-void ToolTip::ShowText(const QString &title, const QString &message, int msecShowTime)
+int ToolTip::ShowText(const QString &title, const QString &message, int msecShowTime)
 {
 /*
  * 当对话框关闭时，Qt 会因为 WA_DeleteOnClose 属性尝试删除这个对象
@@ -60,5 +60,5 @@ void ToolTip::ShowText(const QString &title, const QString &message, int msecSho
     // tooltip->exec();
     ToolTip tooltip(title, message, msecShowTime);
     // tooltip.setAttribute(Qt::WA_DeleteOnClose, false); // 取消自动删除
-    tooltip.exec();
+    return tooltip.exec();
 }

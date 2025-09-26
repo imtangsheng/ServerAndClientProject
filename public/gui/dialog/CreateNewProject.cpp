@@ -29,7 +29,7 @@ void CreateNewProject::on_pushButton_Accepted_clicked() {
 
     //发送给服务器是否可以创建
     project.name = GetProjectName(name);
-    project.path = GetProjectPath(project.name);
+    project.path = GetProjectPath(name);
 
     QJsonObject &content = project.data;
     content[JSON_PROJECT_NAME] = name;
@@ -44,7 +44,7 @@ void CreateNewProject::on_pushButton_Accepted_clicked() {
         accept();
     } else {
         qWarning() << session.result;
-        ToolTip::ShowText(tr("提示:创建新项目失败"),session.result.toString());
+        ToolTip::ShowText(session.message,-1);
         return;
         // reject();
     }
