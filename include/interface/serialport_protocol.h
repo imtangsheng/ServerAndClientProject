@@ -144,6 +144,7 @@ namespace serial {
         CAR_GET_EMERGENCY_STOP_MODE = 0x18,  // 获取是否启用急停按钮
         CAR_SWITCH_VOLTAGE_CTRL = 0x19,  // 切换电压
         CAR_CHOOSE_BATTERY_SOURCE = 0x1a,  // 设置使用哪一块电池供电
+        CAR_SET_SCANNER_HEIGHT = 0x1c,  // 设置扫描仪高度
 
         CAR_GET_INFO = 0x20, //MS310 获取小车信息
         // Camera commands
@@ -233,7 +234,14 @@ namespace serial {
         uint8_t scanner_power;//为扫描仪供电状态；0 不供电（默认），1 供电。（由 0x11 指令控制
         uint16_t speed_min; //为最小速度
         uint16_t speed_max;
+        //MS201
         uint64_t time;//电路板时间；单位为（10 微秒）。如果有需求可以改为 1 微秒。
+        //MS301
+        uint16_t battery_switch_voltage;//电池切换电压值
+        // 旋钮1-5对应的速度
+        uint16_t speed1,speed2,speed3,speed4,speed5;
+        //扫描仪高度值 
+        uint16_t scanner_height;//单位(0.1mm)
 
         friend QDataStream& operator>>(QDataStream& stream, CarInfo& info) {
             stream >> info.speed >> info.temperature_symbol >> info.temperature
@@ -241,6 +249,18 @@ namespace serial {
             >> info.encoder_mode >> info.key_mode >> info.scanner_power
             >> info.speed_min >> info.speed_max >> info.time;
             return stream;
+        }
+        void serialize(QDataStream& stream) {
+            stream >> speed >> temperature_symbol >> temperature
+                >> direction >> moving >> battery_usage >> knob_state
+                >> encoder_mode >> key_mode >> scanner_power
+                >> speed_min >> speed_max;
+            stream >> battery_switch_voltage >> speed1 >> speed2 >> speed3 >> speed4 >> speed5 
+                >> scanner_height;
+        }
+        static CarInfo& get() { 
+            static CarInfo info;
+            return info;
         }
     };
 #pragma pack(pop)

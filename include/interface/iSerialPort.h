@@ -10,7 +10,6 @@
 #include <QAtomicInteger>
 #include "serialport_protocol.h"
 
-#define SUPPORT_MS201
 namespace serial {
 
 /*定义的串口方法*/
@@ -21,15 +20,9 @@ class SerialPortTemplate : public QObject
 public:
     explicit SerialPortTemplate(QObject* parent = nullptr, QString portName = NULL)
         : QObject(parent), serial(new QSerialPort(this)) {
-        //open serial port
         qDebug() << "模块SerialPortTemplate" << QThread::currentThread();
         if (!portName.isEmpty()) {
-            if (GetAvailablePorts().contains(portName)) {
                 open(portName);
-            } else {
-                LOG_ERROR(tr("未检测到要打开的串口号:%1").arg(portName));
-                qWarning() << GetAvailablePorts();
-            }
         }
         connect(serial, &QSerialPort::readyRead, this, &SerialPortTemplate::handleReadyRead);
         connect(serial, &QSerialPort::errorOccurred, this, &SerialPortTemplate::handleError);
@@ -87,18 +80,19 @@ public:
     bool WriteData(FunctionCodeType code, const QByteArray& data = QByteArray()) {
         QByteArray frame;
         frame.append(HEADER_BYTES); 
+#ifdef __DEVICE_TYPE_MS201__
         frame.append(LOCAL_ADDRESS);
-        //frame.append(static_cast<char>(data.size()));//目前校验不加长度
+#endif
+#ifdef __DEVICE_TYPE_MS301__
+        frame.append(static_cast<char>(data.size()));
+#endif
         frame.append(code);
         frame.append(data);
-        // 转换 QByteArray 到 std::vector<uint8_t>
-        //std::vector<uint8_t> vecData(
-        //    reinterpret_cast<const uint8_t*>(frame.constData()),
-        //    reinterpret_cast<const uint8_t*>(frame.constData()) + frame.size()
-        //);
         QByteArray crc = CRC16(frame);
         frame.append(crc); 
-        //frame.append(TAIL_BYTES);
+#ifdef __DEVICE_TYPE_MS201__
+        frame.append(crc); frame.append(TAIL_BYTES);
+#endif
         return WriteData(frame);
     }
 
@@ -132,7 +126,7 @@ protected:
             if (!buffer_.isEmpty()) {
                 static qint64 latency = QDateTime::currentMSecsSinceEpoch();
                 qint64 current = QDateTime::currentMSecsSinceEpoch();
-                if (current - latency > 5000) {//5秒 清除
+                if (current - latency > 8000) {//5秒 清除 20的128个字节数据不够
                     qDebug() << "串口缓冲区数据清除:" << buffer_.toHex().toUpper();
                     buffer_.clear();
                 }
@@ -159,29 +153,61 @@ protected:
                 qDebug() << QString("数据标志头:%1 没有找到:%2").arg(HEADER_BYTES.toHex().toUpper(), receivedData.toHex().toUpper()) << "数据大小" << receivedData.size();
                 break;
             }
-            //起始位+帧头长度 2+ 数据码长度 1+功能码长度1 + 数据长度
-            qsizetype dataLen = receivedData.at(frameStart + DATA_LEN_POS);
-            qsizetype frameCrcPos = frameStart + HEADER_BYTE_LEN +1+1+ dataLen;
-            
-            qsizetype frameLen = frameCrcPos + CRC_BYTE_LEN;//CRC位置 + CRC长度
-            if (receivedData.size() < frameLen) {
-                qDebug() << (tr("数据长度不足, 数据:%1").arg(receivedData.toHex().toUpper()));
-                break;
+            FunctionCodeType code; QByteArray data;
+            if (LOCAL_ADDRESS == static_cast<quint8>(receivedData.at(frameStart + HEADER_BYTE_LEN))) {
+                //#ifdef __DEVICE_TYPE_MS201__
+                            // 查找帧尾（从帧头之后开始查找，提高效率
+                qsizetype frameEnd = receivedData.indexOf(TAIL_BYTES, frameStart + HEADER_BYTES.size());
+                if (frameEnd == -1) {
+                    qDebug() << (tr("数据标志尾 %1 没有找到,数据:%2").arg(TAIL_BYTES.toHex().toUpper(), receivedData.toHex().toUpper()));
+                    break;
+                }
+                // 清除已处理的数据
+                {
+                    QWriteLocker locker(&bufferLock_);
+                    buffer_.remove(0, frameEnd + TAIL_BYTE_LEN);
+                }
+
+                // 进行CRC校验 
+                qsizetype crcPos = frameEnd - CRC_BYTE_LEN;//帧尾前2字节
+                QByteArray crc = receivedData.mid(crcPos, CRC_BYTE_LEN);// 截取从 frameStart开始到 frameEnd结束的数据（包含帧尾）
+                //qDebug() << "CRC校验值是:" << CRC16(receivedData.mid(frameStart, crcPos - frameStart)).toHex();
+                if (crc != CRC16(receivedData.mid(frameStart, crcPos - frameStart))) {
+                    LOG_ERROR(tr("CRC校验值: %1 没有匹配:%2").arg(crc.toHex().toUpper(), receivedData.toHex().toUpper()));
+                    break;
+                }
+
+                qsizetype dataPos = frameStart + DATA_POS;
+                data = receivedData.mid(dataPos, crcPos - dataPos);
+
+                //#endif
+            } else {
+                //#ifdef __DEVICE_TYPE_MS301__
+                            //起始位+帧头长度 2+ 数据码长度 1+功能码长度1 + 数据长度
+                quint8 dataLen = receivedData.at(frameStart + DATA_LEN_POS);
+                qsizetype frameCrcPos = frameStart + HEADER_BYTE_LEN + 1 + 1 + dataLen;
+
+                qsizetype frameLen = frameCrcPos + CRC_BYTE_LEN;//CRC位置 + CRC长度
+                if (receivedData.size() < frameLen) {
+                    qDebug() << (tr("数据长度不足, 数据:%1").arg(receivedData.toHex().toUpper()));
+                    break;
+                }
+                // 清除已处理的数据
+                {
+                    QWriteLocker locker(&bufferLock_);
+                    buffer_.remove(0, frameLen);
+                }
+                // 进行CRC校验 
+                QByteArray crc = receivedData.mid(frameCrcPos, CRC_BYTE_LEN);// 截取从 frameStart开始到 frameEnd结束的数据（包含帧尾）
+                //qDebug() << "CRC校验值是:" << receivedData.mid(frameStart, frameCrcPos).toHex().toUpper() << CRC16(receivedData.mid(frameStart, frameCrcPos)).toHex();
+                if (crc != CRC16(receivedData.mid(frameStart, frameCrcPos - frameStart))) {
+                    LOG_ERROR(tr("CRC校验值: %1 没有匹配:%2").arg(crc.toHex().toUpper(), receivedData.toHex().toUpper()));
+                    break;
+                }
+                data = receivedData.mid(frameStart + DATA_POS, dataLen);
+                //#endif
             }
-            // 清除已处理的数据
-            {
-                QWriteLocker locker(&bufferLock_);
-                buffer_.remove(0, frameLen);
-            }
-            FunctionCodeType code = receivedData.at(frameStart + FUNCTION_CODE_POS);
-            // 进行CRC校验 
-            QByteArray crc = receivedData.mid(frameCrcPos, CRC_BYTE_LEN);// 截取从 frameStart开始到 frameEnd结束的数据（包含帧尾）
-            qDebug() << "CRC校验值是:" << receivedData.mid(frameStart, frameCrcPos).toHex().toUpper() << CRC16(receivedData.mid(frameStart, frameCrcPos)).toHex();
-            if (crc != CRC16(receivedData.mid(frameStart, frameCrcPos))) {
-                LOG_ERROR(tr("CRC校验值: %1 没有匹配:%2").arg(crc.toHex().toUpper(), receivedData.toHex().toUpper()));
-                break;
-            }
-            QByteArray data = receivedData.mid(frameStart + DATA_POS, dataLen);
+            code = receivedData.at(frameStart + FUNCTION_CODE_POS);
             HandleProtocol(code, data);
         }
 

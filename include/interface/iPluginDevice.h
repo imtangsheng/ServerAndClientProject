@@ -61,13 +61,13 @@ public:
         //return gShare.RegisterHandler(GetModuleName(), this);
     }
 
-    virtual Result disconnect() = 0; // 断开连接
+    virtual Result disactivate() = 0; // 断开连接 Not activated 停用
     virtual QString name() const = 0;    // 设备名称
     virtual QString version() const = 0; // 版本
 
     // 事件 直接调用
-    virtual Result OnStarted(CallbackResult callback = nullptr) =0;
-    virtual Result OnStopped(CallbackResult callback = nullptr) =0;
+    virtual Result OnStarted(const CallbackResult& callback = nullptr) =0;
+    virtual Result OnStopped(const CallbackResult& callback = nullptr) =0;
 
     // 获取错误信息
     virtual QString GetLastError() { return lastError; };
@@ -78,6 +78,9 @@ public slots:
     virtual void onStateChanged(const StateEvent::State &state) {
         double value = state;
         PushClients("onDeviceStateChanged", QJsonArray{ value }, GetModuleName());
+    }
+    virtual void onConfigChanged() const {
+        emit gSigSent(Session::RequestString(GetModuleName(), "onConfigChanged", QJsonArray{ config_ }));
     }
     virtual void SaveConfig(const Session& session) {//保存配置
         config_ = session.params.toObject();
@@ -116,7 +119,8 @@ protected:
         }
         return true;
     }
-    //protected slots:
+protected slots:
+
 
 };
 

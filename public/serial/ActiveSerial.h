@@ -87,8 +87,8 @@ public:
     void stop(const Session& session);
 
     //直接调用 使用回调函数在执行特定顺序的任务
-    Result OnStarted(CallbackResult callback = nullptr);
-    Result OnStopped(CallbackResult callback = nullptr);
+    Result OnStarted(const CallbackResult& callback = nullptr);
+    Result OnStopped(const CallbackResult& callback = nullptr);
 
 protected:
     bool HandleProtocol(FunctionCodeType code, const QByteArray& data) override;

@@ -172,7 +172,7 @@ void ActiveSerial::stop(const Session& session) {
 #endif // DEVICE_TYPE_CAR
 }
 
-Result ActiveSerial::OnStarted(CallbackResult callback) {
+Result ActiveSerial::OnStarted(const CallbackResult& callback) {
     //先启动相机,再启动小车 301项目是两个设备同时都有
 #ifdef DEVICE_TYPE_CAMERA
     WriteData(CAMERA_START_STOP, QByteArray(1, static_cast<char>(0x01)));//相机启动 指令写入
@@ -203,7 +203,7 @@ Result ActiveSerial::OnStarted(CallbackResult callback) {
     return Result();
 }
 
-Result ActiveSerial::OnStopped(CallbackResult callback) {
+Result ActiveSerial::OnStopped(const CallbackResult& callback) {
     //先停止小车,再停止相机
 #ifdef DEVICE_TYPE_CAR
     WriteData(CAR_STOP, QByteArray(1, static_cast<char>(0x01))); //00：停止小车 01：停止并清除里程
@@ -236,7 +236,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     qDebug() << "#Received Code:" << QString::number(code, 16).rightJustified(2, '0').toUpper() << "Data:" << data.toHex().toUpper();
     //if (data.isEmpty()) return;
     static quint8 invoke_trolley = share::ModuleName::trolley;
-    static auto push_car = [&code,&data]() {
+    static auto push_car = [&code,&data]() -> void {
         QByteArray bytes = QByteArray(1, invoke_trolley) + QByteArray(1, code) + data;
         //bytes.append(invoke_trolley).append(code).append(data);
         qDebug() << "bytes:" << bytes.toHex().toUpper();
@@ -260,17 +260,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         }
         break;
     case CAR_STARTUP:
-        stream >> i8result;
-        if (i8result == RESULT_SUCCESS) {
-            gShare.isCarDriving = true;
-        }
-        break;
     case CAR_STOP:
-        stream >> i8result;
-        if (i8result == RESULT_SUCCESS) {
-            gShare.isCarDriving = false;
-        }
-        break;
         //[[fallthrough]];  // C++17特性，明确表示故意 fall through
     case CAR_CHANGING_OVER:
     case CAR_SET_SPEED:
@@ -278,7 +268,9 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     case CAR_SCANER_PWR_CTRL:
     case CAR_SET_ENCODER_USAGE:
     case CAR_SET_START_STOP_BUTTON_MODE:
+    case CAR_SWITCH_VOLTAGE_CTRL:
     case CAR_CHOOSE_BATTERY_SOURCE:
+    case CAR_SET_SCANNER_HEIGHT:
 #endif // DEVICE_TYPE_CAR
 #ifdef DEVICE_TYPE_CAMERA
     case CAMERA_START_STOP:
@@ -297,20 +289,22 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     {
         gGetScannerTimeCount++;
         quint64 autotimer;
-        stream >> autotimer >> gScannerCarTimeSync.car;
+        quint64 car_time;
+        stream >> autotimer >> car_time;
         //获取扫描仪时间失败,返回0 应该执行任务回调
         if (autotimer == 0) {
             LOG_ERROR(tr("获取扫描仪时间同步失败,返回 扫描仪值:%1 小车值:%2,原始数据").arg(autotimer).arg(gScannerCarTimeSync.car).arg(data.toHex().toUpper()));
             i8result = -1;
             break;
         }
-        gScannerCarTimeSync.scanner = autotimer;
+        gScannerCarTimeSync.update(autotimer,car_time);
         if (gTaskState == TaskState::TaskState_Running) {
             RecvScannerTimeData();//扫描仪时间数据的任务处理
         }
         i8result = 0;
     }break;
     case CAR_GET_MSG:
+    case CAR_GET_INFO:
     {
         push_car();
         //获取小车信息后,还有获取电池信息等
@@ -323,11 +317,11 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         value = total_mileage;
         i8result = 0;
     }break;
+    //直接推送消息到小车的解析数据
     case CAR_GET_BATTERY_MSG:
     {
         push_car();
     }return true;
-
     /**自动上传的数据格式,return 不回复**/
     case 0xEF://倾角信息上传 倾角计的量程为正负 15 度。
     {
@@ -357,6 +351,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
             emit gShare.sigSentBinary(bytes);//推送二进制数据
         }
         if (gTaskState == TaskState::TaskState_Running) {
+            qDebug() << "里程数据的任务处理:" << g_mileage_count << "mileage:" << mileage.pulse << "time:" << mileage.time;
             MileageInfo  mileage_info(right.symbol, mileage.pulse, mileage.time);
             RecvSingleMileageData(g_mileage_count, mileage_info);
             RecvMileageData(g_mileage_count, left, right);//里程数据的任务处理
@@ -384,19 +379,19 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         }
         PushClients(SUBSCRIBE_METHOD(CarKey), key_value, sModuleSerial);
     }return true;
-    case 0xFD://扫描仪CAN指令上传 待测试
+    case 0xFD://扫描仪CAN指令上传
     {
-        LOG_INFO(QString("Received Scanner CAN Data:%1").arg(data.toHex().toUpper()));
-        quint8 can_id, trigger_in, trigger_out, ack_by_can, ditection;
+        LOG_INFO(QString("扫描仪CAN指令上传:%1").arg(data.toHex().toUpper()));
+        quint8 can_id, trigger_in, trigger_out, ack_by_can, detection;
         quint64 can_data;
-        stream >> can_id >> trigger_in >> trigger_out >> ack_by_can >> ditection >> can_data;
+        stream >> can_id >> trigger_in >> trigger_out >> ack_by_can >> detection >> can_data;
         switch (can_id) {
         case 0x01://End Scan Operation
-            LOG_INFO(tr("End Scan Operation"));
+            LOG_INFO(tr("CAN指令上传:扫描仪停止"));
             break;
         case 0x02://Initiate Scan Operation
             //Out: Started scan operation mode 0X->Spherical Scan 1X->Helical TTL Scan 2X->Helical CAN Scan
-            LOG_INFO(tr("Initiate Scan Operation"));
+            LOG_INFO(tr("CAN指令上传:扫描仪启动"));
             break;
         case 0x03://Set Automation Time
         case 0x04:
@@ -413,10 +408,6 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         default:
             break;
         }
-        //QJsonObject obj;
-        //obj.insert("flag", flag);
-        //obj.insert("data", data);
-        //result = obj;
     }return true;
     case 0xFE://为了兼容单里程数据
     {

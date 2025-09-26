@@ -83,6 +83,8 @@ void WebSocketWidget::onTextMessageReceived(const QString &message)
         qWarning() << "消息处理失败:" << QThread::currentThread() << "[mess	age]" << message;
         ui->textBrowser_MessageReceived->append(tr("[%1]客户端消息处理失败:\n %2").arg(timestamp,result.message));
 	}
+
+
 }
 
 /**使用值传递 Qt 会对 QByteArray 进行写时复制（copy-on-write）优化，所以值传递的开销通常不会很大
@@ -90,20 +92,11 @@ void WebSocketWidget::onTextMessageReceived(const QString &message)
  * 10MB-100MB，考虑使用QSharedPointer
  * 100MB，考虑使用内存映射或流式处理
  **/
-void WebSocketWidget::onBinaryMessageReceived(QByteArray message)
+void WebSocketWidget::onBinaryMessageReceived(const QByteArray& message)
 {
-    qDebug() << "WebSocketWidget::onBinaryMessageReceived" <<message.size();
-    // QByteArray &mutableMessage = const_cast<QByteArray&>(message);
-    //QDataStream readStream(message);
-    //quint8 invoke;
-    //QByteArray bytes;
-    //readStream >> invoke;
-    //readStream >> bytes;
-    //qDebug() << "WebSocketWidget::onBinaryMessageReceived bytes" <<bytes.size();
-    //gShare.handlerBinarySession[share::ModuleName(invoke)](message);
-
-    quint8 invoke = message[0];
-    message.remove(0, 1);  // 移除第一个字节
-    qDebug() << "WebSocketWidget::onBinaryMessageReceived bytes" << message.size();
-    gShare.handlerBinarySession[share::ModuleName(invoke)](message);
+    QByteArray& bytes = const_cast<QByteArray&>(message);
+    quint8 invoke = bytes[0];
+    bytes.remove(0, 1);  // 移除第一个字节
+    qDebug() << "WebSocketWidget::onBinaryMessageReceived bytes" << bytes.size();
+    gShare.handlerBinarySession[share::ModuleName(invoke)](bytes);
 }

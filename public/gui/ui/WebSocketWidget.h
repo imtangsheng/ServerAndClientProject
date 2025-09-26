@@ -34,7 +34,7 @@ public:
 public slots:
     void tryReconnect();
     void onTextMessageReceived(const QString &message);
-    void onBinaryMessageReceived(QByteArray message);
+    void onBinaryMessageReceived(const QByteArray& message);
 private slots:
     void on_pushButton_sendMessage_clicked();
 
