@@ -19,7 +19,6 @@
     **方案1.移除父对象关系**
 	**方案2：确保在主线程创建 方案3：使用moveToThread**
 
-# 待解决
 ## Debug模式下的网络连接报错
 
 ### 现象:
@@ -38,3 +37,28 @@
 
 	- platforms 文件夹及其内容
 	- tls 文件夹中的SSL插件
+
+## 持有锁调用 lambda函数中存在有返回值错乱破坏栈帧
+### 解决方案:
+栈帧隔离: 1)创建新的函数对象副本 2)完全释放当前栈帧的锁 3)在新的调用上下文中执行
+
+## ASSERT failure in QCoreApplication::sendEvent: "Cannot send events to objects owned by a different thread
+(静态变量的销毁是由 C++ 运行时控制的，而不是由 Qt 的对象树管理)
+
+方案1：静态局部变量不设置父类
+static QTimer timer;  // 不设置父对象
+方案2：使用指针类型指定父类
+QTimer* timer = new QTimer(this);  // 非静态，有父对象
+
+
+## 关于Debug模式下使用QJsonObject 的contains方法判断是否存在 key关键字的 断言错误 **ASSERT: "lhs.size() == rhs.size()"**
+
+方案:
+```
+inline static bool SafeHasKey(const QStringList& list,const QString& key) {
+    for (auto& k : list) {
+        if (k == key) return true;
+    }
+    return false;
+}
+```

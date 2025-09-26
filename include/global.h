@@ -35,6 +35,12 @@ inline static QString JsonToString(const QJsonObject& jsonObject) {
     return QString::fromUtf8(jsonDoc.toJson());
 }
 
+inline static bool SafeHasKey(const QStringList& list,const QString& key) {
+    for (auto& k : list) {
+        if (k == key) return true;
+    }
+    return false;
+}
 
 /**定义一个结构体来包含更详细的结果信息**/
 struct Result {
