@@ -60,6 +60,7 @@ inline QString GetCarDirection(bool direction){
 #define JSON_SCAN_SN  "ScanSN" //扫描仪序列号 可通过 api 接口/swebapi/scanner-infos获取
 #define JSON_SCAN_HEIGHT "ScanHeight" //扫描仪高度,单位mm
 #define JSON_ACCURACY		"Accuracy" //点云精度,根据速度和参数公式计数
+#define JSON_OriginalScanDir "OriginalScanDir" //点云保存原始目录
 //TMP平台组显示参数
 #define JSON_TMP_LINE_NAME			"LineName" //线路,TMP平台组参数
 #define JSON_TMP_LINE_TYPE			"LineType" //线别,上/下行,左/右线,TMP平台组参数

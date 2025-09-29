@@ -195,7 +195,7 @@ void UserServer::AddNewProject(const Session& session) {
     }
     //判断是否存在同名项目
     QJsonObject projects = gTaskManager.GetProjects();
-    if (SafeHasKey(projects.keys(),project.name)) {
+    if (SafeJsonHasKey(projects.keys(),project.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("项目名称已经存在,请更换名称.")),session.socket);
     }
     //写入 json 配置到文件中
@@ -225,7 +225,7 @@ void UserServer::DeleteProject(const Session& session) {
     }
     //判断是否存在同名项目
     QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-    if (!SafeHasKey(projects.keys(),project.name)) {
+    if (!SafeJsonHasKey(projects.keys(),project.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("要操作的项目名称不存在,请确认名称.")), session.socket);
     }
     //删除文件夹
@@ -259,12 +259,12 @@ void UserServer::AddCurrentTask(const Session& session) {
     }
     QString projectName = dir.dirName();
     QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-    if (projectName.isEmpty() || !SafeHasKey(projects.keys(),projectName)) {
+    if (projectName.isEmpty() || !SafeJsonHasKey(projects.keys(),projectName)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow,tr("找不到对应的项目名称: %1.").arg(projectName)));
     }
     QJsonObject project = projects.value(projectName).toObject();
     QJsonObject tasks = project.value(cKeyContent).toObject();
-    if (task.name.isEmpty() || SafeHasKey(tasks.keys(), task.name)) {
+    if (task.name.isEmpty() || SafeJsonHasKey(tasks.keys(), task.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("任务名称已经存在: %1.").arg(task.name)));
     }
 
@@ -301,12 +301,12 @@ void UserServer::DeleteTask(const Session& session) {
     }
     QString projectName = dir.dirName();
     QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
-    if (projectName.isEmpty() || !SafeHasKey(projects.keys(), projectName)) {
+    if (projectName.isEmpty() || !SafeJsonHasKey(projects.keys(), projectName)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("项目目录不存在: %1.").arg(projectName)));
     }
     QJsonObject project = projects.value(projectName).toObject();
     QJsonObject tasks = project.value(cKeyContent).toObject();
-    if (task.name.isEmpty() || !SafeHasKey(tasks.keys(),task.name)) {
+    if (task.name.isEmpty() || !SafeJsonHasKey(tasks.keys(),task.name)) {
         return gShare.on_session(session.Finished(SessionErrorWorkflow, tr("任务不存:在%1.").arg(task.name)));
     }
     //删除任务文件夹
@@ -351,7 +351,8 @@ void UserServer::onStart(const Session& session, bool isContinue) {
     }
     // 按照预定义顺序执行
     QString device = order_devices.takeFirst();
-    gManagerPlugin->plugins[device].ptr->OnStarted([device,session, this](const qint8& code, const QJsonValue& value) {
+    gManagerPlugin->plugins[device].ptr->OnStarted([=](const qint8& code, const QJsonValue& value) {
+        qDebug() <<"按照预定义顺序执行"<<device << "code:" << code << value;
         if (Result(code)) {
             this->onStart(session,true); //启动后,再继续执行
             started_devices_all << device;

@@ -29,12 +29,13 @@ public:
     int GetScanPercent();
     int shutdown();
 
-    void SetScanCompletedCallback(const ScanCompletedCallback& callback);
     int errorNumbers = 0;
 
     //直接调用 使用回调函数在执行特定顺序的任务
     Result OnStarted(const CallbackResult& callback = nullptr);
     Result OnStopped(const CallbackResult& callback = nullptr);
+    QSharedPointer<ScanCompletedCallback> callbackStartedPtr;
+    QSharedPointer<ScanCompletedCallback> callbackStoppedPtr;
 
     QAtomicInteger<bool> isNextStopToggled = false;//The next stop triggers完成一个文件,判断是否停止的标志
     QFileSystemWatcher watcher;
@@ -54,6 +55,7 @@ public:
 public slots:
     void onDirectoryChanged(const QString& path);
 signals:
+    void onScanStateChanged(StateEvent::State state);
 };
 
 #endif // FAROCONTROL_H

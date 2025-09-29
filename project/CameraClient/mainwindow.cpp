@@ -32,8 +32,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::login_verify(double type, const QString &version)
 {
-    if(int(type) != gShare.sessiontype_){
-        show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gShare.sessiontype_),LogLevel::Warning);
+    if(int(type) != gShare.session_type_){
+        show_message(tr("the device type does not match and the server is %1 a client is %2 ").arg(type).arg(gShare.session_type_),LogLevel::Warning);
     }
 
     if(version != gShare.version){

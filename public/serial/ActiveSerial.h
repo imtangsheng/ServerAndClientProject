@@ -46,7 +46,16 @@ public:
             CallbackResult callback = sessionCallbackMap[code];//拷贝，然后删除(引用不能)
             sessionCallbackMap.remove(code);
             locker.unlock();// 释放锁后再执行回调 执行回调（无锁状态）
-            callback(flag,result);//在锁外执行回调,避免死锁,也可以在锁内执行,开销很小,同时也可以使用智能指针避免拷贝函数对象副本
+            // 添加调试信息
+            try {
+                if (callback) {  // 检查 callback 是否为 nullptr
+                    callback(flag, result);
+                } else {
+                    qWarning() << "[#SerialSession]处理回调Callback is null!";
+                }
+            } catch (const std::exception& e) {
+                qWarning() << "[#SerialSession]处理回调Exception caught during callback execution" << e.what();
+            }
         }
     }
 private:

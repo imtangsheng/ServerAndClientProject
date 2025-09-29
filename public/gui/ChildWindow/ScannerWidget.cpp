@@ -46,7 +46,7 @@ Result ScannerWidget::SetTaskParameter(QJsonObject &data)
     }
 
     Session session(_module(), "SetParameter", data);
-    if (!gControl.SendAndWaitResult(session,tr("等待扫描仪确认参数"))) {
+    if (!gControl.SendAndWaitResult(session,tr("等待扫描仪确认参数"),tr("参数确认"))) {
         ToolTip::ShowText(tr("设置参数失败"), -1);
         return Result::Failure(tr("设置参数失败"));
     }
@@ -57,11 +57,16 @@ Result ScannerWidget::SetTaskParameter(QJsonObject &data)
 void ScannerWidget::UpdateTaskConfigSync(QJsonObject &content)
 {
     qDebug() <<"# ScannerWidget::UpdateTaskConfigSync(QJsonObject &"<<content;
-    if(!general.isEmpty())
-    {
-        content[JSON_SCAN_SN] = general.value(JSON_SCAN_SN).toString();
+    Session session(_module(), "GetSerialNumber");
+    if (gControl.SendAndWaitResult(session)) {
+        content[JSON_SCAN_SN] = session.result.toString();
+    }else{
+        QString sn = ui->lineEdit_serial_number->text();
+        ToolTip::ShowText(tr("扫描仪序列号更新失败:%1,使用最近更新值:%2").arg(session.message,sn),5);
+        content[JSON_SCAN_SN] = sn;
     }
-    content["dir"] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
+
+    // content[OriginalScanDir] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
 }
 
 
@@ -126,6 +131,12 @@ void ScannerWidget::onDeviceStateChanged(double state)
 void ScannerWidget::onWatcherFilesChanged(QJsonObject obj)
 {
     qDebug() <<"onWatcherFilesChanged:"<< obj;
+    static qint64 latency = QDateTime::currentMSecsSinceEpoch();
+    qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+    ui->label_update_delay->setText(QString("%1").arg(currentTime-latency));
+    ui->label_update_delay->update();
+    latency = currentTime;
+
     QString filenames = obj.value("FileNames").toString();
     if(filenames.isEmpty()) return;
     ui->plainTextEdit_WatcherFiles->setPlainText(filenames);
@@ -558,12 +569,24 @@ void ScannerWidget::on_pushButton_ScanStop_clicked()
 
 void ScannerWidget::on_pushButton_ScanSetParameter_clicked()
 {
-    parameter["dir"] = gShare.info.value("dir").toString() + "/config/faro/test";
+    parameter[JSON_OriginalScanDir] = gShare.info.value(JSON_OriginalScanDir).toString() + "../faro/data";
     // SetTaskParameter(parameter);
     Session session(_module(), "SetParameter", parameter);
     if (!gControl.SendAndWaitResult(session,tr("设置扫描仪参数"))) {
         ToolTip::ShowText(session.message, -1);
     }
 
+}
+
+
+void ScannerWidget::on_radioButton_monitor_files_clicked()
+{
+    ui->stackedWidget_MonitorInfo->setCurrentWidget(ui->page_WatcherFiles);
+}
+
+
+void ScannerWidget::on_radioButton_monitor_image_clicked()
+{
+    ui->stackedWidget_MonitorInfo->setCurrentWidget(ui->page_WatcherImage);
 }
 

@@ -35,8 +35,9 @@ inline static QString JsonToString(const QJsonObject& jsonObject) {
     return QString::fromUtf8(jsonDoc.toJson());
 }
 
-inline static bool SafeHasKey(const QStringList& list,const QString& key) {
+inline static bool SafeJsonHasKey(const QStringList& list,const QString& key) {
     for (auto& k : list) {
+        if(k.size() == key.size())
         if (k == key) return true;
     }
     return false;

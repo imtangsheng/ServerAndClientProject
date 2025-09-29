@@ -78,62 +78,6 @@ FaroHandle::~FaroHandle() {
     //delete thread; // 安全删除线程对象
 }
 
-void FaroHandle::Test() {
-    //QString currentFiles = "E:\\Test\\faro\\1030_042.fls";
-    QString currentFiles = "E:\\Test\\Scan001.fls";
-    Result ret;
-    ret = LoadFlsFile(currentFiles);
-    qDebug() << libRef->getScanLoadState(0);
-    qDebug() << libRef->getNumScans() << libRef->getScanNumCols(0);
-    
-    IiQObjectIfPtr iqScan = libRef->getScanObject(0);
-    _bstr_t scanName = iqScan->getName();
-    IiQScanObjIfPtr realScan = iqScan->getScanObjSpecificIf();
-    int res;
-    // Date
-    int year, month, day, hour, min, sec, msec;
-    res = realScan->getDate(&year, &month, &day, &hour, &min, &sec, &msec);
-
-    // Hardware infos
-    BSTR ID;//LLS082016679
-    BSTR Type;
-    BSTR Serial; //LLS082016679
-    BSTR Info;
-    double Range;
-    res = realScan->getHardwareInfo(&ID, &Type, &Serial, &Info, &Range);
-
-    
-    // Angles
-    IFAROScanAnglesIfPtr angles = realScan->getAnglesIf();
-    double startHori;
-    double deltaHori;
-    angles->getHorizontalAngles(0, &startHori, &deltaHori);
-
-    // Calibration
-    double distOffset;
-    double distFactor;
-    double mirrorAdjustment;
-    double mirrorAxisAdjustment;
-    double horLaserAdjustment;
-    double vertLaserAdjustment;
-    double addtlAmplOffset;
-    double addtlAmplFactor;
-    double distCalibAngle;
-    double distCalibLength;
-    double triggerOffset;
-    res = realScan->getCalibInfo(&distOffset, &distFactor,
-        &mirrorAdjustment, &mirrorAxisAdjustment,
-        &horLaserAdjustment, &vertLaserAdjustment,
-        &addtlAmplOffset, &addtlAmplFactor,
-        &distCalibAngle, &distCalibLength,
-        &triggerOffset);
-        
-    //scanRef->load();
-    double x, y, z;
-    res = realScan->getInclinometerAxis(&x, &y, &z); //0.0189163 0.0417076 0.998951 架站的有值
-    qDebug() << x << y << z;
-}
-
 void FaroHandle::awake() {
     qDebug() << "[FaroHandle]awake初始化构造:" << QThread::currentThread();
     FaroInitialized();

@@ -6,5 +6,5 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PLUGIN_OUTPUT_DIR})# 可执行文件输出�
 set(CONFIG_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/config)
 
 add_subdirectory(plugin/Serial)
-#add_subdirectory(plugin/ScannerFaro)
-add_subdirectory(plugin/Cameras)
+add_subdirectory(plugin/Scanner)
+#add_subdirectory(plugin/Cameras)

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 # 定义项目名称和版本 
-project(SouthProject VERSION 0.0.1 LANGUAGES CXX) #project() 会创建项目和VERSION版本的CMake 变量
+project(SouthProject VERSION 3.0.1 LANGUAGES CXX) #project() 会创建项目和VERSION版本的CMake 变量
 # Qt配置
 set(CMAKE_AUTOMOC ON)  # 启用Qt的MOC
 set(CMAKE_AUTORCC ON)  # 启用Qt的资源编译

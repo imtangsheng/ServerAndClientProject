@@ -111,8 +111,10 @@ private slots:
     void on_pushButton_ScanStop_clicked();
 
     void on_pushButton_ScanSetParameter_clicked();
+    //监控界面操作
+    void on_radioButton_monitor_files_clicked();
 
-
+    void on_radioButton_monitor_image_clicked();
 
 private:
     // void retranslate();

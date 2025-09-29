@@ -1,4 +1,4 @@
-# 设置默认的构建类型
+﻿# 设置默认的构建类型
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build" FORCE)
 endif()

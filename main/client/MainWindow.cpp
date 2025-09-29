@@ -310,6 +310,7 @@ void MainWindow::on_action_start_triggered()
             return;
         }
         ui.pushButton_acquisition_start->hide();
+        ui.pushButton_project_start->setText(tr("进入采集"));
         gTaskState = TaskState::TaskState_Running;
     }else {
         if(gProjectFileInfo)
@@ -330,6 +331,8 @@ void MainWindow::on_action_stop_triggered()
     }
     ui.pushButton_acquisition_start->show();
     ui.pushButton_acquisition_start->setText(tr("创建任务"));
+
+    ui.pushButton_project_start->setText(tr("开始采集"));
     gTaskFileInfo = nullptr;
 }
 
@@ -350,6 +353,7 @@ void MainWindow::on_pushButton_project_hub_clicked() {
         isNeedUpdate = false;
     }
     ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub); //项目库页面
+    if(gTaskState != TaskState::TaskState_Running)
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.ProjectHome);//所有项目页
 
 }
@@ -381,7 +385,14 @@ void MainWindow::on_pushButton_data_copy_clicked() {
 
 
 void MainWindow::on_pushButton_project_start_clicked() {
-
+    switch (gTaskState) {
+    case TaskState::TaskState_Running:
+        ui.MainStackedWidget->setCurrentWidget(ui.PageProjectHub); //项目库页面
+        break;
+    default:
+        ui.action_create_project->trigger();// this->on_action_create_project_triggered();
+        break;
+    }
 
 }
 

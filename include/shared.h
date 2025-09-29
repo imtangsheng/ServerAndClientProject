@@ -88,6 +88,11 @@ public:
         //handler->setParent(this);//QObject::setParent: Cannot set parent, new parent is in a different thread
         return true;
     }
+    bool GetHandler(const QString& module, QObject*& handler) {
+        if (!handlers.contains(module)) return false;
+        handler = handlers[module];
+        return true;
+    }
     QStringList GetHandlerList() {
         return handlers.keys();
     }

@@ -17,11 +17,6 @@ ScannerPlugin::ScannerPlugin()
     qDebug() << "[#Scanner]构造函数" << QThread::currentThread();
     gFaroCtrl = new FaroControl(this);
     gFaroHandle = new FaroHandle();
-
-    gFaroCtrl->SetScanCompletedCallback([this]() {
-        qDebug() << "[#Scanner]扫描完成";
-        //state_ = StateEvent::Finished;
-    });
     //state_ = StateEvent::Waiting;
 }
 
@@ -87,13 +82,6 @@ QString ScannerPlugin::version() const
 Result ScannerPlugin::OnStarted(const CallbackResult& callback)
 {
     return gFaroCtrl->OnStarted(callback);
-    //QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
-    //Result ret = gFaroCtrl->SetParameters(content);
-    //if(ret) gFaroCtrl->OnStarted(callback);
-    //else {
-    //    callback(ret.code, tr("[#Faro]设置参数失败"));
-    //}
-    //return ret;
 }
 
 Result ScannerPlugin::OnStopped(const CallbackResult& callback)
@@ -160,10 +148,13 @@ void ScannerPlugin::onUpdateUi(const Session &session)
 
 void ScannerPlugin::execute(const QString &method)
 {
-    qDebug() << "[#Scanner]执行方法" << method;
-    //getInclinometerAxis
-    gFaroHandle->Test();
-    
+    if (method == "Started") {
+        gFaroCtrl->ScanRecord();
+    } else if(method == "End") {
+        qDebug() << "[#Scanner#execute]扫描结束 End";
+    } else {
+        qWarning() << "[#Scanner#execute]未知方法" << method;
+    }
 }
 
 void ScannerPlugin::ScanConnect(const Session& session) {

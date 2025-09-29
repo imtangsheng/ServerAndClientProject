@@ -205,7 +205,7 @@ void TrolleyWidget::UpdateTaskConfigSync(QJsonObject &content)
         content[JSON_CAR_RATED_MILEAGE] = carRatedMileage ;
     }
 
-
+    ui->ChartView_mileage_monitor->init();
 }
 
 

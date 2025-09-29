@@ -381,18 +381,28 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     }return true;
     case 0xFD://扫描仪CAN指令上传
     {
-        LOG_INFO(QString("扫描仪CAN指令上传:%1").arg(data.toHex().toUpper()));
+        //LOG_INFO(QString("扫描仪CAN指令上传:%1").arg(data.toHex().toUpper()));
         quint8 can_id, trigger_in, trigger_out, ack_by_can, detection;
         quint64 can_data;
         stream >> can_id >> trigger_in >> trigger_out >> ack_by_can >> detection >> can_data;
         switch (can_id) {
-        case 0x01://End Scan Operation
+        case 0x01:{//End Scan Operation
             LOG_INFO(tr("CAN指令上传:扫描仪停止"));
-            break;
-        case 0x02://Initiate Scan Operation
-            //Out: Started scan operation mode 0X->Spherical Scan 1X->Helical TTL Scan 2X->Helical CAN Scan
-            LOG_INFO(tr("CAN指令上传:扫描仪启动"));
-            break;
+            QObject* targetObject;
+            if (gShare.GetHandler(sModuleScanner, targetObject))
+                QMetaObject::invokeMethod(targetObject, "execute", Q_ARG(const QString&, "End"));
+        }break;
+        case 0x02:{//Initiate Scan Operation
+        //Out: Started scan operation mode 0X->Spherical Scan 1X->Helical TTL Scan 2X->Helical CAN Scan
+            LOG_INFO(tr("CAN指令:扫描仪已启动,准备开始录制数据"));
+            //发送信号给到扫描仪开始录制数据 必须等待1秒
+            QTimer::singleShot(1000, [=]() {
+                QObject* targetObject;
+                if (gShare.GetHandler(sModuleScanner, targetObject)) {
+                    QMetaObject::invokeMethod(targetObject, "execute", Q_ARG(const QString&, "Started"));
+                }
+                });
+        }break;
         case 0x03://Set Automation Time
         case 0x04:
         case 0x05://Record/Pause

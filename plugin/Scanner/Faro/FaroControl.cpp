@@ -90,7 +90,7 @@ public:
     // 实现具体的扫描完成事件处理
     STDMETHODIMP scanCompleted() {
         // 输出调试信息到Qt调试控制台
-        qDebug() << "扫描仪的扫描采集完成事件被触发!";
+        LOG_INFO(QObject::tr("扫描仪COM对象触发事件"));
         // 调用全局回调函数（如果已设置）
         if (g_scanCompletedCallback) {
             g_scanCompletedCallback();
@@ -263,7 +263,7 @@ Result FaroControl::SetParameters(QJsonObject param) {
     3 螺旋CANGrey 将 HelicalCANGrey 设置为使用 CAN 通信以螺旋模式进行扫描。
     */
     qDebug() << "扫描仪将设置参数:" << param;
-    QString path = param.value("dir").toString();
+    QString path = param.value(JSON_OriginalScanDir).toString();
     if (path.isEmpty()) {
         if (gTaskFileInfo == nullptr) {
             return Result::Failure(tr("目录参数为空").arg(path));
@@ -323,28 +323,29 @@ int FaroControl::ScanStart() {
     //    }
     //}
     ret = scanCtrl->startScan();//0, 1, 3, 4  约等待8秒才可以触发录制的功能,否则点击无效
-    qDebug() << "扫描仪开始扫描执行结果" << ret;
+    LOG_INFO(tr("扫描仪开始扫描执行结果:%1").arg(ret));
     ret.lastError = tr("扫描仪开始扫描失败, 请检查设备状态");
     return ret;
 }
 
 int FaroControl::ScanRecord() {
-    HelicalRecordingStatus status{ HRSUnknown };
-    ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
-    qDebug() << "FaroControl::ScanRecord 查询结果和状态" << ret << "HRSPaused = 1 HRSRecording = 2" <<status;
     ret = scanCtrl->recordScan();//0,3 Starts scan data recording when scanning in helical CAN mode.
-    qDebug() << "执行开始记录数据结果 " << ret;
-    ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
-    qDebug() << "FaroControl::ScanRecord 再次查询结果和状态" << ret << status;
-    ret.lastError = tr("扫描仪开始录制任务失败, 请检查设备状态");
+    HelicalRecordingStatus status{ HRSUnknown };//HRSUnknown = 0,HRSPaused = 1, HRSRecording = 2
+    int count = 50;
+    while (Result(ret.value)) {
+        ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
+        qDebug() << "#FaroControl::ScanRecord 查询结果" << ret << "和状态(2)Recording:" << status;
+        if (status == HRSRecording) { 
+            if (!callbackStartedPtr.isNull() && *callbackStartedPtr) (*callbackStartedPtr)();
+            break; 
+        }
+        if(count-- < 0) ret.Set(status);//未知查询不到默认为执行成功
+    }
     return ret;
 }
 
 //return: 0, 3 Pauses scan data recording when scanning on helical CAN mode. Restart scan data recording with recordScan.
 int FaroControl::ScanPause() {
-    //HRSUnknown = 0,
-    //HRSPaused = 1,
-    //HRSRecording = 2
     HelicalRecordingStatus status{ HRSUnknown };
     ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
     qDebug() << "执行结果" << ret << status;
@@ -354,22 +355,6 @@ int FaroControl::ScanPause() {
     qDebug() << "执行结果" << ret;
     ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
     qDebug() << "暂停执行结果查询" << ret << status;
-    //if (ret==0) {
-    //    switch (status) {
-    //        case HRSUnknown:
-    //        case HRSPaused:
-    //            qDebug() << "结果显示已经暂停,无需操作" << ret << status;
-    //            break;
-    //    default:
-    //        qDebug() << "正在暂停";
-    //        ret = scanCtrl->pauseScan();
-    //        ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
-    //        qDebug() << "执行结果" << ret;
-    //        ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
-    //        qDebug() << "暂停执行结果查询" << ret << status;
-    //    }
-    //}
-    
     return ret;
 }
 
@@ -387,15 +372,25 @@ int FaroControl::ScanStop() {
     ret = scanCtrl->stopScan();//0,1, 3
     qDebug() << "扫描仪停止执行结果" << ret;
     switch (ret) {
+    case faro::OK:
+        return 0;
+    case faro::BUSY:
+        LOG_WARNING(tr("扫描仪停止任务执行忙, 请手动控制停止(浏览器强制停止),并检查设备状态"));
+        emit onScanStateChanged(StateEvent::Failed);
+        break;
     case faro::TIMEOUT:
         LOG_WARNING(tr("扫描仪停止任务执行超时, 请确认并检查设备状态"));
+        emit onScanStateChanged(StateEvent::Stopped);
+        break;
     case faro::NOT_CONNECTED:
         LOG_WARNING(tr("扫描仪停止任务执行超时, 请确认并检查设备连接状态"));
+        emit onScanStateChanged(StateEvent::Timeout);
+        break;
     default:
         ret.lastError = tr("扫描仪停止任务失败, 请检查设备状态");
         break;
     }
-    return 0;
+    return ret;
 }
 
 int FaroControl::GetScanPercent() {
@@ -408,9 +403,6 @@ int FaroControl::shutdown()
     return scanCtrl->shutDown();//0, 3 
 }
 
-void FaroControl::SetScanCompletedCallback(const ScanCompletedCallback& callback) {
-    g_scanCompletedCallback = callback;
-}
 
 Result FaroControl::OnStarted(const CallbackResult& callback) {
     if(!isConnect()){
@@ -419,43 +411,39 @@ Result FaroControl::OnStarted(const CallbackResult& callback) {
         if (callback) callback(ret.value,ret.lastError);
         return Result(ret.value,ret.lastError);
     }
+    callbackStartedPtr = QSharedPointer<ScanCompletedCallback>::create([=]() { //WaitStarted
+        qDebug() << "[#Scanner]扫描启动完成,执行状态码"<<ret <<"callback:";
+        ret.lastError = tr("扫描仪录制任务启动, 请检查设备状态");
+        emit onScanStateChanged(StateEvent::Started);
+        LOG_INFO(tr("扫描仪已启动, 录制数据中..."));
+        if (callback) {
+            callback(ret, ret.lastError);
+        }
+        callbackStartedPtr.reset();
+        });
+
     ret = ScanStart();
-    //需要等待一定时间准备 约8 秒开始记录数据
     if (ret != faro::OK) {
         ret.lastError=tr("扫描仪开始采集任务失败, 请检查设备状态");
         return Result(ret.value, ret.lastError);
     }
-    //for (size_t i = 0; i < 3; i++) {
-    //    // 非阻塞暂停2秒
-    //    qDebug() << "等待扫描仪准备,开始暂停秒:" << i*2;
-    //    QEventLoop loop;
-    //    QTimer::singleShot(4000, &loop, &QEventLoop::quit);
-    //    loop.exec();
-    //    HelicalRecordingStatus status{ HRSUnknown };
-    //    ret = scanCtrl->inquireRecordingStatus(&status);
-    //    if (ret == faro::OK) {
-    //        if (status == HelicalRecordingStatus::HRSRecording) {
-    //            if (callback) callback(ret, ret.lastError);
-    //            return true;
-    //        }
-    //        qDebug() << "扫描仪录制指令";
-    //        ret = scanCtrl->recordScan();
-    //    } 
-    //}
-    qDebug() << "扫描仪开始扫描执行结果,等待8秒" << ret;//10秒可以
-    QTimer::singleShot(10000, [=]() {
-        ret = scanCtrl->recordScan();
-        ret.lastError = tr("扫描仪录制任务启动, 请检查设备状态");
-        qDebug() << ret.lastError;
-        if (callback) callback(ret, ret.lastError);
-    });
+    emit onScanStateChanged(StateEvent::PreStart);
+    LOG_INFO(tr("扫描仪已启动,请等待10秒后开始采集数据"));
     return true;
 }
 
 Result FaroControl::OnStopped(const CallbackResult& callback) {
+    g_scanCompletedCallback = [this, &callback]() { //等待结束
+        qDebug() << "[#Scanner]扫描停止采集完成";
+        ret.lastError = tr("扫描仪停止采集, 请检查设备状态");
+        emit onScanStateChanged(StateEvent::Stopped);
+        LOG_INFO(tr("扫描仪停止采集"));
+        if (callback) callback(ret, ret.lastError);
+        g_scanCompletedCallback = nullptr;
+        };
     ret = ScanStop();
-    if (callback) callback(ret, ret.lastError);
-    return Result(ret.value, ret.lastError);
+
+    return true;
 }
 
 void FaroControl::onDirectoryChanged(const QString& path) {

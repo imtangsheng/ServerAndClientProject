@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
             app.installTranslator(&g_translator);
         }
     }
-    gShare.sessiontype_ = int(SessionType::Other);
+    gShare.session_type_ = int(SessionType::Other);
     MainWindow w;
     w.show();
     return app.exec();

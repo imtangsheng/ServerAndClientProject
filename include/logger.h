@@ -63,6 +63,7 @@ inline QString ShowLogMessage(const QString& message, LogLevel level) {
 		colorStr = "#FFFF00";  // 黄色
 		break;
 	default:
+        levelStr = QObject::tr("消息");
 		colorStr = "#808080";  // 灰色
 		break;
 	}
