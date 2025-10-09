@@ -26,13 +26,13 @@
  * @brief 日志级别枚举 大于某个范围判断
  */
 enum class LogLevel:int {
-	All = 0x0000,
+	//All = 0x0000,
 	Debug = 0x0001,
 	Info = 0x0002,
 	Warning = 0x0004,
 	Error = 0x0008,
 	Fatal = 0x0010,
-	//All = Debug | Info | Warning | Error | Fatal,// 0x001F
+	All = Debug | Info | Warning | Error | Fatal,// 0x001F
 };
 constexpr int operator+(LogLevel level) {
 	return static_cast<int>(level);

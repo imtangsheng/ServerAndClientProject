@@ -185,6 +185,7 @@ void MainWindow::GotoHomePage() {
 void MainWindow::onEnterProjectClicked() {//此处值应是全局项目值
     // qDebug() << "#Window::onEnterProjectClicked(QJsonObject project)"<<gProjectFileInfo->ToJsonObject();
     emit awake_project();
+    gTaskState = TaskState::TaskState_Waiting;
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskHome); 
     if (ui.stackedWidget_task_param->currentWidget() != ui.page_task_param_first) {//显示任务参数设置第一页
         ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_first);
@@ -331,8 +332,9 @@ void MainWindow::on_action_stop_triggered()
     }
     ui.pushButton_acquisition_start->show();
     ui.pushButton_acquisition_start->setText(tr("创建任务"));
-
     ui.pushButton_project_start->setText(tr("开始采集"));
+
+    gTaskState = TaskState::TaskState_Stopped;
     gTaskFileInfo = nullptr;
 }
 
@@ -805,6 +807,7 @@ void MainWindow::on_pushButton_task_param_first_page_next_step_clicked() {
     gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
     //确定任务名称,路径
     ui.stackedWidget_task_param->setCurrentWidget(ui.page_task_param_last);
+
 }
 
 void MainWindow::on_pushButton_task_param_first_page_cancel_clicked()
@@ -903,7 +906,8 @@ void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
     if(!name.isEmpty()){
         content[JSON_TEMPLATE] = name;
     }
-    content[JSON_ACCURACY] = ui.doubleSpinBox_task_scanner_accuracy->value();
+    double accuracy =  ui.doubleSpinBox_task_scanner_accuracy->value();
+    content[JSON_ACCURACY] = QString::number(accuracy, 'f', 2); //读取的是字符串数据
     content[JSON_SPEED] = ui.spinBox_task_car_travel_speed->value();
     content[JSON_DIRECTION] = GetCarDirection(gControl.carDirection); //0后退 1 前进
     emit sigTaskConfigChanged(content);//更新参数
@@ -1204,11 +1208,19 @@ void MainWindow::UpdateLayoutParamTemplate()
     // ui.comboBox_parameter_templates->clear();//任务页更新
     paramNamesModel.clear();
     if(parameterTemplatesInfo.isEmpty()){
-        QJsonObject info;
-        info[JSON_TEMPLATE] = "默认";
-        parameterTemplatesInfo.append(info);
-        parameterTemplatesInfo.append(info);
-        parameterTemplatesInfo.append(info);
+        QJsonObject param;
+        param[JSON_TEMPLATE] = ui.lineEdit_template_name->text();
+        param[Json_TunnelType] = ui.comboBox_template_tunnel_type->currentText();
+        param[JSON_DIAMETER] = ui.doubleSpinBox_template_tunnel_diameter->value();
+        param[JSON_SPEED] = ui.spinBox_template_car_speed->value();
+        param[JSON_ACCURACY] = ui.doubleSpinBox_template_points_accuracy->value();
+        param[Json_MeasurementRate] = ui.comboBox_template_scanner_MeasurementRate->currentText().toInt();//int类型
+        param[Json_SplitAfterLines] = ui.spinBox_template_scanner_SplitAfterLines->value();
+        param[Json_Resolution] = ui.comboBox_template_scanner_Resolution->currentText().toInt();
+        param[Json_CameraTemplate] = ui.comboBox_template_camera->currentText();
+        parameterTemplatesInfo.append(param);
+
+        on_comboBox_parameter_templates_activated(0);//参数模板使用默认
     }
     for(auto i =0; i< parameterTemplatesInfo.size();++i){
         QJsonObject param = parameterTemplatesInfo.at(i).toObject();
