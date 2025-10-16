@@ -408,6 +408,14 @@ background: rgba(82, 93, 128, 1);</string>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>lineEdit_project_name</tabstop>
+  <tabstop>lineEdit_project_route</tabstop>
+  <tabstop>lineEdit_creator</tabstop>
+  <tabstop>textEdit_remark</tabstop>
+  <tabstop>pushButton_Accepted</tabstop>
+  <tabstop>pushButton_Cancel</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

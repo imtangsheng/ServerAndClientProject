@@ -25,7 +25,7 @@
     <rect>
      <x>700</x>
      <y>30</y>
-     <width>710</width>
+     <width>731</width>
      <height>210</height>
     </rect>
    </property>
@@ -95,7 +95,7 @@ background: rgba(30, 62, 80, 1);</string>
           <string>里程实时采集情况</string>
          </property>
          <property name="alignment">
-          <set>Qt::AlignmentFlag::AlignCenter</set>
+          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
         </widget>
        </item>
@@ -115,18 +115,18 @@ background: rgba(30, 62, 80, 1);</string>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QLabel" name="label_TitleAdditionalInformation">
+          <widget class="QLabel" name="label_update_delay">
            <property name="font">
             <font>
              <family>思源黑体</family>
-             <pointsize>12</pointsize>
+             <pointsize>15</pointsize>
             </font>
            </property>
            <property name="styleSheet">
             <string notr="true">color: rgba(0, 255, 251, 1);</string>
            </property>
            <property name="text">
-            <string>2</string>
+            <string>0000</string>
            </property>
           </widget>
          </item>
@@ -135,7 +135,7 @@ background: rgba(30, 62, 80, 1);</string>
            <property name="font">
             <font>
              <family>思源黑体</family>
-             <pointsize>12</pointsize>
+             <pointsize>15</pointsize>
             </font>
            </property>
            <property name="styleSheet">
@@ -180,29 +180,36 @@ background: rgba(13, 34, 54, 1);</string>
         <number>0</number>
        </property>
        <item>
-        <widget class="LineChartView" name="ChartView" native="true"/>
+        <widget class="LineChartView" name="ChartView_mileage_monitor" native="true">
+         <property name="font">
+          <font>
+           <family>思源黑体</family>
+           <pointsize>9</pointsize>
+          </font>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QWidget" name="widget_info" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="font">
           <font>
            <family>思源黑体</family>
            <pointsize>12</pointsize>
           </font>
          </property>
-         <layout class="QFormLayout" name="formLayout">
-          <property name="labelAlignment">
-           <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-          </property>
-          <property name="formAlignment">
-           <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-          </property>
-          <property name="horizontalSpacing">
-           <number>0</number>
-          </property>
-          <property name="verticalSpacing">
-           <number>6</number>
-          </property>
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+    font-size: 14px;
+}
+</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout" rowstretch="1,1" columnstretch="1,1">
           <property name="leftMargin">
            <number>0</number>
           </property>
@@ -215,39 +222,76 @@ background: rgba(13, 34, 54, 1);</string>
           <property name="bottomMargin">
            <number>0</number>
           </property>
-          <item row="1" column="0">
-           <layout class="QFormLayout" name="formLayout_2">
-            <property name="horizontalSpacing">
-             <number>4</number>
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item row="0" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout_8">
+            <property name="spacing">
+             <number>0</number>
             </property>
-            <property name="verticalSpacing">
-             <number>6</number>
-            </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_car_speed">
-              <property name="font">
-               <font>
-                <family>思源黑体</family>
-                <pointsize>18</pointsize>
-               </font>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0,0,0">
+              <property name="spacing">
+               <number>0</number>
               </property>
-              <property name="styleSheet">
-               <string notr="true">color: rgba(0, 255, 251, 1);</string>
-              </property>
-              <property name="text">
-               <string>1998.06</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
+              <item>
+               <spacer name="horizontalSpacer_12">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_car_task_speed">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 24px;
+color: rgba(0, 255, 251, 1);</string>
+                </property>
+                <property name="text">
+                 <string>00.00</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 14px;
+color: rgba(0, 255, 251, 1);
+padding-top: 9px;</string>
+                </property>
+                <property name="text">
+                 <string> m/h</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_13">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </item>
-            <item row="1" column="0" colspan="2">
+            <item>
              <widget class="QLabel" name="label_12">
               <property name="font">
                <font>
                 <family>思源黑体</family>
-                <pointsize>11</pointsize>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="text">
@@ -258,61 +302,91 @@ background: rgba(13, 34, 54, 1);</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="label_13">
-              <property name="font">
-               <font>
-                <family>思源黑体</family>
-                <pointsize>9</pointsize>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">padding-top: 8px; /* 向下移动 * 2px */
-color: rgba(0, 255, 251, 1);</string>
-              </property>
-              <property name="text">
-               <string>m/h</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
-          <item row="4" column="0">
-           <layout class="QFormLayout" name="formLayout_3">
-            <property name="horizontalSpacing">
-             <number>4</number>
+          <item row="0" column="1">
+           <spacer name="horizontalSpacer_11">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
-            <property name="verticalSpacing">
-             <number>6</number>
+            <property name="sizeType">
+             <enum>QSizePolicy::Policy::Expanding</enum>
             </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_car_mileage">
-              <property name="font">
-               <font>
-                <family>思源黑体</family>
-                <pointsize>18</pointsize>
-               </font>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>159</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="1" column="0">
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_15" stretch="0,0,0,0">
+              <property name="spacing">
+               <number>0</number>
               </property>
-              <property name="styleSheet">
-               <string notr="true">color: rgba(0, 255, 251, 1);</string>
-              </property>
-              <property name="text">
-               <string>200.14</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignCenter</set>
-              </property>
-             </widget>
+              <item>
+               <spacer name="horizontalSpacer_14">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_car_task_mileage">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 24px;
+color: rgba(0, 255, 251, 1);</string>
+                </property>
+                <property name="text">
+                 <string>00.00</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_4">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 14px;
+color: rgba(0, 255, 251, 1);
+padding-top: 9px;</string>
+                </property>
+                <property name="text">
+                 <string> m</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_15">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
             </item>
-            <item row="1" column="0" colspan="2">
+            <item>
              <widget class="QLabel" name="label_15">
               <property name="font">
                <font>
                 <family>思源黑体</family>
-                <pointsize>11</pointsize>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="text">
@@ -323,83 +397,79 @@ color: rgba(0, 255, 251, 1);</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
-             <widget class="QLabel" name="label_16">
-              <property name="font">
-               <font>
-                <family>思源黑体</family>
-                <pointsize>9</pointsize>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">padding-top: 8px; /* 向下移动 * 2px */
-color: rgba(0, 255, 251, 1);</string>
-              </property>
-              <property name="text">
-               <string>m</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
-          <item row="4" column="1">
+          <item row="1" column="1">
            <layout class="QVBoxLayout" name="verticalLayout_2">
+            <property name="spacing">
+             <number>0</number>
+            </property>
             <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="0,0,0,0">
+              <property name="spacing">
+               <number>0</number>
+              </property>
               <item>
-               <widget class="QLabel" name="label_car_time">
-                <property name="font">
-                 <font>
-                  <family>思源黑体</family>
-                  <pointsize>18</pointsize>
-                 </font>
+               <spacer name="horizontalSpacer_16">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
                 </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_car_task_time">
                 <property name="styleSheet">
-                 <string notr="true">color: rgba(0, 255, 251, 1);</string>
+                 <string notr="true">font-size: 24px;
+color: rgba(0, 255, 251, 1);</string>
                 </property>
                 <property name="text">
-                 <string>100</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+                 <string>000</string>
                 </property>
                </widget>
               </item>
               <item>
-               <widget class="QLabel" name="label_19">
-                <property name="font">
-                 <font>
-                  <family>思源黑体</family>
-                  <pointsize>9</pointsize>
-                 </font>
-                </property>
+               <widget class="QLabel" name="label_6">
                 <property name="styleSheet">
-                 <string notr="true">padding-top: 8px; /* 向下移动 * 2px */
-color: rgba(0, 255, 251, 1);</string>
+                 <string notr="true">font-size: 14px;
+color: rgba(0, 255, 251, 1);
+padding-top: 9px;</string>
                 </property>
                 <property name="text">
-                 <string>s</string>
-                </property>
-                <property name="alignment">
-                 <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                 <string> s</string>
                 </property>
                </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_17">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </item>
             <item>
-             <widget class="QLabel" name="label_18">
+             <widget class="QLabel" name="label_16">
               <property name="font">
                <font>
                 <family>思源黑体</family>
-                <pointsize>11</pointsize>
+                <pointsize>-1</pointsize>
                </font>
               </property>
               <property name="text">
-               <string>行走时间</string>
+               <string>采集时间</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -521,7 +591,7 @@ QComboBox::down-arrow {
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="comboBox_device_list">
+        <widget class="QComboBox" name="comboBox_available_ports">
          <property name="minimumSize">
           <size>
            <width>160</width>
@@ -534,6 +604,14 @@ QComboBox::down-arrow {
            <pointsize>-1</pointsize>
           </font>
          </property>
+         <property name="editable">
+          <bool>true</bool>
+         </property>
+         <item>
+          <property name="text">
+           <string>COM1</string>
+          </property>
+         </item>
         </widget>
        </item>
        <item>
@@ -578,12 +656,18 @@ QComboBox::down-arrow {
      <widget class="QWidget" name="widget" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout_14">
        <item>
-        <widget class="QLabel" name="label_17">
+        <widget class="QPushButton" name="pushButton_show_parameters">
          <property name="font">
           <font>
            <family>思源黑体</family>
            <pointsize>15</pointsize>
           </font>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">    background: transparent;</string>
          </property>
          <property name="text">
           <string>参数模板</string>
@@ -616,6 +700,9 @@ QComboBox::down-arrow {
            <family>思源黑体</family>
            <pointsize>-1</pointsize>
           </font>
+         </property>
+         <property name="currentIndex">
+          <number>-1</number>
          </property>
          <property name="placeholderText">
           <string>请选择</string>
@@ -759,9 +846,10 @@ background: rgba(30, 62, 80, 1);</string>
          </property>
          <property name="styleSheet">
           <string notr="true">border-radius: 10px;
-background: rgba(13, 34, 54, 1);</string>
+background: rgba(13, 34, 54, 1);
+</string>
          </property>
-         <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="1,0">
+         <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="10,1">
           <property name="spacing">
            <number>0</number>
           </property>
@@ -778,17 +866,55 @@ background: rgba(13, 34, 54, 1);</string>
            <number>0</number>
           </property>
           <item>
-           <widget class="LineChartView" name="ChartView_info" native="true"/>
+           <widget class="LineChartView" name="ChartView_mileage_info" native="true"/>
           </item>
           <item>
            <widget class="QWidget" name="widget_info_2" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
             <property name="font">
              <font>
               <family>思源黑体</family>
               <pointsize>12</pointsize>
              </font>
             </property>
+            <property name="styleSheet">
+             <string notr="true">QDoubleSpinBox {
+font-size: 14px;
+color: rgba(0, 255, 251, 1);
+border: none; /* 移除边框 */
+padding: 0px; /* 移除内边距 */
+margin: 0px;  /* 移除外边距 */
+background: transparent; /* 透明背景 */
+}
+
+/* 如果需要同时隐藏按钮区域 */
+QDoubleSpinBox::up-button,
+QDoubleSpinBox::down-button {
+    width: 0;
+    height: 0;
+}</string>
+            </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
+             <property name="spacing">
+              <number>6</number>
+             </property>
              <property name="leftMargin">
               <number>0</number>
              </property>
@@ -818,21 +944,30 @@ background: rgba(13, 34, 54, 1);</string>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_car_speed_2">
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_car_speed">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="font">
                 <font>
                  <family>思源黑体</family>
-                 <pointsize>11</pointsize>
+                 <pointsize>-1</pointsize>
                 </font>
                </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgba(0, 255, 251, 1);</string>
+               <property name="suffix">
+                <string>m/h</string>
                </property>
-               <property name="text">
-                <string>1998.0608m/h</string>
+               <property name="decimals">
+                <number>4</number>
                </property>
-               <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+               <property name="minimum">
+                <double>-100000.000000000000000</double>
+               </property>
+               <property name="maximum">
+                <double>100000.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -853,21 +988,27 @@ background: rgba(13, 34, 54, 1);</string>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_car_mileage_2">
-               <property name="font">
-                <font>
-                 <family>思源黑体</family>
-                 <pointsize>11</pointsize>
-                </font>
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_car_mileage">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgba(0, 255, 251, 1);</string>
-               </property>
-               <property name="text">
-                <string>200.1458m</string>
+               <property name="layoutDirection">
+                <enum>Qt::LayoutDirection::LeftToRight</enum>
                </property>
                <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+                <set>Qt::AlignmentFlag::AlignJustify|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+               <property name="suffix">
+                <string>m</string>
+               </property>
+               <property name="decimals">
+                <number>4</number>
+               </property>
+               <property name="maximum">
+                <double>100000.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -880,7 +1021,7 @@ background: rgba(13, 34, 54, 1);</string>
                 </font>
                </property>
                <property name="text">
-                <string>行走时间</string>
+                <string>行走时间:</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -888,21 +1029,21 @@ background: rgba(13, 34, 54, 1);</string>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_car_time_2">
-               <property name="font">
-                <font>
-                 <family>思源黑体</family>
-                 <pointsize>11</pointsize>
-                </font>
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_car_time">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
                </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgba(0, 255, 251, 1);</string>
+               <property name="suffix">
+                <string>s</string>
                </property>
-               <property name="text">
-                <string>100s</string>
+               <property name="decimals">
+                <number>0</number>
                </property>
-               <property name="alignment">
-                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+               <property name="maximum">
+                <double>100000.000000000000000</double>
                </property>
               </widget>
              </item>
@@ -1121,6 +1262,12 @@ padding-left: 30px;   /* 居中 */</string>
             <height>25</height>
            </size>
           </property>
+          <property name="font">
+           <font>
+            <family>思源黑体</family>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
           <property name="cursor">
            <cursorShape>PointingHandCursor</cursorShape>
           </property>
@@ -1206,7 +1353,7 @@ QScrollBar::add-page:horizontal {
          <widget class="QSpinBox" name="spinBox_car_travel_speed">
           <property name="minimumSize">
            <size>
-            <width>0</width>
+            <width>100</width>
             <height>42</height>
            </size>
           </property>
@@ -1261,6 +1408,34 @@ QSpinBox::down-button {
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_set_car_speed">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>90</width>
+            <height>42</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>思源黑体</family>
+            <pointsize>18</pointsize>
+           </font>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="text">
+           <string>设置</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
@@ -1280,6 +1455,9 @@ QSpinBox::down-button {
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <property name="spacing">
+       <number>20</number>
+      </property>
       <item>
        <widget class="QLabel" name="label_8">
         <property name="font">
@@ -1354,11 +1532,34 @@ QComboBox::down-arrow {
           <height>16</height>
          </size>
         </property>
-        <item>
-         <property name="text">
-          <string>MS201</string>
-         </property>
-        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_set_car_speed_multiplier">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>90</width>
+          <height>42</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>思源黑体</family>
+          <pointsize>18</pointsize>
+         </font>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="text">
+         <string>设置</string>
+        </property>
        </widget>
       </item>
      </layout>
@@ -1614,7 +1815,7 @@ QSpinBox::down-button {
      </spacer>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_11">
+     <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="1,0,1">
       <property name="spacing">
        <number>0</number>
       </property>
@@ -1643,6 +1844,19 @@ text-align: center;</string>
          <string>启动小车</string>
         </property>
        </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_10">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item>
        <widget class="QPushButton" name="pushButton_stop">
@@ -1681,7 +1895,7 @@ padding-right: 0px;
 text-align: center;</string>
         </property>
         <property name="text">
-         <string>结束任务</string>
+         <string>停止小车</string>
         </property>
        </widget>
       </item>
@@ -1707,30 +1921,103 @@ spacing: 24px; /* 减少文本和指示器的间距 */</string>
     <string>小车</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_set_speed_multiplier">
-   <property name="geometry">
-    <rect>
-     <x>600</x>
-     <y>570</y>
-     <width>169</width>
-     <height>25</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>setting</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="pushButton_save">
    <property name="geometry">
     <rect>
-     <x>590</x>
-     <y>520</y>
+     <x>720</x>
+     <y>270</y>
      <width>460</width>
      <height>25</height>
     </rect>
    </property>
    <property name="text">
     <string>save</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="widget_car_parameter" native="true">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>340</y>
+     <width>291</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background: rgba(0, 0, 0, 0.8);</string>
+   </property>
+   <layout class="QGridLayout" name="gridLayout_2">
+    <item row="0" column="2">
+     <widget class="QPushButton" name="pushButton_set_scanner_height">
+      <property name="text">
+       <string>设置</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>按钮</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_scanner_height">
+      <property name="maximum">
+       <double>1000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="pushButton_set_encoder_mode">
+      <property name="text">
+       <string>设置</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>扫描仪高度</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QSpinBox" name="spinBox_encoder_mode"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>编码器里程计</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QSpinBox" name="spinBox_knob_state"/>
+    </item>
+    <item row="3" column="1">
+     <widget class="QDoubleSpinBox" name="doubleSpinBox_battery_switch_voltage"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_13">
+      <property name="text">
+       <string>电池切换电压</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QPushButton" name="pushButton_set_battery_switch_voltage">
+   <property name="geometry">
+    <rect>
+     <x>980</x>
+     <y>490</y>
+     <width>87</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>设置</string>
    </property>
   </widget>
  </widget>
@@ -1743,70 +2030,5 @@ spacing: 24px; /* 减少文本和指示器的间距 */</string>
   </customwidget>
  </customwidgets>
  <resources/>
- <connections>
-  <connection>
-   <sender>pushButton_start</sender>
-   <signal>clicked()</signal>
-   <receiver>pushButton_stop</receiver>
-   <slot>show()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>178</x>
-     <y>816</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>305</x>
-     <y>818</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_stop</sender>
-   <signal>clicked()</signal>
-   <receiver>pushButton_start</receiver>
-   <slot>show()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>358</x>
-     <y>814</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>207</x>
-     <y>811</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_start</sender>
-   <signal>clicked()</signal>
-   <receiver>pushButton_start</receiver>
-   <slot>hide()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>155</x>
-     <y>810</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>111</x>
-     <y>808</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>pushButton_stop</sender>
-   <signal>clicked()</signal>
-   <receiver>pushButton_stop</receiver>
-   <slot>hide()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>461</x>
-     <y>818</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>383</x>
-     <y>808</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

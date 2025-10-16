@@ -1,6 +1,6 @@
 {
-  "Keys": [ "SerialPort" ],
+  "Keys": [ "Faro" ],
   "Version": "1.0.0",
-  "Name": "SerialPort SDK Plugin",
-  "Description": "Plugin for SerialPort"
+  "Name": "Faro SDK Plugin",
+  "Description": "Plugin for Faro LS SDK"
 }

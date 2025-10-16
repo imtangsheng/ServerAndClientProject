@@ -159,6 +159,12 @@ QWidget {
       </item>
       <item>
        <widget class="QLabel" name="label_show">
+        <property name="maximumSize">
+         <size>
+          <width>800</width>
+          <height>400</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <family>思源黑体</family>
@@ -170,6 +176,9 @@ QWidget {
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

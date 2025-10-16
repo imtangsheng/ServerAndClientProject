@@ -22,7 +22,7 @@
    <string>ToolTip</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../../../main/MS301Client/resources.qrc">
+   <iconset resource="../../../main/client/resources.qrc">
     <normaloff>:/assets/logo128.png</normaloff>:/assets/logo128.png</iconset>
   </property>
   <property name="styleSheet">
@@ -183,6 +183,12 @@ QWidget {
           <height>0</height>
          </size>
         </property>
+        <property name="maximumSize">
+         <size>
+          <width>800</width>
+          <height>400</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <family>思源黑体</family>
@@ -197,6 +203,9 @@ QWidget {
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -307,7 +316,7 @@ QWidget {
   </layout>
  </widget>
  <resources>
-  <include location="../../../main/MS301Client/resources.qrc"/>
+  <include location="../../../main/client/resources.qrc"/>
   <include location="../ui.qrc"/>
  </resources>
  <connections>
