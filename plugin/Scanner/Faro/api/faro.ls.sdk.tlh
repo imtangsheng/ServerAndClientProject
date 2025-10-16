@@ -1,0 +1,675 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.29.30151.0 (04a4e2b1).
+//
+// E:\Leventure\WorkShop\VTM\trunk\FaroClient\x64\Release\faro.ls.sdk.tlh
+//
+// C++ source equivalent of type library FARO.LS.SDK.dll
+// compiler-generated file created 07/12/23 at 08:43:42 - DO NOT EDIT!
+
+//
+// Cross-referenced type libraries:
+//
+//
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("ae31d093-6b24-419f-8de1-e9a16bb412f7"))
+/* LIBID */ __LSSDKLib;
+enum ScanMode;
+enum StorageMode;
+enum RemoteScanAccessStatus;
+enum HelicalRecordingStatus;
+struct __declspec(uuid("c91f2c24-2078-446b-b9d5-7997f16fe655"))
+/* dual interface */ IScanCtrlSDK;
+struct __declspec(uuid("3521b4f6-8491-4d18-8032-d103ca2e7b0d"))
+/* dual interface */ IiQScanOpInterf;
+struct __declspec(uuid("64d85f8d-b8d1-4c52-a20a-ccd912c6bfec"))
+/* dispinterface */ _IScanCtrlSDKEvents;
+struct /* coclass */ ScanCtrlSDK;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(IScanCtrlSDK, __uuidof(IScanCtrlSDK));
+_COM_SMARTPTR_TYPEDEF(IiQScanOpInterf, __uuidof(IiQScanOpInterf));
+_COM_SMARTPTR_TYPEDEF(_IScanCtrlSDKEvents, __uuidof(_IScanCtrlSDKEvents));
+
+//
+// Type library items
+//
+
+enum ScanMode
+{
+    StationaryGrey = 0,
+    HelicalGrey = 1,
+    HelicalCanGrey = 2,
+    StationaryColor = 3
+};
+
+enum StorageMode
+{
+    SMAuto = 0,
+    SMLocal = 1,
+    SMRemote = 2,
+    SMUndefined = 3
+};
+
+enum RemoteScanAccessStatus
+{
+    RSAEnabled = 0,
+    RSADisabled = 1,
+    RSAUnknown = 2
+};
+
+enum HelicalRecordingStatus
+{
+    HRSUnknown = 0,
+    HRSPaused = 1,
+    HRSRecording = 2
+};
+
+struct __declspec(uuid("c91f2c24-2078-446b-b9d5-7997f16fe655"))
+IScanCtrlSDK : IiQLicensedInterfaceIf
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetScanProgress))
+    int ScanProgress;
+    __declspec(property(get=GetRemoteScanAccess,put=PutRemoteScanAccess))
+    enum RemoteScanAccessStatus RemoteScanAccess;
+    __declspec(property(get=GetScannerIP,put=PutScannerIP))
+    _bstr_t ScannerIP;
+    __declspec(property(get=GetConnected))
+    VARIANT_BOOL Connected;
+    __declspec(property(get=GetScanMode,put=PutScanMode))
+    enum ScanMode _ScanMode;
+    __declspec(property(get=GetVerticalAngleMin,put=PutVerticalAngleMin))
+    double VerticalAngleMin;
+    __declspec(property(get=GetVerticalAngleMax,put=PutVerticalAngleMax))
+    double VerticalAngleMax;
+    __declspec(property(get=GetHorizontalAngleMin,put=PutHorizontalAngleMin))
+    double HorizontalAngleMin;
+    __declspec(property(get=GetHorizontalAngleMax,put=PutHorizontalAngleMax))
+    double HorizontalAngleMax;
+    __declspec(property(get=GetNumCols,put=PutNumCols))
+    int NumCols;
+    __declspec(property(get=GetNumRows))
+    int NumRows;
+    __declspec(property(get=GetResolution,put=PutResolution))
+    int Resolution;
+    __declspec(property(get=GetScanBaseName,put=PutScanBaseName))
+    _bstr_t ScanBaseName;
+    __declspec(property(get=GetScanFileNumber,put=PutScanFileNumber))
+    int ScanFileNumber;
+    __declspec(property(get=GetSplitAfterLines,put=PutSplitAfterLines))
+    int SplitAfterLines;
+    __declspec(property(get=GetNoiseCompression,put=PutNoiseCompression))
+    int NoiseCompression;
+    __declspec(property(get=GetReceivedScannerAngles))
+    VARIANT_BOOL ReceivedScannerAngles;
+    __declspec(property(get=GetHorizontalAngle))
+    double HorizontalAngle;
+    __declspec(property(get=GetScanTime))
+    int ScanTime;
+    __declspec(property(get=GetNumberExceptions))
+    int NumberExceptions;
+    __declspec(property(get=GetStorageMode,put=PutStorageMode))
+    enum StorageMode _StorageMode;
+    __declspec(property(get=GetRemoteScanStoragePath,put=PutRemoteScanStoragePath))
+    _bstr_t RemoteScanStoragePath;
+    __declspec(property(get=GetMeasurementRate,put=PutMeasurementRate))
+    int MeasurementRate;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    int GetScanProgress ( );
+    int startScan ( );
+    int stopScan ( );
+    int shutDown ( );
+    _bstr_t GetScannerIP ( );
+    void PutScannerIP (
+        _bstr_t ScannerIP );
+    VARIANT_BOOL GetConnected ( );
+    int connect ( );
+    enum ScanMode GetScanMode ( );
+    void PutScanMode (
+        enum ScanMode ScanMode );
+    double GetVerticalAngleMin ( );
+    void PutVerticalAngleMin (
+        double pVal );
+    double GetVerticalAngleMax ( );
+    void PutVerticalAngleMax (
+        double pVal );
+    double GetHorizontalAngleMin ( );
+    void PutHorizontalAngleMin (
+        double pVal );
+    double GetHorizontalAngleMax ( );
+    void PutHorizontalAngleMax (
+        double pVal );
+    int GetNumCols ( );
+    void PutNumCols (
+        int pVal );
+    int GetNumRows ( );
+    int GetResolution ( );
+    void PutResolution (
+        int pVal );
+    _bstr_t GetScanBaseName ( );
+    void PutScanBaseName (
+        _bstr_t pVal );
+    int GetScanFileNumber ( );
+    void PutScanFileNumber (
+        int pVal );
+    int syncParam ( );
+    int GetNoiseCompression ( );
+    void PutNoiseCompression (
+        int pVal );
+    int requestScannerAngles ( );
+    VARIANT_BOOL GetReceivedScannerAngles ( );
+    double GetHorizontalAngle ( );
+    int moveToHorizontalAngle (
+        double angle );
+    int GetScanTime ( );
+    _bstr_t getExceptionMsg (
+        int index );
+    int GetNumberExceptions ( );
+    int clearExceptions ( );
+    int getExceptionCode (
+        int index );
+    enum StorageMode GetStorageMode ( );
+    void PutStorageMode (
+        enum StorageMode StorageMode );
+    _bstr_t GetRemoteScanStoragePath ( );
+    void PutRemoteScanStoragePath (
+        _bstr_t remotePath );
+    int GetMeasurementRate ( );
+    void PutMeasurementRate (
+        int pVal );
+    enum RemoteScanAccessStatus GetRemoteScanAccess ( );
+    void PutRemoteScanAccess (
+        enum RemoteScanAccessStatus RemoteScanAccessStatus );
+    int GetSplitAfterLines ( );
+    void PutSplitAfterLines (
+        int pVal );
+    int recordScan ( );
+    int pauseScan ( );
+    int inquireRecordingStatus (
+        enum HelicalRecordingStatus * status );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall get_ScanProgress (
+        /*[out,retval]*/ int * percent ) = 0;
+      virtual HRESULT __stdcall raw_startScan (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_stopScan (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_shutDown (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall get_ScannerIP (
+        /*[out,retval]*/ BSTR * ScannerIP ) = 0;
+      virtual HRESULT __stdcall put_ScannerIP (
+        /*[in]*/ BSTR ScannerIP ) = 0;
+      virtual HRESULT __stdcall get_Connected (
+        /*[out,retval]*/ VARIANT_BOOL * pVal ) = 0;
+      virtual HRESULT __stdcall raw_connect (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall get_ScanMode (
+        /*[out,retval]*/ enum ScanMode * ScanMode ) = 0;
+      virtual HRESULT __stdcall put_ScanMode (
+        /*[in]*/ enum ScanMode ScanMode ) = 0;
+      virtual HRESULT __stdcall get_VerticalAngleMin (
+        /*[out,retval]*/ double * pVal ) = 0;
+      virtual HRESULT __stdcall put_VerticalAngleMin (
+        /*[in]*/ double pVal ) = 0;
+      virtual HRESULT __stdcall get_VerticalAngleMax (
+        /*[out,retval]*/ double * pVal ) = 0;
+      virtual HRESULT __stdcall put_VerticalAngleMax (
+        /*[in]*/ double pVal ) = 0;
+      virtual HRESULT __stdcall get_HorizontalAngleMin (
+        /*[out,retval]*/ double * pVal ) = 0;
+      virtual HRESULT __stdcall put_HorizontalAngleMin (
+        /*[in]*/ double pVal ) = 0;
+      virtual HRESULT __stdcall get_HorizontalAngleMax (
+        /*[out,retval]*/ double * pVal ) = 0;
+      virtual HRESULT __stdcall put_HorizontalAngleMax (
+        /*[in]*/ double pVal ) = 0;
+      virtual HRESULT __stdcall get_NumCols (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall put_NumCols (
+        /*[in]*/ int pVal ) = 0;
+      virtual HRESULT __stdcall get_NumRows (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall get_Resolution (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall put_Resolution (
+        /*[in]*/ int pVal ) = 0;
+      virtual HRESULT __stdcall get_ScanBaseName (
+        /*[out,retval]*/ BSTR * pVal ) = 0;
+      virtual HRESULT __stdcall put_ScanBaseName (
+        /*[in]*/ BSTR pVal ) = 0;
+      virtual HRESULT __stdcall get_ScanFileNumber (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall put_ScanFileNumber (
+        /*[in]*/ int pVal ) = 0;
+      virtual HRESULT __stdcall raw_syncParam (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall get_NoiseCompression (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall put_NoiseCompression (
+        /*[in]*/ int pVal ) = 0;
+      virtual HRESULT __stdcall raw_requestScannerAngles (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall get_ReceivedScannerAngles (
+        /*[out,retval]*/ VARIANT_BOOL * result ) = 0;
+      virtual HRESULT __stdcall get_HorizontalAngle (
+        /*[out,retval]*/ double * angle ) = 0;
+      virtual HRESULT __stdcall raw_moveToHorizontalAngle (
+        /*[in]*/ double angle,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall get_ScanTime (
+        /*[out,retval]*/ int * pSec ) = 0;
+      virtual HRESULT __stdcall raw_getExceptionMsg (
+        /*[in]*/ int index,
+        /*[out,retval]*/ BSTR * msg ) = 0;
+      virtual HRESULT __stdcall get_NumberExceptions (
+        /*[out,retval]*/ int * number ) = 0;
+      virtual HRESULT __stdcall raw_clearExceptions (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getExceptionCode (
+        /*[in]*/ int index,
+        /*[out,retval]*/ int * code ) = 0;
+      virtual HRESULT __stdcall get_StorageMode (
+        /*[out,retval]*/ enum StorageMode * StorageMode ) = 0;
+      virtual HRESULT __stdcall put_StorageMode (
+        /*[in]*/ enum StorageMode StorageMode ) = 0;
+      virtual HRESULT __stdcall get_RemoteScanStoragePath (
+        /*[out,retval]*/ BSTR * remotePath ) = 0;
+      virtual HRESULT __stdcall put_RemoteScanStoragePath (
+        /*[in]*/ BSTR remotePath ) = 0;
+      virtual HRESULT __stdcall get_MeasurementRate (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall put_MeasurementRate (
+        /*[in]*/ int pVal ) = 0;
+      virtual HRESULT __stdcall get_RemoteScanAccess (
+        /*[out,retval]*/ enum RemoteScanAccessStatus * RemoteScanAccessStatus ) = 0;
+      virtual HRESULT __stdcall put_RemoteScanAccess (
+        /*[in]*/ enum RemoteScanAccessStatus RemoteScanAccessStatus ) = 0;
+      virtual HRESULT __stdcall get_SplitAfterLines (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall put_SplitAfterLines (
+        /*[in]*/ int pVal ) = 0;
+      virtual HRESULT __stdcall raw_recordScan (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_pauseScan (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_inquireRecordingStatus (
+        /*[out]*/ enum HelicalRecordingStatus * status,
+        /*[out,retval]*/ int * result ) = 0;
+};
+
+struct __declspec(uuid("3521b4f6-8491-4d18-8032-d103ca2e7b0d"))
+IiQScanOpInterf : IScanCtrlSDK
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetLibVersion))
+    _bstr_t LibVersion;
+    __declspec(property(get=GetNumTotalRawScanLines,put=PutNumTotalRawScanLines))
+    int NumTotalRawScanLines;
+    __declspec(property(get=GetNumStoredRawScanLines))
+    int NumStoredRawScanLines;
+    __declspec(property(get=GetVerticalAngle))
+    double VerticalAngle;
+    __declspec(property(get=GetAngleMovementTolerance,put=PutAngleMovementTolerance))
+    double AngleMovementTolerance;
+    __declspec(property(get=GetSyncCount,put=PutSyncCount))
+    int SyncCount;
+    __declspec(property(get=GetNumPortCtrlLinesAvail))
+    int NumPortCtrlLinesAvail;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    int getScannerStatus (
+        int * status );
+    int getRecordStatus (
+        int * status );
+    int setRecordStatus (
+        int status );
+    long isConnected ( );
+    int getScanPathName (
+        BSTR * pathName );
+    int setScanImageWidth (
+        int width );
+    int getScanImagePath (
+        BSTR * path );
+    int getScanProgress (
+        int * percent );
+    int getTriggerResolution (
+        int * triggerMode );
+    int setTriggerResolution (
+        int * triggerMode );
+    int getRealAttr (
+        _bstr_t attName,
+        double * value );
+    int setRealAttr (
+        _bstr_t attName,
+        double value );
+    int getIntAttr (
+        _bstr_t attName,
+        int * value );
+    int setIntAttr (
+        _bstr_t attName,
+        int value );
+    int getStrAttr (
+        _bstr_t attName,
+        BSTR * value );
+    int setStrAttr (
+        _bstr_t attName,
+        _bstr_t value );
+    int writeParam ( );
+    int getEyeSafetyDist (
+        double * distance );
+    int completeScanArea ( );
+    int cameraRun ( );
+    int isWaitingForCameraRun ( );
+    IiQObjectIfPtr getNetworkProfiles ( );
+    IiQAttributeIfPtr getAttributeIf (
+        _bstr_t id );
+    _bstr_t GetLibVersion ( );
+    int GetNumTotalRawScanLines ( );
+    void PutNumTotalRawScanLines (
+        int result );
+    int GetNumStoredRawScanLines ( );
+    int getNumRawPoints (
+        int lineIndex );
+    VARIANT_BOOL getRawPointData (
+        int lineIndex,
+        int ptIndex,
+        int * distance,
+        int * reflection,
+        int * phase0,
+        int * phase1,
+        int * phase2,
+        int * uncertainty );
+    double GetVerticalAngle ( );
+    int moveToVerticalAngle (
+        double angle );
+    void PutAngleMovementTolerance (
+        double tolerance );
+    double GetAngleMovementTolerance ( );
+    VARIANT_BOOL getRawPointData5Phases (
+        int lineIndex,
+        int ptIndex,
+        int * distance,
+        int * reflection,
+        int * phase0,
+        int * phase1,
+        int * phase2,
+        int * phase3,
+        int * phase4,
+        int * uncertainty );
+    int getEyeSafetyDistance (
+        double * distanceAxial,
+        double * distanceRadial );
+    VARIANT_BOOL getRawPointData6Phases (
+        int lineIndex,
+        int ptIndex,
+        int * distance,
+        int * reflection,
+        int * phase0,
+        int * phase1,
+        int * phase2,
+        int * phase3,
+        int * phase4,
+        int * phase5,
+        int * uncertainty );
+    int GetSyncCount ( );
+    void PutSyncCount (
+        int pVal );
+    _bstr_t portControlWait (
+        int portNo,
+        _bstr_t command,
+        _bstr_t expectedResult,
+        int timeout );
+    VARIANT_BOOL portControl (
+        int portNo,
+        _bstr_t command,
+        VARIANT_BOOL installListener,
+        _bstr_t expectedResult );
+    HRESULT portCtrlStopListening ( );
+    int GetNumPortCtrlLinesAvail ( );
+    _bstr_t nextPortCtrlLineAvail ( );
+    HRESULT remoteInstall (
+        _bstr_t pathToFile );
+    int updateScannerVersionInfo ( );
+    _bstr_t getScannerVersionInfo (
+        _bstr_t what );
+    HRESULT recordRawADCDataIntoFile (
+        _bstr_t pathToDirectory,
+        int numGrabs,
+        int switchLaserOn );
+    _bstr_t sendCANMessageAndWait (
+        short CANID,
+        short responseCANID,
+        _bstr_t message,
+        int timeout );
+    VARIANT_BOOL insertInScannerLog (
+        _bstr_t logMsg );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_getScannerStatus (
+        /*[out]*/ int * status,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getRecordStatus (
+        /*[out]*/ int * status,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_setRecordStatus (
+        /*[in]*/ int status,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_isConnected (
+        /*[out,retval]*/ long * result ) = 0;
+      virtual HRESULT __stdcall raw_getScanPathName (
+        /*[out]*/ BSTR * pathName,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_setScanImageWidth (
+        /*[in]*/ int width,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getScanImagePath (
+        /*[out]*/ BSTR * path,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getScanProgress (
+        /*[out]*/ int * percent,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getTriggerResolution (
+        /*[out]*/ int * triggerMode,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_setTriggerResolution (
+        /*[in]*/ int * triggerMode,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getRealAttr (
+        /*[in]*/ BSTR attName,
+        /*[out]*/ double * value,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_setRealAttr (
+        /*[in]*/ BSTR attName,
+        /*[in]*/ double value,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getIntAttr (
+        /*[in]*/ BSTR attName,
+        /*[out]*/ int * value,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_setIntAttr (
+        /*[in]*/ BSTR attName,
+        /*[in]*/ int value,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getStrAttr (
+        /*[in]*/ BSTR attName,
+        /*[out]*/ BSTR * value,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_setStrAttr (
+        /*[in]*/ BSTR attName,
+        /*[in]*/ BSTR value,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_writeParam (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getEyeSafetyDist (
+        /*[out]*/ double * distance,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_completeScanArea (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_cameraRun (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_isWaitingForCameraRun (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getNetworkProfiles (
+        /*[out,retval]*/ struct IiQObjectIf * * result ) = 0;
+      virtual HRESULT __stdcall raw_getAttributeIf (
+        /*[in]*/ BSTR id,
+        /*[out,retval]*/ struct IiQAttributeIf * * result ) = 0;
+      virtual HRESULT __stdcall get_LibVersion (
+        /*[out,retval]*/ BSTR * version ) = 0;
+      virtual HRESULT __stdcall get_NumTotalRawScanLines (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall put_NumTotalRawScanLines (
+        /*[in]*/ int result ) = 0;
+      virtual HRESULT __stdcall get_NumStoredRawScanLines (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getNumRawPoints (
+        /*[in]*/ int lineIndex,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getRawPointData (
+        /*[in]*/ int lineIndex,
+        /*[in]*/ int ptIndex,
+        /*[out]*/ int * distance,
+        /*[out]*/ int * reflection,
+        /*[out]*/ int * phase0,
+        /*[out]*/ int * phase1,
+        /*[out]*/ int * phase2,
+        /*[out]*/ int * uncertainty,
+        /*[out,retval]*/ VARIANT_BOOL * result ) = 0;
+      virtual HRESULT __stdcall get_VerticalAngle (
+        /*[out,retval]*/ double * angle ) = 0;
+      virtual HRESULT __stdcall raw_moveToVerticalAngle (
+        /*[in]*/ double angle,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall put_AngleMovementTolerance (
+        /*[in]*/ double tolerance ) = 0;
+      virtual HRESULT __stdcall get_AngleMovementTolerance (
+        /*[out,retval]*/ double * tolerance ) = 0;
+      virtual HRESULT __stdcall raw_getRawPointData5Phases (
+        /*[in]*/ int lineIndex,
+        /*[in]*/ int ptIndex,
+        /*[out]*/ int * distance,
+        /*[out]*/ int * reflection,
+        /*[out]*/ int * phase0,
+        /*[out]*/ int * phase1,
+        /*[out]*/ int * phase2,
+        /*[out]*/ int * phase3,
+        /*[out]*/ int * phase4,
+        /*[out]*/ int * uncertainty,
+        /*[out,retval]*/ VARIANT_BOOL * result ) = 0;
+      virtual HRESULT __stdcall raw_getEyeSafetyDistance (
+        /*[out]*/ double * distanceAxial,
+        /*[out]*/ double * distanceRadial,
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getRawPointData6Phases (
+        /*[in]*/ int lineIndex,
+        /*[in]*/ int ptIndex,
+        /*[out]*/ int * distance,
+        /*[out]*/ int * reflection,
+        /*[out]*/ int * phase0,
+        /*[out]*/ int * phase1,
+        /*[out]*/ int * phase2,
+        /*[out]*/ int * phase3,
+        /*[out]*/ int * phase4,
+        /*[out]*/ int * phase5,
+        /*[out]*/ int * uncertainty,
+        /*[out,retval]*/ VARIANT_BOOL * result ) = 0;
+      virtual HRESULT __stdcall get_SyncCount (
+        /*[out,retval]*/ int * pVal ) = 0;
+      virtual HRESULT __stdcall put_SyncCount (
+        /*[in]*/ int pVal ) = 0;
+      virtual HRESULT __stdcall raw_portControlWait (
+        /*[in]*/ int portNo,
+        /*[in]*/ BSTR command,
+        /*[in]*/ BSTR expectedResult,
+        /*[in]*/ int timeout,
+        /*[out,retval]*/ BSTR * responseString ) = 0;
+      virtual HRESULT __stdcall raw_portControl (
+        /*[in]*/ int portNo,
+        /*[in]*/ BSTR command,
+        /*[in]*/ VARIANT_BOOL installListener,
+        /*[in]*/ BSTR expectedResult,
+        /*[out,retval]*/ VARIANT_BOOL * result ) = 0;
+      virtual HRESULT __stdcall raw_portCtrlStopListening ( ) = 0;
+      virtual HRESULT __stdcall get_NumPortCtrlLinesAvail (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_nextPortCtrlLineAvail (
+        /*[out,retval]*/ BSTR * result ) = 0;
+      virtual HRESULT __stdcall raw_remoteInstall (
+        /*[in]*/ BSTR pathToFile ) = 0;
+      virtual HRESULT __stdcall raw_updateScannerVersionInfo (
+        /*[out,retval]*/ int * result ) = 0;
+      virtual HRESULT __stdcall raw_getScannerVersionInfo (
+        /*[in]*/ BSTR what,
+        /*[out,retval]*/ BSTR * result ) = 0;
+      virtual HRESULT __stdcall raw_recordRawADCDataIntoFile (
+        /*[in]*/ BSTR pathToDirectory,
+        /*[in]*/ int numGrabs,
+        /*[in]*/ int switchLaserOn ) = 0;
+      virtual HRESULT __stdcall raw_sendCANMessageAndWait (
+        /*[in]*/ short CANID,
+        /*[in]*/ short responseCANID,
+        /*[in]*/ BSTR message,
+        /*[in]*/ int timeout,
+        /*[out,retval]*/ BSTR * response ) = 0;
+      virtual HRESULT __stdcall raw_insertInScannerLog (
+        /*[in]*/ BSTR logMsg,
+        /*[out,retval]*/ VARIANT_BOOL * result ) = 0;
+};
+
+struct __declspec(uuid("64d85f8d-b8d1-4c52-a20a-ccd912c6bfec"))
+_IScanCtrlSDKEvents : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    // Methods:
+    HRESULT scanCompleted ( );
+};
+
+struct __declspec(uuid("9f3666ed-f5e1-438c-86e4-318c2991ae6a"))
+ScanCtrlSDK;
+    // [ default ] interface IiQLicensedInterfaceIf
+    // [ restricted ] interface IScanCtrlSDK
+    // [ restricted ] interface IiQScanOpInterf
+    // [ default, source ] dispinterface _IScanCtrlSDKEvents
+
+//
+// Wrapper method implementations
+//
+
+#include "faro.ls.sdk.tli"
+
+#pragma pack(pop)

@@ -12,16 +12,16 @@
         <file>assets/ProjectHub/tooltip.png</file>
         <file>assets/public/Home.png</file>
         <file>assets/home/banner.png</file>
-        <file>assets/home/RightBattery/0%.png</file>
-        <file>assets/home/RightBattery/25%.png</file>
-        <file>assets/home/RightBattery/50%.png</file>
-        <file>assets/home/RightBattery/75%.png</file>
-        <file>assets/home/RightBattery/100%.png</file>
-        <file>assets/home/LeftBattery/0%.png</file>
-        <file>assets/home/LeftBattery/25%.png</file>
-        <file>assets/home/LeftBattery/50%.png</file>
-        <file>assets/home/LeftBattery/75%.png</file>
-        <file>assets/home/LeftBattery/100%.png</file>
+        <file>assets/home/RightBattery/1.png</file>
+        <file>assets/home/RightBattery/2.png</file>
+        <file>assets/home/RightBattery/3.png</file>
+        <file>assets/home/RightBattery/4.png</file>
+        <file>assets/home/RightBattery/5.png</file>
+        <file>assets/home/LeftBattery/1.png</file>
+        <file>assets/home/LeftBattery/2.png</file>
+        <file>assets/home/LeftBattery/3.png</file>
+        <file>assets/home/LeftBattery/4.png</file>
+        <file>assets/home/LeftBattery/5.png</file>
         <file>assets/home/NotBattery.png</file>
         <file>../../assets/dialog/new_icon.png</file>
         <file>../../assets/png/circle.png</file>
@@ -76,5 +76,6 @@
         <file>../../assets/png/checked.png</file>
         <file>assets/docs/city/guangzhou.json</file>
         <file>assets/docs/city/shenzhen.json</file>
+        <file>../../assets/png/warning.png</file>
     </qresource>
 </RCC>

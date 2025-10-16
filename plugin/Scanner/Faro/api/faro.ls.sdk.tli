@@ -1,0 +1,692 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.29.30151.0 (04a4e2b1).
+//
+// E:\Leventure\WorkShop\VTM\trunk\FaroClient\x64\Release\faro.ls.sdk.tli
+//
+// Wrapper implementations for type library FARO.LS.SDK.dll
+// compiler-generated file created 07/12/23 at 08:43:42 - DO NOT EDIT!
+
+#pragma once
+
+//
+// interface IScanCtrlSDK wrapper method implementations
+//
+
+inline int IScanCtrlSDK::GetScanProgress ( ) {
+    int _result = 0;
+    HRESULT _hr = get_ScanProgress(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::startScan ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_startScan(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::stopScan ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_stopScan(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::shutDown ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_shutDown(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IScanCtrlSDK::GetScannerIP ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_ScannerIP(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline void IScanCtrlSDK::PutScannerIP ( _bstr_t ScannerIP ) {
+    HRESULT _hr = put_ScannerIP(ScannerIP);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline VARIANT_BOOL IScanCtrlSDK::GetConnected ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_Connected(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::connect ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_connect(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline enum ScanMode IScanCtrlSDK::GetScanMode ( ) {
+    enum ScanMode _result;
+    HRESULT _hr = get_ScanMode(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutScanMode ( enum ScanMode ScanMode ) {
+    HRESULT _hr = put_ScanMode(ScanMode);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double IScanCtrlSDK::GetVerticalAngleMin ( ) {
+    double _result = 0;
+    HRESULT _hr = get_VerticalAngleMin(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutVerticalAngleMin ( double pVal ) {
+    HRESULT _hr = put_VerticalAngleMin(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double IScanCtrlSDK::GetVerticalAngleMax ( ) {
+    double _result = 0;
+    HRESULT _hr = get_VerticalAngleMax(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutVerticalAngleMax ( double pVal ) {
+    HRESULT _hr = put_VerticalAngleMax(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double IScanCtrlSDK::GetHorizontalAngleMin ( ) {
+    double _result = 0;
+    HRESULT _hr = get_HorizontalAngleMin(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutHorizontalAngleMin ( double pVal ) {
+    HRESULT _hr = put_HorizontalAngleMin(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double IScanCtrlSDK::GetHorizontalAngleMax ( ) {
+    double _result = 0;
+    HRESULT _hr = get_HorizontalAngleMax(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutHorizontalAngleMax ( double pVal ) {
+    HRESULT _hr = put_HorizontalAngleMax(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::GetNumCols ( ) {
+    int _result = 0;
+    HRESULT _hr = get_NumCols(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutNumCols ( int pVal ) {
+    HRESULT _hr = put_NumCols(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::GetNumRows ( ) {
+    int _result = 0;
+    HRESULT _hr = get_NumRows(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::GetResolution ( ) {
+    int _result = 0;
+    HRESULT _hr = get_Resolution(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutResolution ( int pVal ) {
+    HRESULT _hr = put_Resolution(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline _bstr_t IScanCtrlSDK::GetScanBaseName ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_ScanBaseName(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline void IScanCtrlSDK::PutScanBaseName ( _bstr_t pVal ) {
+    HRESULT _hr = put_ScanBaseName(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::GetScanFileNumber ( ) {
+    int _result = 0;
+    HRESULT _hr = get_ScanFileNumber(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutScanFileNumber ( int pVal ) {
+    HRESULT _hr = put_ScanFileNumber(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::syncParam ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_syncParam(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::GetNoiseCompression ( ) {
+    int _result = 0;
+    HRESULT _hr = get_NoiseCompression(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutNoiseCompression ( int pVal ) {
+    HRESULT _hr = put_NoiseCompression(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::requestScannerAngles ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_requestScannerAngles(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IScanCtrlSDK::GetReceivedScannerAngles ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_ReceivedScannerAngles(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline double IScanCtrlSDK::GetHorizontalAngle ( ) {
+    double _result = 0;
+    HRESULT _hr = get_HorizontalAngle(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::moveToHorizontalAngle ( double angle ) {
+    int _result = 0;
+    HRESULT _hr = raw_moveToHorizontalAngle(angle, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::GetScanTime ( ) {
+    int _result = 0;
+    HRESULT _hr = get_ScanTime(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IScanCtrlSDK::getExceptionMsg ( int index ) {
+    BSTR _result = 0;
+    HRESULT _hr = raw_getExceptionMsg(index, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline int IScanCtrlSDK::GetNumberExceptions ( ) {
+    int _result = 0;
+    HRESULT _hr = get_NumberExceptions(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::clearExceptions ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_clearExceptions(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::getExceptionCode ( int index ) {
+    int _result = 0;
+    HRESULT _hr = raw_getExceptionCode(index, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline enum StorageMode IScanCtrlSDK::GetStorageMode ( ) {
+    enum StorageMode _result;
+    HRESULT _hr = get_StorageMode(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutStorageMode ( enum StorageMode StorageMode ) {
+    HRESULT _hr = put_StorageMode(StorageMode);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline _bstr_t IScanCtrlSDK::GetRemoteScanStoragePath ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_RemoteScanStoragePath(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline void IScanCtrlSDK::PutRemoteScanStoragePath ( _bstr_t remotePath ) {
+    HRESULT _hr = put_RemoteScanStoragePath(remotePath);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::GetMeasurementRate ( ) {
+    int _result = 0;
+    HRESULT _hr = get_MeasurementRate(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutMeasurementRate ( int pVal ) {
+    HRESULT _hr = put_MeasurementRate(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline enum RemoteScanAccessStatus IScanCtrlSDK::GetRemoteScanAccess ( ) {
+    enum RemoteScanAccessStatus _result;
+    HRESULT _hr = get_RemoteScanAccess(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutRemoteScanAccess ( enum RemoteScanAccessStatus RemoteScanAccessStatus ) {
+    HRESULT _hr = put_RemoteScanAccess(RemoteScanAccessStatus);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::GetSplitAfterLines ( ) {
+    int _result = 0;
+    HRESULT _hr = get_SplitAfterLines(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IScanCtrlSDK::PutSplitAfterLines ( int pVal ) {
+    HRESULT _hr = put_SplitAfterLines(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IScanCtrlSDK::recordScan ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_recordScan(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::pauseScan ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_pauseScan(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IScanCtrlSDK::inquireRecordingStatus ( enum HelicalRecordingStatus * status ) {
+    int _result = 0;
+    HRESULT _hr = raw_inquireRecordingStatus(status, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+//
+// interface IiQScanOpInterf wrapper method implementations
+//
+
+inline int IiQScanOpInterf::getScannerStatus ( int * status ) {
+    int _result = 0;
+    HRESULT _hr = raw_getScannerStatus(status, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getRecordStatus ( int * status ) {
+    int _result = 0;
+    HRESULT _hr = raw_getRecordStatus(status, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::setRecordStatus ( int status ) {
+    int _result = 0;
+    HRESULT _hr = raw_setRecordStatus(status, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IiQScanOpInterf::isConnected ( ) {
+    long _result = 0;
+    HRESULT _hr = raw_isConnected(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getScanPathName ( BSTR * pathName ) {
+    int _result = 0;
+    HRESULT _hr = raw_getScanPathName(pathName, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::setScanImageWidth ( int width ) {
+    int _result = 0;
+    HRESULT _hr = raw_setScanImageWidth(width, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getScanImagePath ( BSTR * path ) {
+    int _result = 0;
+    HRESULT _hr = raw_getScanImagePath(path, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getScanProgress ( int * percent ) {
+    int _result = 0;
+    HRESULT _hr = raw_getScanProgress(percent, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getTriggerResolution ( int * triggerMode ) {
+    int _result = 0;
+    HRESULT _hr = raw_getTriggerResolution(triggerMode, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::setTriggerResolution ( int * triggerMode ) {
+    int _result = 0;
+    HRESULT _hr = raw_setTriggerResolution(triggerMode, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getRealAttr ( _bstr_t attName, double * value ) {
+    int _result = 0;
+    HRESULT _hr = raw_getRealAttr(attName, value, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::setRealAttr ( _bstr_t attName, double value ) {
+    int _result = 0;
+    HRESULT _hr = raw_setRealAttr(attName, value, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getIntAttr ( _bstr_t attName, int * value ) {
+    int _result = 0;
+    HRESULT _hr = raw_getIntAttr(attName, value, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::setIntAttr ( _bstr_t attName, int value ) {
+    int _result = 0;
+    HRESULT _hr = raw_setIntAttr(attName, value, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getStrAttr ( _bstr_t attName, BSTR * value ) {
+    int _result = 0;
+    HRESULT _hr = raw_getStrAttr(attName, value, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::setStrAttr ( _bstr_t attName, _bstr_t value ) {
+    int _result = 0;
+    HRESULT _hr = raw_setStrAttr(attName, value, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::writeParam ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_writeParam(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getEyeSafetyDist ( double * distance ) {
+    int _result = 0;
+    HRESULT _hr = raw_getEyeSafetyDist(distance, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::completeScanArea ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_completeScanArea(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::cameraRun ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_cameraRun(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::isWaitingForCameraRun ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_isWaitingForCameraRun(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline IiQObjectIfPtr IiQScanOpInterf::getNetworkProfiles ( ) {
+    struct IiQObjectIf * _result = 0;
+    HRESULT _hr = raw_getNetworkProfiles(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return IiQObjectIfPtr(_result, false);
+}
+
+inline IiQAttributeIfPtr IiQScanOpInterf::getAttributeIf ( _bstr_t id ) {
+    struct IiQAttributeIf * _result = 0;
+    HRESULT _hr = raw_getAttributeIf(id, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return IiQAttributeIfPtr(_result, false);
+}
+
+inline _bstr_t IiQScanOpInterf::GetLibVersion ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_LibVersion(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline int IiQScanOpInterf::GetNumTotalRawScanLines ( ) {
+    int _result = 0;
+    HRESULT _hr = get_NumTotalRawScanLines(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IiQScanOpInterf::PutNumTotalRawScanLines ( int result ) {
+    HRESULT _hr = put_NumTotalRawScanLines(result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline int IiQScanOpInterf::GetNumStoredRawScanLines ( ) {
+    int _result = 0;
+    HRESULT _hr = get_NumStoredRawScanLines(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getNumRawPoints ( int lineIndex ) {
+    int _result = 0;
+    HRESULT _hr = raw_getNumRawPoints(lineIndex, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IiQScanOpInterf::getRawPointData ( int lineIndex, int ptIndex, int * distance, int * reflection, int * phase0, int * phase1, int * phase2, int * uncertainty ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = raw_getRawPointData(lineIndex, ptIndex, distance, reflection, phase0, phase1, phase2, uncertainty, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline double IiQScanOpInterf::GetVerticalAngle ( ) {
+    double _result = 0;
+    HRESULT _hr = get_VerticalAngle(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::moveToVerticalAngle ( double angle ) {
+    int _result = 0;
+    HRESULT _hr = raw_moveToVerticalAngle(angle, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IiQScanOpInterf::PutAngleMovementTolerance ( double tolerance ) {
+    HRESULT _hr = put_AngleMovementTolerance(tolerance);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline double IiQScanOpInterf::GetAngleMovementTolerance ( ) {
+    double _result = 0;
+    HRESULT _hr = get_AngleMovementTolerance(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IiQScanOpInterf::getRawPointData5Phases ( int lineIndex, int ptIndex, int * distance, int * reflection, int * phase0, int * phase1, int * phase2, int * phase3, int * phase4, int * uncertainty ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = raw_getRawPointData5Phases(lineIndex, ptIndex, distance, reflection, phase0, phase1, phase2, phase3, phase4, uncertainty, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::getEyeSafetyDistance ( double * distanceAxial, double * distanceRadial ) {
+    int _result = 0;
+    HRESULT _hr = raw_getEyeSafetyDistance(distanceAxial, distanceRadial, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IiQScanOpInterf::getRawPointData6Phases ( int lineIndex, int ptIndex, int * distance, int * reflection, int * phase0, int * phase1, int * phase2, int * phase3, int * phase4, int * phase5, int * uncertainty ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = raw_getRawPointData6Phases(lineIndex, ptIndex, distance, reflection, phase0, phase1, phase2, phase3, phase4, phase5, uncertainty, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline int IiQScanOpInterf::GetSyncCount ( ) {
+    int _result = 0;
+    HRESULT _hr = get_SyncCount(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IiQScanOpInterf::PutSyncCount ( int pVal ) {
+    HRESULT _hr = put_SyncCount(pVal);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline _bstr_t IiQScanOpInterf::portControlWait ( int portNo, _bstr_t command, _bstr_t expectedResult, int timeout ) {
+    BSTR _result = 0;
+    HRESULT _hr = raw_portControlWait(portNo, command, expectedResult, timeout, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline VARIANT_BOOL IiQScanOpInterf::portControl ( int portNo, _bstr_t command, VARIANT_BOOL installListener, _bstr_t expectedResult ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = raw_portControl(portNo, command, installListener, expectedResult, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline HRESULT IiQScanOpInterf::portCtrlStopListening ( ) {
+    HRESULT _hr = raw_portCtrlStopListening();
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline int IiQScanOpInterf::GetNumPortCtrlLinesAvail ( ) {
+    int _result = 0;
+    HRESULT _hr = get_NumPortCtrlLinesAvail(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IiQScanOpInterf::nextPortCtrlLineAvail ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = raw_nextPortCtrlLineAvail(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline HRESULT IiQScanOpInterf::remoteInstall ( _bstr_t pathToFile ) {
+    HRESULT _hr = raw_remoteInstall(pathToFile);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline int IiQScanOpInterf::updateScannerVersionInfo ( ) {
+    int _result = 0;
+    HRESULT _hr = raw_updateScannerVersionInfo(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IiQScanOpInterf::getScannerVersionInfo ( _bstr_t what ) {
+    BSTR _result = 0;
+    HRESULT _hr = raw_getScannerVersionInfo(what, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline HRESULT IiQScanOpInterf::recordRawADCDataIntoFile ( _bstr_t pathToDirectory, int numGrabs, int switchLaserOn ) {
+    HRESULT _hr = raw_recordRawADCDataIntoFile(pathToDirectory, numGrabs, switchLaserOn);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline _bstr_t IiQScanOpInterf::sendCANMessageAndWait ( short CANID, short responseCANID, _bstr_t message, int timeout ) {
+    BSTR _result = 0;
+    HRESULT _hr = raw_sendCANMessageAndWait(CANID, responseCANID, message, timeout, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline VARIANT_BOOL IiQScanOpInterf::insertInScannerLog ( _bstr_t logMsg ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = raw_insertInScannerLog(logMsg, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+//
+// dispinterface _IScanCtrlSDKEvents wrapper method implementations
+//
+
+inline HRESULT _IScanCtrlSDKEvents::scanCompleted ( ) {
+    HRESULT _result = 0;
+    _com_dispatch_method(this, 0x1, DISPATCH_METHOD, VT_ERROR, (void*)&_result, NULL);
+    return _result;
+}
