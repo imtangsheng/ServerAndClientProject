@@ -115,10 +115,10 @@ void UserServer::onDeviceStateChanged(const Session &session) {
     }
 }
 
-void UserServer::SetRealtimeParsing(Session session) {
+void UserServer::SetRealtimePreview(Session session) {
     bool checked = session.params.toBool();
-    gSettings->setValue("RealtimeParsing", checked);
-    //gShare.isRealtimeParsing = checked;
+    gSettings->setValue("IsRealtimePreview", checked);
+    gShare.info["IsRealtimePreview"] = checked;
     gShare.on_success(tr("设置实时解析"), session);
 }
 

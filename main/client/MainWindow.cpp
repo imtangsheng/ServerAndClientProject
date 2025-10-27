@@ -172,9 +172,17 @@ void MainWindow::onSignIn(QJsonObject obj)
     if(gShare.GetVersion() != obj.value("version").toString()){
         ToolTip::ShowText(tr("客户端%1与服务端%2版本不一样").arg(gShare.GetVersion(),obj.value("version").toString()),-1);
     }
+    onWidgetUpdateSetting(obj); //更新初始界面设置等信息
     gShare.info = obj; //同步服务端的信息
     //请求同步更新设备状态
     gClient.sendTextMessage(Session::RequestString(_module,"onDeviceStateChanged"));
+}
+
+void MainWindow::onWidgetUpdateSetting(QJsonObject obj)
+{
+    if(obj.value("IsRealtimePreview").toBool()){
+        ui.radioButton_realtime_parsing_enabled->setChecked(true);
+    }
 }
 
 void MainWindow::GotoHomePage() {
@@ -820,14 +828,15 @@ void MainWindow::on_comboBox_parameter_templates_activated(int index)
     qDebug() << "MainWindow::on_comboBox_parameter_templates_activated(int "<<index;
     QJsonObject param = parameterTemplatesInfo.at(index).toObject();
     if(param.isEmpty())return;
-    QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
-    // content = content.unite(param);// 直接合并两个对象,如果有重复的 key 则使用 param 中的值
-    QVariantMap map = param.toVariantMap();
-    map.insert(content.toVariantMap());
-    content = QJsonObject::fromVariantMap(map);
+    if(gTaskFileInfo){
+        QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
+        // content = content.unite(param);// 直接合并两个对象,如果有重复的 key 则使用 param 中的值
+        QVariantMap map = param.toVariantMap();
+        map.insert(content.toVariantMap());
+        content = QJsonObject::fromVariantMap(map);
 
-    gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
-
+        gTaskFileInfo->data[JSON_TASK_CONTENT] = content;
+    }
     ui.doubleSpinBox_task_scanner_accuracy->blockSignals(true);
     ui.doubleSpinBox_task_scanner_accuracy->setValue(param.value(JSON_ACCURACY).toDouble());
     ui.doubleSpinBox_task_scanner_accuracy->blockSignals(false);
@@ -964,7 +973,7 @@ void MainWindow::on_radioButton_car_obstacle_avoidance_close_clicked()
 
 void MainWindow::on_radioButton_realtime_parsing_enabled_clicked()
 {
-    Session session(_module, "SetRealtimeParsing", true);
+    Session session(_module, "SetRealtimePreview", true);
     if (gControl.SendAndWaitResult(session)) {
     } else {
         ToolTip::ShowText(tr("设置实时解析失败"), -1);
@@ -974,7 +983,7 @@ void MainWindow::on_radioButton_realtime_parsing_enabled_clicked()
 
 void MainWindow::on_radioButton_realtime_parsing_off_clicked()
 {
-    Session session(_module, "SetRealtimeParsing", false);
+    Session session(_module, "SetRealtimePreview", false);
     if (gControl.SendAndWaitResult(session)) {
     } else {
         ToolTip::ShowText(tr("设置实时解析失败"), -1);

@@ -17,6 +17,8 @@ void Shared::awake(const QString& path, const QString& appName) {
     info["dir"] = appPath;
     info["type"] = session_type_;
     info["version"] = VERSION_STR;
+
+    info["IsRealtimePreview"] = GetConfigSettings()->value("IsRealtimePreview").toBool();
 }
 
 Result Shared::FindFilePath(const QString& fileName, QString& validConfigPath) {

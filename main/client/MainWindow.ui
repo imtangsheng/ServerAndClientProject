@@ -559,7 +559,7 @@ QLabel[theme=&quot;light&quot;] {
 }</string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="PageHome">
        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="768,600">
@@ -1643,7 +1643,7 @@ background-image: url(:/assets/home/back.png);
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>281</width>
+             <width>1390</width>
              <height>950</height>
             </rect>
            </property>
@@ -1756,8 +1756,8 @@ QToolBox&gt;QAbstractButton{
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>471</width>
-                 <height>100</height>
+                 <width>1330</width>
+                 <height>200</height>
                 </rect>
                </property>
                <property name="sizePolicy">
@@ -2227,8 +2227,8 @@ border: 1px solid rgba(80, 95, 138, 1);</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>292</width>
-                 <height>100</height>
+                 <width>1330</width>
+                 <height>200</height>
                 </rect>
                </property>
                <property name="sizePolicy">
@@ -2687,8 +2687,8 @@ padding-left: 30px;   /* 居中 */</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>227</width>
-                 <height>100</height>
+                 <width>1330</width>
+                 <height>200</height>
                 </rect>
                </property>
                <property name="sizePolicy">
@@ -2948,8 +2948,8 @@ padding-right: 0px;</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>316</width>
-                 <height>100</height>
+                 <width>1330</width>
+                 <height>200</height>
                 </rect>
                </property>
                <property name="styleSheet">
@@ -3242,8 +3242,8 @@ padding-left: 30px;   /* 居中 */</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>179</width>
-                 <height>100</height>
+                 <width>1330</width>
+                 <height>200</height>
                 </rect>
                </property>
                <property name="styleSheet">
@@ -3509,8 +3509,8 @@ padding-right: 0px;</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>524</width>
-                 <height>100</height>
+                 <width>1330</width>
+                 <height>200</height>
                 </rect>
                </property>
                <property name="styleSheet">
@@ -3944,7 +3944,7 @@ background: rgba(15, 19, 26, 1);</string>
         <item>
          <widget class="QStackedWidget" name="StackedWidgetProjectHub">
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="ProjectHome">
            <property name="cursor">
@@ -12477,7 +12477,7 @@ text-align: center;</string>
                   <x>0</x>
                   <y>0</y>
                   <width>664</width>
-                  <height>23</height>
+                  <height>687</height>
                  </rect>
                 </property>
                 <property name="minimumSize">
@@ -12634,8 +12634,8 @@ QDoubleSpinBox::down-button {
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>665</width>
-               <height>775</height>
+               <width>678</width>
+               <height>779</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_38">

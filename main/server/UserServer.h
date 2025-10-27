@@ -33,7 +33,7 @@ public:
     Q_INVOKABLE void onTest();
     //无论是否使用 const Session& ,Qt 的元对象系统（MOC）会将 Q_INVOKABLE 方法编译 都能被统一调用   
     Q_INVOKABLE void onDeviceStateChanged(const Session &session);
-    Q_INVOKABLE void SetRealtimeParsing(Session session);
+    Q_INVOKABLE void SetRealtimePreview(Session session);
 public slots:
     void onLanguageChanged(QString language);
     void onAutoStartedClicked(const Session& session);

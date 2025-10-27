@@ -31,6 +31,7 @@ public:
     QStandardItemModel paramNamesModel;//参数模板数据
 public slots:
     void onSignIn(QJsonObject obj);
+    void onWidgetUpdateSetting(QJsonObject obj);
     void onShowMessage(const QString& message, double level);//Q_ARG 使用 const 引用
 protected:
     void onShowMessage(const QString& message, LogLevel level);//要值传递
