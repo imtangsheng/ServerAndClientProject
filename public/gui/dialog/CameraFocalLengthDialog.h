@@ -24,8 +24,7 @@ public:
     ~CameraFocalLengthDialog();
     QJsonArray params;
     void UpdateTableDate();
-public slots:
-    void onCellChanged(int row,int column);
+
 private slots:
     void on_pushButton_new_info_clicked();
 
@@ -38,6 +37,8 @@ private slots:
     void on_pushButton_reset_clicked();
 
     void on_pushButton_reset_page_quit_clicked();
+
+    void on_tableWidget_CameraFocal_cellChanged(int row, int column);
 
 private:
     ScannerWidget* scanner;

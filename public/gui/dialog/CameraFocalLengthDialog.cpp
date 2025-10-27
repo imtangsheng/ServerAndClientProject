@@ -9,6 +9,7 @@ CameraFocalLengthDialog::CameraFocalLengthDialog(ScannerWidget *parent)
     , ui(new Ui::CameraFocalLengthDialog)
 {
     ui->setupUi(this);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog | Qt::WindowStaysOnTopHint); // 设置无边框
     // 添加单元格变化的信号槽连接
     // connect(ui->tableWidget_CameraFocal, &QTableWidget::cellChanged, this, &CameraFocalLengthDialog::onCellChanged);
 
@@ -35,17 +36,6 @@ void CameraFocalLengthDialog::UpdateTableDate()
     }
 }
 
-void CameraFocalLengthDialog::onCellChanged(int row, int column)
-{
-    qDebug() << "Cell changed at row:" << row << "column:" << column;
-    QTableWidgetItem* item = ui->tableWidget_CameraFocal->item(row, column);
-    if(item) {
-        qDebug() << "New value:" << item->text();
-    }
-
-    QString str = item->text();
-    params[row].toArray()[column] = str;
-}
 
 void CameraFocalLengthDialog::on_pushButton_new_info_clicked()
 {
@@ -84,13 +74,13 @@ void CameraFocalLengthDialog::on_pushButton_start_clicked()
     QJsonArray param = params.at(row).toArray();
     QJsonObject res = scanner->parameter;
 
-    res["dir"] = gShare.info.value("dir").toString() + "/config/faro/"+param.at(Name).toString();
+    res[JSON_OriginalScanDir] = gShare.info.value("dir").toString() + "/config/faro/"+param.at(Name).toString();
     res[Json_NumCols] = 100;
 
     Session session(scanner->_module(), "SetParameter", res);
     if (gControl.SendAndWaitResult(session,tr("正在设置参数,请等待"))) {
     } else {
-        ToolTip::ShowText(tr("设置参数失败"), -1);
+        ToolTip::ShowText(tr("设置参数失败:%1").arg(session.message), -1);
         return;
     }
 
@@ -119,11 +109,13 @@ void CameraFocalLengthDialog::on_pushButton_get_clicked()
     }
     QJsonArray param = params.at(row).toArray();
     QJsonObject res;
-    // res["dir"] = gShare.info.value("dir").toString() + "/config/faro/"+param.at(Name).toString();
-    res["dir"] = "D:/Test/Data";
-    res["CameraHight"] = param.at(CameraCenterHight).toString().toDouble();//相机中心到轨面的高度
-    res["ScannerHight"] = param.at(ScannerCenterHight).toString().toDouble();//相机中心到轨面的高度
-    // res["partes"] = 15;//15机位 15个分组
+    res["dir"] = gShare.info.value("dir").toString() + "/config/faro/"+param.at(Name).toString();
+    // res["dir"] = "D:/Faro/Data";
+    double Camera_Hight = param.at(CameraCenterHight).toString().toDouble();//相机中心到轨面的高度
+    double Scanner_Hight = param.at(ScannerCenterHight).toString().toDouble();
+    res["CameraHight"] = Camera_Hight;
+    res["ScannerHight"] = Scanner_Hight;
+    res["partes"] = ui->comboBox_parts->currentText().toInt();//15机位 15个分组
 
     Session session(scanner->_module(), "GetCameraPositionDistance",res);
     // gControl.sendTextMessage(session.GetRequest());
@@ -159,13 +151,39 @@ void CameraFocalLengthDialog::on_pushButton_reset_clicked()
     }
 
     ui->tableWidget_CameraFocal->setItem(row,col,new QTableWidgetItem(str));
-    params[row].toArray()[col] = str;
-    qDebug() <<"修改的内容不能为"<< params[row].toArray()[col].toString();
+    QJsonArray arrayRow = params[row].toArray();
+    arrayRow[col] = str;
+    params[row] = arrayRow;
+    qDebug() <<"修改的内容为"<< params;
 }
 
 
 void CameraFocalLengthDialog::on_pushButton_reset_page_quit_clicked()
 {
     ui->stackedWidget_action->setCurrentWidget(ui->page_action);
+}
+
+
+void CameraFocalLengthDialog::on_tableWidget_CameraFocal_cellChanged(int row, int column)
+{
+    qDebug() << "单元格变化row:" << row << "column:" << column;
+    if(row == -1 || column ==-1 || column >= Value){
+        // ToolTip::ShowText(tr("请先选择要执行的单元格"), -1);
+        return;
+    }
+    QTableWidgetItem* item = ui->tableWidget_CameraFocal->item(row, column);
+    if(item) {
+        qDebug() << "New value:" << item->text();
+    }
+    if(row >= params.size() ){
+        // 直接添加包含三个空数据的QJsonArray
+        params.append(QJsonArray({"", "", ""}));
+    }
+    QString str = item->text();
+    qDebug()<< params;
+    QJsonArray arrayRow = params[row].toArray();
+    arrayRow[column] = str;
+    params[row] = arrayRow;
+    qDebug()<< params;
 }
 
