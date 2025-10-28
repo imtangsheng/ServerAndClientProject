@@ -165,19 +165,20 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     double cameraHight = in.value("CameraHight").toDouble(1.8);//相机中心到轨面的高度
     //static double gScannerHight = ;
     double scannerHight = in.value("ScannerHight").toDouble(0.5544);//扫描仪中心到轨面高度是554.4mm
+
     if (cameraHight < 2 * scannerHight || cameraHight > 5) {
         LOG_ERROR(tr("相机中心到轨面的高度%1不符合要求,请重新输入").arg(cameraHight));
         return;
     }
     double shiftUp = cameraHight - scannerHight;//向上移动原点
-    size_t parteQual = in.value("partes").toInt(15);//等分数 分布的角度值 范围(0-2*M_PI)
+    size_t partEqual = in.value("group").toInt(15);//等分数 分布的角度值 范围(0-2*M_PI)
 
-    qDebug() << "相机中心高度" << cameraHight << "扫描仪中心到轨面高" << scannerHight << "等分数" << parteQual;
+    qDebug() << "相机中心高度" << cameraHight << "扫描仪中心到轨面高" << scannerHight << "等分数" << partEqual;
     static double rangeValue = 0.2;//组与其他一个组之间的重叠率,取开始的一个计算范围
 
-    double interval_angle = (2 * M_PI / parteQual);//分组的角度值
-    QList<double> rangeAngle(parteQual);//等分的起始角度
-    for (int i = 0; i < parteQual; i++) {
+    double interval_angle = (2 * M_PI / partEqual);//分组的角度值
+    QList<double> rangeAngle(partEqual);//等分的起始角度
+    for (int i = 0; i < partEqual; i++) {
         rangeAngle[i] = (i * interval_angle + rangeValue * interval_angle);
     }
 
@@ -219,12 +220,12 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     delete[] positions;
     delete[] reflections;
 
-    QVector<QVector<double>> groups(parteQual);//预分配组
+    QVector<QVector<double>> groups(partEqual);//预分配组
     auto processPoints = [&](const QVector<ScanPointPolar>& points, bool isFirstHalf = true) {
         for (const auto& point : points) {
             //取正上方向为拍照焦距设置
             double angle = isFirstHalf ? (3.0 / 2 * M_PI + point.theta) : ((point.theta - 1.0 / 2 * M_PI) * -1);
-            size_t groupIndex = static_cast<int>(angle / interval_angle) % parteQual;//分组索引 有范围2pi[0-2pi)
+            size_t groupIndex = static_cast<int>(angle / interval_angle) % partEqual;//分组索引 有范围2pi[0-2pi)
             // 处理重叠部分 摄像头景深,取某个范围的值
             if (angle < rangeAngle.at(groupIndex)) {
                 groups[groupIndex].append(point.r);
@@ -237,11 +238,11 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     qDebug() << "#Faro:FLS文件数据分组完成";
     // 计算中位数
     QJsonArray focal;
-    for (size_t i = 0; i < parteQual; i++) {
+    for (size_t i = 0; i < partEqual; i++) {
         double median = CalculateMedian(groups[i]);
         if (median < InvalidValue) median = cameraHight;
         //扫描死角出现为0,默认设置为相机高度,(小于扫描仪高度就可以,如果输入的值小于标定的最小高度就按标定的值计算)
-        focal.insert(i, median - gCameraCenterToLens);
+        focal.insert(i, median);
     }
     qDebug() << "#Faro:FLS文件数据分组完成计算中位数" << focal;
     QString outfile_path = flsFileDir + "/camera_focal.json";

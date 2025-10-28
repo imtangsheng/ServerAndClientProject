@@ -115,7 +115,7 @@ void CameraFocalLengthDialog::on_pushButton_get_clicked()
     double Scanner_Hight = param.at(ScannerCenterHight).toString().toDouble();
     res["CameraHight"] = Camera_Hight;
     res["ScannerHight"] = Scanner_Hight;
-    res["partes"] = ui->comboBox_parts->currentText().toInt();//15机位 15个分组
+    res["group"] = ui->comboBox_parts->currentText().toInt();//15机位 15个分组
 
     Session session(scanner->_module(), "GetCameraPositionDistance",res);
     // gControl.sendTextMessage(session.GetRequest());
