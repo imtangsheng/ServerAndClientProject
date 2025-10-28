@@ -97,6 +97,7 @@ public:
         return handlers.keys();
     }
 #pragma region InvokeMethod
+    void shellProcess(QString exeFilePath, QStringList arguments);
     /**
 		* @brief 使用宏定义自动生成映射
 		* @param message 消息内容

@@ -146,7 +146,7 @@ static double CalculateMedian(QVector<double>& values) {
 //		return (theta -1.0 / 2 * M_PI)*-1;
 //}
 
-constexpr int col_focus = 50;//相机计算列,默认中间列
+constexpr int col_focus = 40;//相机计算列,默认中间列
 void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     qDebug() << "进行相机角度焦距计算:" << QThread::currentThread();
 
@@ -171,6 +171,8 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     }
     double shiftUp = cameraHight - scannerHight;//向上移动原点
     size_t parteQual = in.value("partes").toInt(15);//等分数 分布的角度值 范围(0-2*M_PI)
+
+    qDebug() << "相机中心高度" << cameraHight << "扫描仪中心到轨面高" << scannerHight << "等分数" << parteQual;
     static double rangeValue = 0.2;//组与其他一个组之间的重叠率,取开始的一个计算范围
 
     double interval_angle = (2 * M_PI / parteQual);//分组的角度值
@@ -234,18 +236,18 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     processPoints(secondHalf, false);
     qDebug() << "#Faro:FLS文件数据分组完成";
     // 计算中位数
-    QJsonArray focals;
+    QJsonArray focal;
     for (size_t i = 0; i < parteQual; i++) {
         double median = CalculateMedian(groups[i]);
         if (median < InvalidValue) median = cameraHight;
         //扫描死角出现为0,默认设置为相机高度,(小于扫描仪高度就可以,如果输入的值小于标定的最小高度就按标定的值计算)
-        focals.insert(i, median - gCameraCenterToLens);
+        focal.insert(i, median - gCameraCenterToLens);
     }
-    qDebug() << "#Faro:FLS文件数据分组完成计算中位数" << focals;
-    QString outfilepath = flsFileDir + "/camera_focal.json";
+    qDebug() << "#Faro:FLS文件数据分组完成计算中位数" << focal;
+    QString outfile_path = flsFileDir + "/camera_focal.json";
     QJsonObject out;
-    out["focals"] = focals;
-    ret = WriteJsonFile(outfilepath, out);
+    out["focal"] = focal;
+    ret = WriteJsonFile(outfile_path, out);
     if (!ret) { LOG_ERROR(ret.message); return; }
     session.result = out;
     gShare.on_session(session.ResponseSuccess(out, tr("测量相机焦距成功")) , session.socket);

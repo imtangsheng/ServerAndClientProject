@@ -1,6 +1,4 @@
-﻿// main.cpp (服务器)
-#pragma execution_character_set("utf-8") 
-#include <QCoreApplication>
+﻿#include <QCoreApplication>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
 #include <QFileInfo>
@@ -15,7 +13,7 @@ int main(int argc, char* argv[])
     
     // 安装消息处理钩子，重定向QDebug输出
 #ifdef QT_NO_DEBUG
-    Logger::getInstance()->init("logs", "RealtimeSolving", Warning, true);
+    Logger::getInstance()->init("../logs", "RealtimeSolving", Warning, true);
     Logger::getInstance()->installMessageHandler();
 #endif // QT_DEBUG
     QCoreApplication::setApplicationName("RealtimeSolving");
@@ -49,7 +47,7 @@ int main(int argc, char* argv[])
     // 检查必要参数是否提供
     if (faroFile.isEmpty()) {
         qWarning() << "错误:\n没有提供需要解析的法如文件路径,是否缺少参数'--faroFile' (or '-f').\n";
-        QTextStream(stdout) << parser.helpText() << Qt::endl;//控制台显示
+        QTextStream(stdout) << parser.helpText().toUtf8().data() << Qt::endl;//控制台显示
         QThread::sleep(5); // 暂停秒
         //parser.showHelp(); //显示帮助信息后会立即退出程序
         //system("pause"); // Windows系统下使用pause命令
@@ -84,12 +82,13 @@ int main(int argc, char* argv[])
     // 实时解算功能,生成图片 RealtimeSolving
     TaskFaroPart task;
     task.task_dir = taskDir;
-    task.faro_file = faroFile;// "E:/Test/test/PointCloud/Scan001.fls";
+    task.faro_file = faroFile;
     task.mileage_file = QDir(taskDir).filePath("mileage.txt");
     task.clinometer_file = QDir(taskDir).filePath("Inclinometer.txt");
 
-    RealtimeSolving solviong;
-    qDebug() << "#法如文件实时解算生成图像,深度图和灰度图结果:" << solviong.writeFaroImage(task, imagePath);
-
-    app.exit(0);//发出退出信号
+    RealtimeSolving solving;
+    qDebug() << "#法如文件实时解算生成图像,深度图和灰度图结果:";
+    qDebug() << solving.writeFaroImage(task, imagePath);
+    QThread::sleep(5); // 暂停
+    return 0;  // 直接返回，不调用app.exec()
 }

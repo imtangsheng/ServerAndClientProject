@@ -1,6 +1,5 @@
 #ifndef LOGGER_H
 #define LOGGER_H
-#pragma execution_character_set("utf-8")
 #include <QObject>
 #include <QFile>
 #include <QDir>

@@ -277,7 +277,7 @@ Result FaroControl::SetParameters(QJsonObject param) {
             return Result::Failure(tr("目录%1创建失败").arg(path));
         }
     }
-    
+    Q_ASSERT(dir.exists(),tr("扫描仪参数错误"),tr("文本保存目录必须存在"));
     scanCtrl->_ScanMode = HelicalCanGrey;
     scanCtrl->_StorageMode = SMRemote;//SMRemote: Store scans on the remote computer (the computer the SDK is running on).
     scanCtrl->ScanFileNumber = 1;
@@ -429,6 +429,7 @@ Result FaroControl::OnStarted(const CallbackResult& callback) {
     }
     emit onScanStateChanged(StateEvent::PreStart);
     LOG_INFO(tr("扫描仪已启动,请等待10秒后开始采集数据"));
+    //此处如果不使用CAN指令触发,则使用定时器9秒后开始录制(8秒多一点预启动完成)
     return true;
 }
 
@@ -447,44 +448,56 @@ Result FaroControl::OnStopped(const CallbackResult& callback) {
 }
 
 void FaroControl::onDirectoryChanged(const QString& path) {
-    {
-        // 获取当前文件列表
-        QDir dir(path);
-        // 只监控 .txt 和 .log 文件
-        QStringList filters;
-        filters << "*.fls";
-        QFileInfoList currentFiles = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);//QDir::Time 时间排序
-        if (this->isNextStopToggled) {
-            if (ScanStop() == faro::OK) {
-                this->isNextStopToggled = false;
-                stopMonitoring();
-                QString lastFilePath = currentFiles.last().absoluteFilePath();
-                qInfo() << "停止扫描成功,15秒后删除文件:" << lastFilePath;
-                LOG_INFO(tr("扫描仪停止成功,请确认停止后,等待约15秒后执行返回操作"));
-                QTimer::singleShot(15000, [=]() { //大概停止10秒后文件的最后修改时间
-                    QFile file(lastFilePath);
-                    if (!file.remove()) {
-                        qWarning() << "删除文件失败" << file.errorString() << "-错误代码:" << file.error() << "Windows error:" << GetLastError();
-                        LOG_ERROR(tr("扫描仪在结束采集任务时,删除文件%1失败, 请手动删除").arg(lastFilePath));
-                    } else {
-                        LOG_INFO(tr("扫描仪停止采集任务成功,请继续操作"));
-                    };
-                    });
+    /* 获取当前文件列表
+    * isNextStopToggled 标志表示完成当前的文件分块后,立马停止采集,表示需要采集一个完整的 fls文件
+    * 实时预览需要等待采集完整的一个 fls文件,才能进行预览,即读取解析的是上一个文件的内容
+    * 
+    */
+    QDir dir(path);
+    // 只监控 .txt 和 .log 文件
+    QStringList filters;
+    filters << "*.fls";
+    QFileInfoList currentFiles = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);//QDir::Time 时间排序
+    if (this->isNextStopToggled) {
+        if (ScanStop() == faro::OK) {
+            this->isNextStopToggled = false;
+            stopMonitoring();
+            QString lastFilePath = currentFiles.last().absoluteFilePath();
+            qInfo() << "停止扫描成功,15秒后删除文件:" << lastFilePath;
+            LOG_INFO(tr("扫描仪停止成功,请确认停止后,等待约15秒后执行返回操作"));
+            QTimer::singleShot(15000, [=]() { //大概停止10秒后文件的最后修改时间
+                QFile file(lastFilePath);
+                if (!file.remove()) {
+                    qWarning() << "删除文件失败" << file.errorString() << "-错误代码:" << file.error() << "Windows error:" << GetLastError();
+                    LOG_ERROR(tr("扫描仪在结束采集任务时,删除文件%1失败, 请手动删除").arg(lastFilePath));
+                } else {
+                    LOG_INFO(tr("扫描仪停止采集任务成功,请继续操作"));
+                };
+                });
 
-            } else {
-                qWarning() << "停止扫描失败";
-                LOG_ERROR(tr("扫描仪停止失败, 请检查设备状态"));
-            }
         } else {
-            QString FileNames;
-            foreach(const auto& fileInfo, currentFiles) {
-                FileNames.append(QString("%1\t%2\n").arg(fileInfo.fileName()).arg(fileInfo.birthTime().toString("hh:mm:ss.zzz")));
-            }
-            QJsonObject obj;
-            obj["FileNames"] = FileNames;
-            obj["Time"] = QDateTime::currentDateTime().toMSecsSinceEpoch();
-            Session session(sModuleScanner, "onWatcherFilesChanged", QJsonArray{ obj });
-            gShare.on_session(session.GetRequest());
+            qWarning() << "停止扫描失败";
+            LOG_ERROR(tr("扫描仪停止失败, 请检查设备状态"));
+        }
+    } else {
+        QString FileNames;
+        foreach(const auto& fileInfo, currentFiles) {
+            FileNames.append(QString("%1\t%2\n").arg(fileInfo.fileName()).arg(fileInfo.birthTime().toString("hh:mm:ss.zzz")));
+        }
+        QJsonObject obj;
+        obj["FileNames"] = FileNames;
+        obj["Time"] = QDateTime::currentDateTime().toMSecsSinceEpoch();
+        Session session(sModuleScanner, "onWatcherFilesChanged", QJsonArray{ obj });
+        gShare.on_session(session.GetRequest());
+    }
+    //开启了实时预览
+    if (gSettings->value("IsRealtimePreview").toBool()) {
+        qsizetype filecount = currentFiles.count();
+        if (filecount >= 2) {
+            QString filepath = currentFiles[filecount - 2].absoluteFilePath();
+            QStringList args = { "-f", filepath };
+            QString exePath = gShare.appPath + "/FaroPreview.exe";
+            gShare.shellProcess(exePath, args);
         }
     }
 }

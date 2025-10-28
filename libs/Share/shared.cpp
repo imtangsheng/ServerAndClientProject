@@ -1,3 +1,4 @@
+#include "shared.h"
 
 // 全局变量定义
 QSharedPointer<FileInfoDetails> gProjectFileInfo;//当前正在执行的项目信息(主要客户端使用)
@@ -62,6 +63,14 @@ void Shared::on_send(const Result& result, const Session& session) {
     } else {
         on_session(session.Finished(result.code, result.message), session.socket);
     }
+}
+#include <QProcess>
+void share::Shared::shellProcess(QString exeFilePath, QStringList arguments) {
+    static QProcess process;
+    process.setProgram(exeFilePath);
+    process.setArguments(arguments);
+    process.start();
+    //process.waitForFinished(-1); // 等待进程结束
 }
 
 /**

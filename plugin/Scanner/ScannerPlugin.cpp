@@ -7,6 +7,8 @@
 #include "ScannerPlugin.h"
 #include "Faro/FaroControl.h"
 static FaroControl* gFaroCtrl{nullptr};
+
+/*自动调焦的计算,应当放入工具集当中的方法,而不是模块,需要后期修改*/
 #include "Faro/FaroHandle.h"
 static FaroHandle* gFaroHandle{ nullptr };
 
@@ -17,7 +19,7 @@ ScannerPlugin::ScannerPlugin()
     qDebug() << "[#Scanner]构造函数" << QThread::currentThread();
     gFaroCtrl = new FaroControl(this);
     gFaroHandle = new FaroHandle();
-    //state_ = StateEvent::Waiting;
+    state_ = StateEvent::Waiting;
 }
 
 ScannerPlugin::~ScannerPlugin()
@@ -252,6 +254,7 @@ void ScannerPlugin::GetCameraPositionDistance(const Session& session) {
     //ret = gFaroCtrl->ScanRecord();
     //gFaroHandle->CreateCameraFocalByScanFile(param);
     // 异步调用
+    gFaroHandle->awake();
     gFaroHandle->session = session;
     QMetaObject::invokeMethod(gFaroHandle, "CreateCameraFocalByScanFile",
         Qt::QueuedConnection,

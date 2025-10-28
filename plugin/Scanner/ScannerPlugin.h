@@ -25,8 +25,8 @@ public:
     //直接调用 使用回调函数在执行特定顺序的任务
     Result OnStarted(const CallbackResult& callback = nullptr) final;
     Result OnStopped(const CallbackResult& callback = nullptr) final;
-
     Q_INVOKABLE Result Shutdown() final;
+
 private:
     Result TryConnect();
     void CheckConnect();

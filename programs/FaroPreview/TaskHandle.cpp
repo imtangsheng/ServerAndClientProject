@@ -791,7 +791,7 @@ bool WritePointCloudImage(TaskFaroPart& part, const QString& grayImagePath, cons
 	//qDebug() << "#2 图像生成深度图和灰度图数据" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 	if (ret) {
 		saveImage(grayImagePath, grayImage);
-		saveImage(depthImage,depthImagePath);
+		//saveImage(depthImage,depthImagePath); //不要深度图
 	}
 	return ret;
 }

@@ -55,9 +55,12 @@ bool RealtimeSolving::writeFaroImage(TaskFaroPart& task, const QString& imagePat
     qDebug() << "#2 点云解析展开 " << startTime.msecsTo(QDateTime::currentDateTime()) << " ms";
 
     //#2 图像生成
+    QDir imgDir(imagePath);
+    if (!imgDir.exists()) imgDir.mkdir(".");
+
     QString fls_base_name = baseName(task.faro_file.toStdString()).data();
-    QString grayPath = QDir(imagePath).filePath(fls_base_name + "_gray.jpg");//该格式更清晰,更小1566KB tiff为无压缩图像格式:6704KB opencv:为5786KB
-    QString depthPath = QDir(imagePath).filePath(fls_base_name + "_depth.jpg");//181KB tiff:6709KB opencv:371KB
+    QString grayPath = imgDir.filePath(fls_base_name + "_gray.jpg");//该格式更清晰,更小1566KB tiff为无压缩图像格式:6704KB opencv:为5786KB
+    QString depthPath = imgDir.filePath(fls_base_name + "_depth.jpg");//181KB tiff:6709KB opencv:371KB
     task.resolving = 1000 / 5;
     task.diameter = 5.4;
     if(!WritePointCloudImage(task,grayPath, depthPath)) return false;
@@ -68,12 +71,12 @@ bool RealtimeSolving::writeFaroImage(TaskFaroPart& task, const QString& imagePat
 void RealtimeSolving::test()
 {
     TaskFaroPart task;
-    task.faro_file = "E:/Test/test/PointCloud/Scan001.fls";
-    task.mileage_file = "E:/Test/test/Task/mileage.txt";
-    task.clinometer_file = "E:/Test/test/Task/Inclinometer.txt";
-    task.task_dir = "E:/Test/test/Task";
+    task.faro_file = "../test/PointCloud/Scan001.fls";
+    task.mileage_file = "../test/Task/mileage.txt";
+    task.clinometer_file = "../test/Task/Inclinometer.txt";
+    task.task_dir = "../test/Task";
 
-    QString imagePath = "E:/Test/test/PointCloudImage/";
+    QString imagePath = "../test/PointCloudImage/";
     qDebug() << "#图像生成 深度图和灰度图 结果" << writeFaroImage(task, imagePath);
     return;
 }
