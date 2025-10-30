@@ -13,6 +13,11 @@ ScannerWidget::ScannerWidget(MainWindow* parent)
     ChildWidget::initialize();
 
     gShare.RegisterHandler(_module(),this);
+    // 注册当前类的成员函数作为处理器
+    gShare.handlerBinarySession[share::ModuleName::scanner] = [this](const QByteArray& bytes) {
+        qDebug() <<_module() << "gShare.handlerBinarySession[] = [this](const QByteArray& bytes"<< bytes.size();
+        handle_binary_message(bytes);
+    };
 }
 
 ScannerWidget::~ScannerWidget()
@@ -67,6 +72,7 @@ void ScannerWidget::UpdateTaskConfigSync(QJsonObject &content)
     }
 
     // content[OriginalScanDir] = gTaskFileInfo->path + "/" + kTaskDirPointCloudName;
+    clearImageItem();//清空之前的任务预览的图片信息
 }
 
 
@@ -141,6 +147,12 @@ void ScannerWidget::onWatcherFilesChanged(QJsonObject obj)
     if(filenames.isEmpty()) return;
     ui->plainTextEdit_WatcherFiles->setPlainText(filenames);
     ui->plainTextEdit_WatcherFiles->moveCursor(QTextCursor::End);
+}
+
+void ScannerWidget::handle_binary_message(const QByteArray &bytes)
+{
+    //接收二进制图片文件
+    addImageItem(bytes);
 }
 
 QRadioButton *ScannerWidget::GetButtonDeviceManager()
@@ -575,7 +587,6 @@ void ScannerWidget::on_pushButton_ScanSetParameter_clicked()
     if (!gControl.SendAndWaitResult(session,tr("设置扫描仪参数"))) {
         ToolTip::ShowText(session.message, -1);
     }
-
 }
 
 
@@ -588,5 +599,39 @@ void ScannerWidget::on_radioButton_monitor_files_clicked()
 void ScannerWidget::on_radioButton_monitor_image_clicked()
 {
     ui->stackedWidget_MonitorInfo->setCurrentWidget(ui->page_WatcherImage);
+}
+
+void ScannerWidget::addImageItem(const QByteArray &data)
+{
+    if (data.isEmpty()) {
+        qWarning() << "数据为空";
+        return;
+    }
+    QDataStream stream(data);
+    QString name;
+    QByteArray fileBytes;
+    stream >> name >> fileBytes;
+    // 从字节数组创建 QPixmap
+    QPixmap pixmap;
+    if (!pixmap.loadFromData(fileBytes)) {
+        qWarning() << "Failed to load image from data";
+        return;
+    }
+    // 创建缩略图（可选，用于优化显示性能）
+    // QPixmap thumbnail = pixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    // 创建 QListWidgetItem
+    QListWidgetItem *item = new QListWidgetItem();
+    item->setIcon(QIcon(pixmap));
+    item->setText(name); // 可选：设置显示文本
+    // 设置文字居中对齐
+    item->setTextAlignment(Qt::AlignCenter);
+    ui->listWidgetImage->addItem(item);
+    ui->listWidgetImage->scrollToItem(item);// 滚动到最新项
+}
+
+void ScannerWidget::clearImageItem()
+{
+    ui->listWidgetImage->clear();
+    qDebug() << "已清除所有图片项";
 }
 

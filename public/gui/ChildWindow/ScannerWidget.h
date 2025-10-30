@@ -36,6 +36,7 @@ public slots:
     void onConfigChanged(QJsonObject config) final;
     void onDeviceStateChanged(double state) final;
     void onWatcherFilesChanged(QJsonObject obj);
+    void handle_binary_message(const QByteArray &bytes);
 protected:
     QRadioButton* GetButtonDeviceManager() final;
     QWidget* GetWidgetDeviceManager() final;
@@ -119,6 +120,8 @@ private slots:
 private:
     // void retranslate();
     bool isPowerSupply{false};//是否处于供电状态
+    void addImageItem(const QByteArray &data);
+    void clearImageItem();
 };
 
 inline QPointer<ScannerWidget>gScanner;

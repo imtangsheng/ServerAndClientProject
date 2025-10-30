@@ -228,6 +228,10 @@ FaroControl::FaroControl(QObject* parent)
     //ip = "192.168.1.20";//测试
 
     connect(&watcher, &QFileSystemWatcher::directoryChanged, this, &FaroControl::onDirectoryChanged);
+    connect(&watcherPreview, &QFileSystemWatcher::directoryChanged,this, &FaroControl::addPreviewFile);
+
+    //测试预览
+    //startMonitoring("../test/PointCloud");
 }
 
 FaroControl::~FaroControl() {
@@ -500,5 +504,43 @@ void FaroControl::onDirectoryChanged(const QString& path) {
             gShare.shellProcess(exePath, args);
         }
     }
+}
+
+void FaroControl::addPreviewFile(const QString& path) {
+    /* 后续优化方向，是保存文件名称，对比后只要新增加的 使用的任务文件刷新一次（20次刷新缓存后不用立马刷新）*/
+    QDir dir(path);
+    // 只监控 .txt 和 .log 文件
+    QStringList filters;
+    filters << "*.jpg" << "*.JPG" << "*.jpeg" << "*.JPEG" << "*.png" << "*.PNG" << "*.bmp" << "*.BMP" << "*.tiff" << "*.TIFF" << "*.tif" << "*.TIF";
+    QFileInfoList currentFiles = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot,QDir::Time);// 时间排序
+    if (currentFiles.isEmpty()) {
+        return;
+    }
+    QString lastFilePath = currentFiles.first().absoluteFilePath();//最新 last()最旧，即时间最早的，这里需要是最新生成的文件
+    
+    //测试是否需要等待
+    QFileInfo fileInfo(lastFilePath);
+    // 检查文件权限
+    if (!fileInfo.isReadable()) {
+        qDebug() << "文件不可读，等待权限:" << lastFilePath;
+        return;
+    }
+    // 检查文件是否正在被其他进程使用（Windows）
+
+    static quint8 invoke_module = share::ModuleName::scanner;
+    static QByteArray data;
+    //读取文件内容
+    QFile file(lastFilePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "打开文件失败" << file.errorString();
+        return;
+    }
+    data = file.readAll();
+    QString fileName = fileInfo.fileName();
+    QByteArray bytes;
+    QDataStream stream(&bytes, QIODevice::ReadWrite);
+    stream << invoke_module << fileName << data;
+    qDebug() << "扫描仪发送图片二进制数据:" << bytes.size() << "字节";
+    emit gShare.sigSentBinary(bytes);//推送二进制数据
 }
 

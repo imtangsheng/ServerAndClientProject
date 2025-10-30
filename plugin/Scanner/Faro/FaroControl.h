@@ -39,8 +39,10 @@ public:
 
     QAtomicInteger<bool> isNextStopToggled = false;//The next stop triggers完成一个文件,判断是否停止的标志
     QFileSystemWatcher watcher;
+    QFileSystemWatcher watcherPreview;
     void startMonitoring(const QString& path) {
-        if (!QDir().exists(path)) {
+        QDir flsDir(path);
+        if (!flsDir.exists()) {
             qWarning() << "扫描文件监控文件夹路径不存在:" << path;
             return;
         }
@@ -48,12 +50,24 @@ public:
             qDebug() << "扫描文件监控文件夹路径:" << path;
             watcher.addPath(path);
         }
+        flsDir.cdUp();
+        flsDir.cd("PointCloudImage");
+        if (!flsDir.exists()) {
+            flsDir.mkpath(".");
+        }
+        if (!watcherPreview.directories().contains(flsDir.absolutePath())) {
+            qDebug() << "扫描预览文件监控文件夹路径:" << flsDir.absolutePath();
+            watcherPreview.addPath(flsDir.absolutePath());
+        }
+
     }
     void stopMonitoring() {
         watcher.removePaths(watcher.directories());//移除所有目录
+        watcherPreview.removePaths(watcherPreview.directories());
     }
 public slots:
     void onDirectoryChanged(const QString& path);
+    void addPreviewFile(const QString& path);
 signals:
     void onScanStateChanged(StateEvent::State state);
 };
