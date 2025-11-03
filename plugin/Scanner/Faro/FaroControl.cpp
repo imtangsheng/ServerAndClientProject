@@ -281,7 +281,7 @@ Result FaroControl::SetParameters(QJsonObject param) {
             return Result::Failure(tr("目录%1创建失败").arg(path));
         }
     }
-    Q_ASSERT(dir.exists(),tr("扫描仪参数错误"),tr("文本保存目录必须存在"));
+    Q_ASSERT(dir.exists());
     scanCtrl->_ScanMode = HelicalCanGrey;
     scanCtrl->_StorageMode = SMRemote;//SMRemote: Store scans on the remote computer (the computer the SDK is running on).
     scanCtrl->ScanFileNumber = 1;
@@ -500,7 +500,8 @@ void FaroControl::onDirectoryChanged(const QString& path) {
         if (filecount >= 2) {
             QString filepath = currentFiles[filecount - 2].absoluteFilePath();
             QStringList args = { "-f", filepath };
-            QString exePath = gShare.appPath + "/FaroPreview.exe";
+            QString exePath = gShare.appPath + "/bin/FaroPreview.exe";
+            qDebug() << "启动预览:" << exePath << args;
             gShare.shellProcess(exePath, args);
         }
     }

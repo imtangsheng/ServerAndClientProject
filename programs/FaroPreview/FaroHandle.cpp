@@ -11,6 +11,11 @@ size_t g_num_cols{ 0 };        ///< 扫描列数
 static bool gs_is_faro_initialized = false;//法如初始化标志
 double g_points_per_millisecond{ 1.024 }; // 976 kHz; ≈ 1.024 毫秒 / 点 数据记录时间
 
+inline static BSTR FaroString(QString str) {
+	return SysAllocString(reinterpret_cast<const OLECHAR*>(str.utf16()));
+	//return _bstr_t(str.toStdString().c_str());//不支持中文
+}
+
 /**
  * @brief import directive of iQOpen.SDK
  * 声明法如扫描的解析变量,参考FARO自动化手册
@@ -83,16 +88,19 @@ static bool FaroInitialized() {
 }
 //The performance to retrieve the scan points of a scan with getScanPoint depends on the number of scans in the workspace.The more scans the workspace has, the slower the access will be.The arrays in getXYZScanPoints and getPolarScanPoints are not managed!Therefore these functions can only be used in C++!
 //使用 getScanPoint 检索扫描的扫描点的性能取决于工作区中的扫描数量。工作区的扫描次数越多，访问速度就越慢。getXYZScanPoints 和 getPolarScanPoints 中的数组不受管理！因此，这些函数只能在 C++ 中使用！
-static bool FaroLoadFlsFile(const char* fileName) {
+static bool FaroLoadFlsFile(QString fileName) {
 	if (!FaroInitialized()) {
 		return false;
 	}
 	try {
 		// 加载FLS文件 行 列  4268 5000 13722 ms
+		qDebug() << "#Faro:加载FLS文件:"<< fileName;
 		static QDateTime startTime = QDateTime::currentDateTime();
-		_bstr_t filepathBstr(fileName);
+		BSTR filepathBstr = FaroString(fileName);
 		// 加载文件不支持多个实例多线程,有锁
-		if (libRef->load(filepathBstr) != 0) {
+		int ret = libRef->load(filepathBstr);//Return Values: 	0, 11, 12, 13, 25
+		if (ret != 0) {
+			QObject::tr("[#Faro]文件格式错误,错误码%1").arg(ret);//11 没有工作空间 No workspace 
 			throw FlsParseError::kFlsFormatError;
 		}
 		qDebug() << "#Faro:加载FLS文件:" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
@@ -134,9 +142,9 @@ static size_t FaroCalculatePointsPerNanoseconds(int measurementRate = 8) {
 	return  (1.0 / pointsPerSecond) * 1000000 * 1000;
 }
 
-bool LoadFaroFlsFile(const std::string& fileName)
+bool LoadFaroFlsFile(const QString& fileName)
 {
-	if (!FaroLoadFlsFile(fileName.data())) {
+	if (!FaroLoadFlsFile(fileName)) {
 		return false;
 	}
 	// 获取扫描维度
@@ -146,7 +154,7 @@ bool LoadFaroFlsFile(const std::string& fileName)
 }
 
 //Helical Mode 螺旋模式
-bool ReadFaroFileData(const std::string& fileName, std::vector< std::vector<PointCloud>>& pointsRes, bool direction)
+bool ReadFaroFileData(const QString& fileName, std::vector< std::vector<PointCloud>>& pointsRes, bool direction)
 {
 	if (!LoadFaroFlsFile(fileName)) {
 		return false;
@@ -219,7 +227,7 @@ bool ReadFaroFileData(const std::string& fileName, std::vector< std::vector<Poin
 	return true;
 }
 
-bool GetFaroFileStartAndEndTimestamp(const std::string& fileName, unsigned __int64& start, unsigned __int64& end)
+bool GetFaroFileStartAndEndTimestamp(const QString& fileName, unsigned __int64& start, unsigned __int64& end)
 {
 	static QDateTime startTime = QDateTime::currentDateTime();
 	if (!LoadFaroFlsFile(fileName)) {

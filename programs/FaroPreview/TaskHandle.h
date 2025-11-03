@@ -2,9 +2,9 @@
 #include "iTask.h"
 
 //std::vector 本身不是线程安全的,使用读取txt的值
-bool get_mileage_from_file(const std::string& taskPath, std::vector<Mileage>& mileage);
+bool get_mileage_from_file(const QString& sMileagePath, std::vector<Mileage>& mileage);
 //倾角计
-bool get_clinometer_from_file(const std::string& taskPath, std::vector<Clinometer>& vec);
+bool get_clinometer_from_file(const QString& taskPath, std::vector<Clinometer>& vec);
 
 //点云展开 用于选择使用 expandPointcloud 使用的模型
 bool PointCloudExpand(bool hasClinometer, TaskFaroPart &part);

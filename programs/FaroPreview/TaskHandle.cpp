@@ -69,10 +69,11 @@ QJsonObject loadJsonFromFile(const QString& filePath)
 	return doc.object();
 }
 
-static bool GetMile(const std::string& path, std::vector<MileageData>& data) {
-	std::ifstream file(path);
+static bool GetMile(const QString& path, std::vector<MileageData>& data) {
+	std::wstring widePath = path.toStdWString();
+	std::ifstream file(widePath.c_str());
 	if (!file.is_open()) {
-		std::cerr << "Error: Failed to open file: " << path << std::endl;
+		qWarning() << "Error: Failed to open file: " << path;
 		return false;
 	}
 
@@ -156,17 +157,16 @@ static void Interp1(const std::vector<long long>& Time, const std::vector<Mileag
 	Mixdata[0].RightMileage = 0.0; Mixdata[0].RightTime = Mixdata[1].RightTime - 1e5;
 }
 
-static bool LeftRightMileageFusion(const std::string& path, std::vector<Mileage>& result) {
+static bool LeftRightMileageFusion(const QString& path, std::vector<Mileage>& result) {
 	std::vector<MileageData> data, Mixdata;
 
 	// 读取数据
 	if (!GetMile(path, data)) {
-		std::cerr << "Error: Failed to read data from file: " << path << std::endl;
 		return false;
 	}
 	size_t num = data.size();
 	if (num == 0) {
-		std::cerr << "Error: No data found in file: " << path << std::endl;
+		qWarning() << "No data found in file: " << path;
 		return false;
 	}
 	// 根据数据类型处理
@@ -226,27 +226,21 @@ static bool LeftRightMileageFusion(const std::string& path, std::vector<Mileage>
 	return true;
 }
 
-bool get_mileage_from_file(const std::string& taskPath, std::vector<Mileage>& mileage)
+bool get_mileage_from_file(const QString& sMileagePath, std::vector<Mileage>& mileage)
 {
-	std::string srcMileage = taskPath + "/mileage.txt";
-	std::ifstream f(srcMileage);
-	if (!f.is_open())
-	{
-		return false;
-	}
-	f.close();
-	if (LeftRightMileageFusion(srcMileage, mileage)) {
+	qDebug() << "get_mileage_from_file :" << sMileagePath;
+	if (LeftRightMileageFusion(sMileagePath, mileage)) {
 		return true;
 	}
 	return false;
 }
 
-
-bool get_clinometer_from_file(const std::string& taskPath, std::vector<Clinometer>& vec)
+#include<QDir>
+bool get_clinometer_from_file(const QString& taskPath, std::vector<Clinometer>& vec)
 {
 	vec.clear();
-	std::string srcPath = taskPath + "/Inclinometer.txt";
-	std::string sctimePath = taskPath + "/scannerTime.txt";
+	std::string srcPath = QDir::toNativeSeparators(taskPath + "/Inclinometer.txt").toStdString();
+	std::string sctimePath = QDir::toNativeSeparators(taskPath + "/scannerTime.txt").toStdString();
 
 	//24/11/1
 	std::vector<long long> trolleyTimes;

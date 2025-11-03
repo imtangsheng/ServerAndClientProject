@@ -13,10 +13,11 @@ int main(int argc, char* argv[])
     
     // 安装消息处理钩子，重定向QDebug输出
 #ifdef QT_NO_DEBUG
-    Logger::getInstance()->init("../logs", "RealtimeSolving", Warning, true);
+    Logger::getInstance()->init("../logs", "FaroPreview", Info , false);
+    // 设置控制台输出编码为UTF-8
     Logger::getInstance()->installMessageHandler();
 #endif // QT_DEBUG
-    QCoreApplication::setApplicationName("RealtimeSolving");
+    QCoreApplication::setApplicationName("FaroPreview");
     QCoreApplication::setApplicationVersion("1.0");
 
     QCommandLineParser parser;
@@ -72,7 +73,7 @@ int main(int argc, char* argv[])
         taskDir = dir.absolutePath()+ ("/Task");
         //+ "/Task";// 将taskDir设置为faroFile目录的上一级目录
     }
-    if (imagePath.isEmpty()) imagePath = QDir(faroFileInfo.absolutePath() + ("/../PointCloudImage")).absolutePath();
+    if (imagePath.isEmpty()) imagePath = QDir(faroFileInfo.absolutePath() + ("/../正射影像图")).absolutePath();
     
     // 图片服务器,可以浏览图片
      //ImageServer server;
@@ -87,8 +88,8 @@ int main(int argc, char* argv[])
     task.clinometer_file = QDir(taskDir).filePath("Inclinometer.txt");
 
     RealtimeSolving solving;
-    qDebug() << "#法如文件实时解算生成图像,深度图和灰度图结果:";
-    qDebug() << solving.writeFaroImage(task, imagePath);
+    qDebug() << "#法如文件实时解算生成图像,深度图和灰度图" << faroFile;
+    qDebug() << "结果:" << solving.writeFaroImage(task, imagePath);
     QThread::sleep(5); // 暂停
     return 0;  // 直接返回，不调用app.exec()
 }

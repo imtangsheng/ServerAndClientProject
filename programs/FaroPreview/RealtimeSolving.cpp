@@ -27,13 +27,13 @@ bool RealtimeSolving::writeFaroImage(TaskFaroPart& task, const QString& imagePat
 {
     static QDateTime startTime = QDateTime::currentDateTime();
     //#1-1 执行点云解析 读取里程
-    if (!get_mileage_from_file(task.task_dir.toStdString(), task.mileage)) return false;
+    if (!get_mileage_from_file(task.mileage_file, task.mileage)) return false;
     task.direction = task.mileage[0].mileage_revision < task.mileage.back().mileage_revision;
     qDebug() << "#1 读取mileage文件" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
 
     //#1-2 执行点云解析 倾角计文件和扫描仪小车时间文件 "/Inclinometer.txt" "/scannerTime.txt"
     bool hasClinoData = false;
-    if (get_clinometer_from_file(task.task_dir.toStdString(), task.clinometer)) hasClinoData = true;
+    if (get_clinometer_from_file(task.task_dir, task.clinometer)) hasClinoData = true;
     if (task.clinometer.empty()) hasClinoData = false;
     qDebug() << "#1 读取倾角计文件" << startTime.msecsTo(QDateTime::currentDateTime()) << "ms";
     for (auto& mVecsIt : task.mileage) {
@@ -44,7 +44,7 @@ bool RealtimeSolving::writeFaroImage(TaskFaroPart& task, const QString& imagePat
     }
     qDebug() << "#1 扫描仪小车时间与倾角计数据匹配" << startTime.msecsTo(QDateTime::currentDateTime()) << " ms";
     //#1-读取点云数据
-    if (!ReadFaroFileData(task.faro_file.toStdString(), task.points, task.direction)) return false; 
+    if (!ReadFaroFileData(task.faro_file, task.points, task.direction)) return false; 
 
     qDebug() << "#1 读取点云数据 " << startTime.msecsTo(QDateTime::currentDateTime()) << " ms";
 

@@ -60,7 +60,11 @@ void Logger::log(LogLevel level, const QString& msg,
     }
 
     // 输出到控制台
-    if (consoleOutput) QTextStream(stdout) << text << "\n";
+    if (consoleOutput) {
+        static QTextStream outConsole(stdout);
+        outConsole << text.toStdString().c_str() << "\n"; //支持中文
+    }
+    
 }
 
 QString Logger::formatMessage(LogLevel level, const QString& msg,

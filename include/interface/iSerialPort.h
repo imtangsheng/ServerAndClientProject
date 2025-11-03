@@ -73,6 +73,7 @@ public:
         static QReadWriteLock write;
         QWriteLocker locker(&write);
         //serial->flush(); // 强制立即发送,无用
+        qInfo() << "发送数据:" << data.toHex().toUpper();
         return serial->write(data) == data.size();
     }
 
@@ -91,7 +92,7 @@ public:
         QByteArray crc = CRC16(frame);
         frame.append(crc); 
 #ifdef __DEVICE_TYPE_MS201__
-        frame.append(crc); frame.append(TAIL_BYTES);
+        frame.append(TAIL_BYTES);
 #endif
         return WriteData(frame);
     }

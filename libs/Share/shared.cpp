@@ -67,9 +67,14 @@ void Shared::on_send(const Result& result, const Session& session) {
 #include <QProcess>
 void share::Shared::shellProcess(QString exeFilePath, QStringList arguments) {
     static QProcess process;
+    qDebug() << "QProcess state:" << process.state();
     process.setProgram(exeFilePath);
     process.setArguments(arguments);
     process.start();
+    //if (!process.waitForStarted(3000)) {  // 等待启动，超时 3 秒
+    //    qWarning() << "进程启动失败:" << process.errorString();
+    //    return;
+    //}
     //process.waitForFinished(-1); // 等待进程结束
 }
 
