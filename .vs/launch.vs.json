@@ -1,0 +1,39 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "FaroPreview.exe (out\\bin\\FaroPreview.exe)",
+      "name": "FaroPreview.exe (out\\bin\\FaroPreview.exe)",
+      "args": [
+        "--faroFile",
+        "E:\\works\\src\\SouthProject\\out\\build\\debug\\out\\data\\唐.nfproj\\PointCloud\\Scan001.fls"
+      ]
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "server.exe (out\\bin\\server.exe)",
+      "name": "server.exe (out\\bin\\server.exe)",
+      "args": [
+        "-p",
+        "8080"
+      ]
+    },
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "client.exe (out\\bin\\client.exe)",
+      "name": "client.exe (out\\bin\\client.exe)"
+    },
+    {
+      "type": "dll",
+      "exe": "",
+      "project": "CMakeLists.txt",
+      "projectTarget": "CameraDvpd.dll (out\\plugins\\CameraDvpd.dll)",
+      "name": "CameraDvpd.dll (out\\plugins\\CameraDvpd.dll)"
+    }
+  ]
+}

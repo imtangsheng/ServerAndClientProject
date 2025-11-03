@@ -87,7 +87,7 @@ Result FaroHandle::LoadFlsFile(QString filepath) {
     try {
         // 加载FLS文件 行 列  4268 5000 13722 ms
         static QDateTime startTime = QDateTime::currentDateTime();
-        _bstr_t filepathBstr(filepath.toStdString().c_str());
+        BSTR filepathBstr = FaroString(filepath);
         // 加载文件不支持多个实例多线程,有锁 169错误是文件不存在
         libRef->setAttribute("#app/ScanLoadColor", "0"); // usefull for fls
         int ret = libRef->load(filepathBstr);//Return Values: 	0, 11, 12, 13, 25

@@ -19,7 +19,8 @@ ScannerPlugin::ScannerPlugin()
     qDebug() << "[#Scanner]构造函数" << QThread::currentThread();
     gFaroCtrl = new FaroControl(this);
     gFaroHandle = new FaroHandle();
-    state_ = StateEvent::Waiting;
+    
+    state_ = StateEvent::Waiting;//可以直接调用接口，而不需要先连接，测试使用（方便直接调用测试等功能）
 }
 
 ScannerPlugin::~ScannerPlugin()
