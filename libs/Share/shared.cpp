@@ -66,16 +66,23 @@ void Shared::on_send(const Result& result, const Session& session) {
 }
 #include <QProcess>
 void share::Shared::shellProcess(QString exeFilePath, QStringList arguments) {
-    static QProcess process;
-    qDebug() << "QProcess state:" << process.state();
-    process.setProgram(exeFilePath);
-    process.setArguments(arguments);
-    process.start();
-    //if (!process.waitForStarted(3000)) {  // 等待启动，超时 3 秒
-    //    qWarning() << "进程启动失败:" << process.errorString();
-    //    return;
-    //}
-    //process.waitForFinished(-1); // 等待进程结束
+    QProcess* process = new QProcess();
+    qDebug() << "QProcess state:" << process->state();
+    // 设置进程完成后自动删除
+    QObject::connect(process, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+        process, &QProcess::deleteLater);
+
+    process->setProgram(exeFilePath);
+    process->setArguments(arguments);
+    process->start();
+
+    if (!process->waitForStarted(100)) {
+        qWarning() << "进程启动失败:" << process->errorString();
+        process->deleteLater(); // 启动失败时也要清理
+        return;
+    }
+
+    qDebug() << "成功启动进程:" << exeFilePath;
 }
 
 /**
