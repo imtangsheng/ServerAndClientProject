@@ -277,7 +277,7 @@ namespace serial {
         quint64 GetScanner(quint64 car_time) const {
             return car_time + difference;
         }
-        inline static bool isAwake{false};
+        inline static bool isAwake{false}; /*启动前需要进行一次时间同步,该步骤移界面端判断*/
     };
     struct BatteryInfo {
         uint8_t state; // 00 正常，其他异常
@@ -352,7 +352,6 @@ namespace serial {
     /*定义的数据,用于缓存数据*/
     static inline ScannerAndCarTimeInfo gScannerCarTimeSync;
     static inline qint64 gGetScannerTimeCount{ 0 };//计数
-
     static inline QAtomicInteger<quint64> g_mileage_count{ 0 };//里程计数
 
     inline static constexpr int kMileageUpdateInterval = 20;//界面中的更新推送次数
@@ -362,8 +361,11 @@ namespace serial {
         {"MS201", 0.0000843689430},
         {"MS301", 0.00001054611773681640625}
     };
-
     inline static constexpr SerialDeviceType kSupportSerialCar = SERIAL_CAR;
+    inline void CarResetCount() {
+        gGetScannerTimeCount = 0;
+        g_mileage_count = 0;
+    }
 #else
     inline static constexpr SerialDeviceType kSupportSerialCar = SERIAL_NONE;
 #endif // DEVICE_TYPE_CAR

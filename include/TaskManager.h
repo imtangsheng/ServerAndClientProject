@@ -226,10 +226,11 @@ protected:
     QMap<TaskState, TaskStateHandler> handlers;
 signals:
     void stateChanged(TaskState newState);
-signals:
+
     void waiting();
     void running();
     void finished();
+    void flush_once();
 };
 
 inline static QString GetProjectName(const QString& name) {
@@ -277,6 +278,10 @@ public:
         //    qDebug() << "TaskManager::finished 信号"<< this->filename;
         //    close();
         //});
+        QObject::connect(&gTaskManager, &TaskManager::flush_once,[this]() {
+            qDebug() << "TaskManager::flush_once 信号"<< this->filename;
+            flush_buffer();
+        });
     }
     ~SavaDataFile() {
         close();
@@ -325,8 +330,11 @@ public:
         *stream << line;
         stream->flush(); //立即刷新缓冲区,写入数据到文件
     }
+    void flush_buffer() {
+        if(stream)
+        stream->flush(); //立即刷新缓冲区,写入数据到文件
+    }
     void close() {
-        qDebug() << "写入数据到文件并关闭文件句柄:" << filename;
         if (stream) {
             stream->device()->close();//立即将缓冲区数据写入文件并关闭文件句柄
             delete stream; stream = nullptr;

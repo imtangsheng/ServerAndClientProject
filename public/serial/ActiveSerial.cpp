@@ -185,6 +185,7 @@ Result ActiveSerial::OnStarted(const CallbackResult& callback) {
         WriteData(LINE_SACN_CAMERA_CONTROL, QByteArray(1, static_cast<char>(0x01)));//相机启动 指令写入
         g_serial_session.addSession(LINE_SACN_CAMERA_CONTROL, [callback, this](const qint8& i8result, const QJsonValue& value) {
             if (i8result == RESULT_SUCCESS) {
+                CarResetCount();
                 WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00：启动小车 01：启动并清除里程
                 g_serial_session.addSession(CAR_STARTUP, callback);
             } else {
@@ -192,10 +193,12 @@ Result ActiveSerial::OnStarted(const CallbackResult& callback) {
             }
             });
     } else {
+        CarResetCount();
         WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00：启动小车 01：启动并清除里程
         g_serial_session.addSession(CAR_STARTUP, callback);
     }
 #else // DEVICE_TYPE_LINE_SACN_CAMERA
+    CarResetCount();
     WriteData(CAR_STARTUP, QByteArray(1, static_cast<char>(0x01)));//00：启动小车 01：启动并清除里程
     g_serial_session.addSession(CAR_STARTUP, callback);
 #endif
@@ -288,9 +291,10 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
     case SCANER_GET_AUTOMATION_TIME:
     {
         gGetScannerTimeCount++;
-        quint64 autotimer;
-        quint64 car_time;
+        quint64 autotimer;//单位为微秒
+        quint64 car_time;//单位为10微秒
         stream >> autotimer >> car_time;
+        car_time = car_time * 10;
         //获取扫描仪时间失败,返回0 应该执行任务回调
         if (autotimer == 0) {
             LOG_ERROR(tr("获取扫描仪时间同步失败,返回 扫描仪值:%1 小车值:%2,原始数据").arg(autotimer).arg(gScannerCarTimeSync.car).arg(data.toHex().toUpper()));
@@ -328,6 +332,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         if (gTaskState == TaskState::TaskState_Running) {
             InclinometerInfo inclinometer;
             stream >> inclinometer;
+            inclinometer.time = inclinometer.time * 10;// 小车中控的单位10微秒
             RecvInclinometerData(inclinometer);//倾角计数据的任务处理
         }
     }return true;
@@ -419,11 +424,10 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
             break;
         }
     }return true;
-    case 0xFE://为了兼容单里程数据
+    case 0xFE:
     {
-        MileageInfo mileage{};
-        stream >> mileage.symbol >> mileage.pulse >> mileage.time;
-        g_mileage_count++;
+        /* 201 中相机的反馈,和单里程都是该指令,所有有冲突,默认是给照片*/
+
     }return true;
 #endif // DEVICE_TYPE_CAR
 #ifdef DEVICE_TYPE_CAMERA

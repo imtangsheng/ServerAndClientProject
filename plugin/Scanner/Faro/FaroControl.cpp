@@ -309,7 +309,7 @@ Result FaroControl::SetParameters(QJsonObject param) {
     scanCtrl->SplitAfterLines = SplitAfterLines;//The minimum number is 100. Smaller scan files are not supported.
     ret = scanCtrl->syncParam();// By calling syncParam they get synchronized with the scanner 
     qDebug() << "扫描仪参数设置执行结果" << ret;
-    if (ret == faro::OK) startMonitoring(path);
+    if (ret == faro::OK && gTaskState != TaskState::TaskState_Waiting) startMonitoring(path);
     return ret;
 }
 
@@ -338,12 +338,15 @@ int FaroControl::ScanRecord() {
     int count = 50;
     while (Result(ret.value)) {
         ret = scanCtrl->inquireRecordingStatus(&status);//0, 2, 3, 4 
-        qDebug() << "#FaroControl::ScanRecord 查询结果" << ret << "和状态(2)Recording:" << status;
+        qDebug() << "#FaroControl::ScanRecord 查询结果" << ret << "和当前录制状态1暂停 2录制中:" << status;
         if (status == HRSRecording) { 
             if (!callbackStartedPtr.isNull() && *callbackStartedPtr) (*callbackStartedPtr)();
             break; 
         }
-        if(count-- < 0) ret.Set(status);//未知查询不到默认为执行成功
+        if (count-- < 0) {
+            qWarning() << "#FaroControl::ScanRecord 执行录制失败" << ret << "和当前录制状态1暂停 2录制中:" << status;
+            ret.Set(status);//未知查询不到默认为执行成功
+        }
     }
     return ret;
 }
@@ -502,6 +505,7 @@ void FaroControl::onDirectoryChanged(const QString& path) {
             QStringList args = { "-f", filepath };
             QString exePath = gShare.appPath + "/bin/FaroPreview.exe";
             qDebug() << "启动预览:" << exePath << args;
+            emit gTaskManager.flush_once();//更新任务里程数据
             gShare.shellProcess(exePath, args);
         }
     }

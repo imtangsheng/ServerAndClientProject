@@ -50,14 +50,16 @@ public:
             qDebug() << "扫描文件监控文件夹路径:" << path;
             watcher.addPath(path);
         }
-        flsDir.cdUp();
-        flsDir.cd("PointCloudImage");
-        if (!flsDir.exists()) {
-            flsDir.mkpath(".");
-        }
-        if (!watcherPreview.directories().contains(flsDir.absolutePath())) {
-            qDebug() << "扫描预览文件监控文件夹路径:" << flsDir.absolutePath();
-            watcherPreview.addPath(flsDir.absolutePath());
+        if (gSettings->value("IsRealtimePreview").toBool()) {
+            flsDir.cdUp();
+            QString previewPath = flsDir.absoluteFilePath(tr("正射影像图"));
+            if (QDir().mkpath(previewPath)) {
+                qDebug() << "创建预览文件夹:" << previewPath;
+                if (!watcherPreview.directories().contains(previewPath)) {
+                    qDebug() << "扫描预览文件监控文件夹路径:" << previewPath;
+                    watcherPreview.addPath(previewPath);
+                }
+            }
         }
 
     }

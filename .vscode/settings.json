@@ -1,5 +1,5 @@
 {
-    "qtConfigure.qtKitDir": "e:/Qt/6.7.2/msvc2019_64",
+    "qtConfigure.qtKitDir": "e:/Qt/6.9.0/msvc2022_64",
     "cmake.buildDirectory": "${workspaceFolder}/build/vscode",
     "editor.fontFamily": "Hack,Consolas, 'Courier New', monospace",
     "files.associations": {
