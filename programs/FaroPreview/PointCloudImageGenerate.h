@@ -1,5 +1,5 @@
 #pragma once
-#include "iFaro.h"
+#include "iFaroData.h"
 
 //namespace poiontcloud_image_generate
 //{

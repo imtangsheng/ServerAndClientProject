@@ -70,8 +70,17 @@ QJsonObject loadJsonFromFile(const QString& filePath)
 }
 
 static bool GetMile(const QString& path, std::vector<MileageData>& data) {
-	std::wstring widePath = path.toStdWString();
-	std::ifstream file(widePath.c_str());
+	//std::wstring widePath = path.toStdWString();// Windows 上使用 UTF-16
+	//std::filesystem::path filePath = path.toStdU16String();//// Windows 上使用 UTF-16
+#ifdef _WIN32
+	// Windows 原生支持 UTF-16
+	std::filesystem::path filePath = path.toStdWString();
+#else
+	// Unix/Linux 系统通常使用 UTF-8
+	std::filesystem::path filePath = path.toUtf8().toStdString();
+#endif
+	
+	std::ifstream file(filePath);
 	if (!file.is_open()) {
 		qWarning() << "Error: Failed to open file: " << path;
 		return false;

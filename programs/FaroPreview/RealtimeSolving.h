@@ -16,10 +16,6 @@ public:
 	 * @return 解析,生成灰度图和深度图是否成功
 	 */
 	bool writeFaroImage(TaskFaroPart &task,const QString& imagePath);
-	//Acquisition software  Visual data software Visualization software Visual software
-	void test();
-	
-	bool isNeedAutoSplitRing{ true };
+	void writeFaroTime(const QString& filePath);
 private:
-
 };

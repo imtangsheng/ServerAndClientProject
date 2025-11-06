@@ -11,6 +11,9 @@ size_t g_num_cols{ 0 };        ///< 扫描列数
 static bool gs_is_faro_initialized = false;//法如初始化标志
 double g_points_per_millisecond{ 1.024 }; // 976 kHz; ≈ 1.024 毫秒 / 点 数据记录时间
 
+QString g_file_name{""};
+unsigned __int64 g_time_start{ 0 }, g_time_end{0};
+
 inline static BSTR FaroString(QString str) {
 	return SysAllocString(reinterpret_cast<const OLECHAR*>(str.utf16()));
 	//return _bstr_t(str.toStdString().c_str());//不支持中文
@@ -150,6 +153,10 @@ bool LoadFaroFlsFile(const QString& fileName)
 	// 获取扫描维度
 	g_num_rows = libRef->getScanNumRows(0);
 	g_num_cols = libRef->getScanNumCols(0);
+
+	libRef->getAutomationTimeOfScanPoint(0, g_num_rows - 1, 0, &g_time_start);
+	libRef->getAutomationTimeOfScanPoint(0, 0, g_num_cols - 1, &g_time_end);
+	qDebug() << "#Faro:获取一个fls文件的开始和结束时间:" << g_time_start << g_time_end;
 	return true;
 }
 

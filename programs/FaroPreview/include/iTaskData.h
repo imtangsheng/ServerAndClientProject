@@ -7,7 +7,7 @@
 #include <QDateTime>
 #include <QDebug>
 
-#include "iFaro.h"
+#include "iFaroData.h"
 
 // 定义结果数据结构
 struct Mileage {
@@ -50,8 +50,8 @@ struct TaskFaroPart
 {
 	QString task_dir{""};
 	QString faro_file{ "" };
+	QString faro_file_info{ "" };
 	QString mileage_file{ "" };
-	QString clinometer_file{ "" };
 
 	bool direction{true};
 	double start_mileage{0};
@@ -59,7 +59,7 @@ struct TaskFaroPart
 	Speed flag{ kFastest };
 
 	int resolving{200};
-	double diameter{8.0};
+	double diameter{5.4};
 
 	std::map<double, double> mileageWithTime;
 	std::map<double, double> clinometerWithTime;

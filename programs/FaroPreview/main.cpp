@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
         taskDir = dir.absolutePath()+ ("/Task");
         //+ "/Task";// 将taskDir设置为faroFile目录的上一级目录
     }
-    if (imagePath.isEmpty()) imagePath = QDir(faroFileInfo.absolutePath() + ("/../正射影像图")).absolutePath();
+    if (imagePath.isEmpty()) imagePath = QDir(faroFileInfo.absolutePath() + "/../" + QObject::tr("正射影像图")).absolutePath();
     
     // 图片服务器,可以浏览图片
      //ImageServer server;
@@ -85,11 +85,13 @@ int main(int argc, char* argv[])
     task.task_dir = taskDir;
     task.faro_file = faroFile;
     task.mileage_file = QDir(taskDir).filePath("mileage.txt");
-    task.clinometer_file = QDir(taskDir).filePath("Inclinometer.txt");
+    task.faro_file_info = QDir(taskDir).filePath("FaroFileInfo.txt");
+    //task.resolving = 1000 / 5;
+    //task.diameter = 5.4;
 
     RealtimeSolving solving;
-    qDebug() << "#法如文件实时解算生成图像,深度图和灰度图" << faroFile;
-    qDebug() << "结果:" << solving.writeFaroImage(task, imagePath);
-    QThread::sleep(5); // 暂停
+    //qDebug() << "#法如文件实时解算生成图像,深度图和灰度图" << faroFile;
+    qDebug() << "#法如文件实时解算生成灰度图结果:" << solving.writeFaroImage(task, imagePath);
+    //QThread::sleep(5); // 暂停,后台运算的时候,是没有显示的命令行的
     return 0;  // 直接返回，不调用app.exec()
 }

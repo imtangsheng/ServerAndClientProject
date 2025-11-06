@@ -1,5 +1,5 @@
 #pragma once
-#include "iTask.h"
+#include "iTaskData.h"
 
 //std::vector 本身不是线程安全的,使用读取txt的值
 bool get_mileage_from_file(const QString& sMileagePath, std::vector<Mileage>& mileage);

@@ -1,9 +1,12 @@
 ﻿#pragma once
-#include "iFaro.h"
+#include "iFaroData.h"
 #include <QString>
 extern	size_t g_num_rows;        ///< 扫描行数
 extern	size_t g_num_cols;        ///< 扫描列数
 extern double g_points_per_millisecond; // 976 kHz; ≈ 1.024 毫秒 / 点 数据记录时间
+
+extern QString g_file_name;
+extern	unsigned __int64 g_time_start, g_time_end; ///< 扫描的开始时间和结束时间
 
 //加载fls文件
 bool LoadFaroFlsFile(const QString& fileName);
