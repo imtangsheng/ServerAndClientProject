@@ -170,11 +170,13 @@ Result TrolleyWidget::SetTaskParameter(QJsonObject &data)
 {
     if(!isConnection){
         ToolTip tip(ToolTip::Confirm,tr("小车串口检测未打开"),tr("确认任务参数失败,请确认连接状态"),-1,this);
+        mainWindow->is_create_new_task_error = true;
         return QDialog::Rejected == tip.exec();
     }
     quint16 speed = data.value(JSON_SPEED).toInt();
     if(speed < 50 || speed > 5500){
         ToolTip::ShowText(tr("设置的行驶速度超过范围:%1-%2,当前设置%3").arg(50,5500,speed), -1);
+        mainWindow->is_create_new_task_error = true;
         return false;
     }
     Session session(_module(), "SetParameterByCode");
@@ -182,6 +184,7 @@ Result TrolleyWidget::SetTaskParameter(QJsonObject &data)
         SessionParameterByCode(serial::CAR_SET_SPEED,Serialize::Byte(speed),session);
         if (!gControl.SendAndWaitResult(session,tr("设置行驶速度"),tr("正在设置行驶速度"))) {
             ToolTip::ShowText(tr("设置行驶速度失败"), -1);
+            mainWindow->is_create_new_task_error = true;
             return false;
         }
         // if(!SetSpeed(speed)) return Result::Failure(tr("设置行驶速度失败"));
@@ -239,7 +242,7 @@ void TrolleyWidget::ShowMessage(const QString &msg)
 void TrolleyWidget::AddMileage(quint8 symbol,double mileage, qint64 time_us) const
 {
     double time_s = time_us / 1000000.0; //us->s
-    qDebug() <<"AddMileage: 时间s-里程m"<< time_s<< mileage;//10us m bug切换方向中,里程是返回的绝对值,所以会减小
+    // qDebug() <<"AddMileage: 时间s-里程m"<< time_s<< mileage;//10us m bug切换方向中,里程是返回的绝对值,所以会减小
     qint8 flag = symbol ? -1:1;
     double car_speed = 0.00;
     double car_mileage = 0;

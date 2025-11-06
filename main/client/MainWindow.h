@@ -27,6 +27,7 @@ public:
     bool UpdateProjects();
     void SetLogLevel(LogLevel level);
 
+    bool is_create_new_task_error{true};
     QJsonArray parameterTemplatesInfo; //参数模板数组信息
     QStandardItemModel paramNamesModel;//参数模板数据
 public slots:

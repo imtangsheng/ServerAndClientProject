@@ -313,7 +313,7 @@ void MainWindow::on_action_start_triggered()
     //如果执行完任务,需要重新进入当前设置
     if(gTaskFileInfo){
         Session session(_module, "onStart");
-        if(!gControl.SendAndWaitResult(session)) {
+        if(!gControl.SendAndWaitResult(session,tr("开始执行任务"),tr("采集任务"),-1)) {
             qWarning() <<"开始任务失败:" << session.message;
             ToolTip::ShowText(tr("提示:开始任务失败"),session.message);
             return;
@@ -333,7 +333,7 @@ void MainWindow::on_action_stop_triggered()
     qDebug() << "#Window::on_action_stop_triggered()";
     // 结束后,重置状态
     Session session(_module, "onStop");
-    if(!gControl.SendAndWaitResult(session)) {
+    if(!gControl.SendAndWaitResult(session,tr("停止执行任务"),tr("采集任务"),-1)) {
         qWarning() <<"停止任务失败:" << session.message;
         ToolTip::ShowText(tr("提示:停止任务失败"),session.message);
         return;
@@ -910,6 +910,7 @@ void MainWindow::on_pushButton_task_param_last_page_cancel_clicked() {
 }
 
 void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
+    is_create_new_task_error = false;
     QJsonObject content = gTaskFileInfo->data[JSON_TASK_CONTENT].toObject();
     QString name = ui.comboBox_parameter_templates->currentText().trimmed(); // 移除首尾空格
     if(!name.isEmpty()){
@@ -931,6 +932,7 @@ void MainWindow::on_pushButton_task_param_last_page_create_new_task_clicked() {
     }
     emit sigTaskConfigCheck(content);//确认设置参数
 
+    if(is_create_new_task_error) return;
     //进入任务采集界面 使用信号槽连接,变化才有值,故使用手动设置
     ui.pushButton_acquisition_start->setText(tr("开始采集"));
     ui.StackedWidgetProjectHub->setCurrentWidget(ui.TaskAcquisition);

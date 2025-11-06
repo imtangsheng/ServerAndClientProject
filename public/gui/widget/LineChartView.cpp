@@ -83,9 +83,7 @@ void LineChartView::init()
 void LineChartView::append(const double &time, const double &mileage)
 {
     // if(!chart()) return;
-    qDebug() << "append" << time << mileage;
-
-
+    // qDebug() << "append" << time << mileage;
     if(MinTime <= 0){
         MinTime = time;
         MaxTime = time+ AxisXMax;

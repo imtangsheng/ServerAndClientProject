@@ -41,18 +41,21 @@ Result ScannerWidget::SetTaskParameter(QJsonObject &data)
 {
     if(!isConnection){
         ToolTip tip(ToolTip::Confirm,tr("扫描仪设备未连接"),tr("扫描仪未连接,确认任务参数失败,请确认连接状态"),-1,this);
+        mainWindow->is_create_new_task_error = true;
         return QDialog::Rejected == tip.exec();
     }
     //获取扫描仪时间同步,每次任务前
     Session session_car(sModuleSerial,"ScanAutomationTimeSync",true);
     if (!gControl.SendAndWaitResult(session_car,tr("扫描仪与小车时间同步"),tr("正在扫描仪与小车时间同步"))) {
-        ToolTip::ShowText(tr("设置扫描仪与小车时间同步"), -1);
+        ToolTip::ShowText(tr("错误:设置扫描仪与小车时间同步失败,请重新尝试创建任务"), -1);
+        mainWindow->is_create_new_task_error = true;
         return false;
     }
 
     Session session(_module(), "SetParameter", data);
     if (!gControl.SendAndWaitResult(session,tr("等待扫描仪确认参数"),tr("参数确认"))) {
         ToolTip::ShowText(tr("设置参数失败"), -1);
+        mainWindow->is_create_new_task_error = true;
         return Result::Failure(tr("设置参数失败"));
     }
 
