@@ -52,4 +52,5 @@ public slots:
 private:
     /* data */
     QMutex _mutex_config;
+    QTimer* timer{nullptr};
 };

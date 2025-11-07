@@ -141,15 +141,11 @@ void Logger::SetupLogUpdateTimer()
 		// 计算到下一个午夜的时间
 		msecToMidnight = currentTime.msecsTo(QTime(23, 59, 59)) + 1000; // 加1秒到00:00:00
 	}
-	static QTimer midnightTimer;
-	// 设置单次触发计时器
-	midnightTimer.setSingleShot(true);
-	connect(&midnightTimer, &QTimer::timeout, this, [this]() {
+
+	QTimer::singleShot(msecToMidnight, this, [this]() {
 		check_log_file_date();
 		SetupLogUpdateTimer(); // 重新设置下一个午夜的计时器
 		});
-
-	midnightTimer.start(msecToMidnight);
 }
 
 void Logger::CleanupOldLogFiles() const

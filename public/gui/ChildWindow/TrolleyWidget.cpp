@@ -214,22 +214,6 @@ void TrolleyWidget::UpdateTaskConfigSync(QJsonObject &content)
 
 void TrolleyWidget::test()
 {
-    ui->ChartView_mileage_monitor->clear();
-    static QTimer timer;
-
-    static double time{0};
-    static double mileage{0};
-
-    // 设置初始显示范围
-    // static const double visiblePoints = 10; // 可见点数量
-    connect(&timer,&QTimer::timeout,this,[&]{
-        qDebug() << "add:" << time<<mileage;
-        ui->ChartView_mileage_monitor->append(time,mileage);
-        time = time + 1;
-        mileage = mileage + 5;
-    });
-
-    timer.start(1000);
 
 }
 

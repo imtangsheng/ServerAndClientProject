@@ -119,23 +119,27 @@ void SerialPlugin::SetSpeedMultiplier(const Session& session) {
 
 void SerialPlugin::ScanAutomationTimeSync(const Session& session) {
     static const int time_sync_interval = 30 * 1000; // 30秒
-    static QTimer timer;
+    //static QTimer timer;//改为成员变量
     if (ScannerAndCarTimeInfo::isAwake) {//要先判断是否在开机后进行设置了自动化时间同步,目前设计客户端也会实现一次同步
         bool enable = session.params.toBool(true);
+        if (!timer) {
+            timer = new QTimer(this);
+        }
         if (enable) {
             gSerial->WriteData(SCANER_GET_AUTOMATION_TIME);
             g_serial_session.addSession(SCANER_GET_AUTOMATION_TIME, session);
             //if (timer.isActive()) return; //是否启动过的判断
-            disconnect(&timer, &QTimer::timeout, nullptr, nullptr);//	只断开timeout信号的所有连接
-            connect(&timer, &QTimer::timeout, this, []() {// 每次调用都会添加新连接
+
+            disconnect(timer, &QTimer::timeout, nullptr, nullptr);//	只断开timeout信号的所有连接
+            connect(timer, &QTimer::timeout, this, []() {// 每次调用都会添加新连接
                 gSerial->WriteData(SCANER_GET_AUTOMATION_TIME);
                 });
             // 确保唯一连接 Qt::UniqueConnection 不能用于 lambda 表达式或非成员函数
-            connect(&gTaskManager, &TaskManager::finished, &timer, &QTimer::stop, Qt::UniqueConnection);
-            timer.start(time_sync_interval);
+            connect(&gTaskManager, &TaskManager::finished, timer, &QTimer::stop, Qt::UniqueConnection);
+            timer->start(time_sync_interval);
         } else {
-            timer.disconnect();//断开timer的所有信号连接
-            timer.stop();
+            timer->disconnect();//断开timer的所有信号连接
+            timer->stop();
             gShare.on_success(tr("关闭成功"), session);
         }
     } else {

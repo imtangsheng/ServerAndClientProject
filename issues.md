@@ -62,3 +62,14 @@ inline static bool SafeHasKey(const QStringList& list,const QString& key) {
     return false;
 }
 ```
+
+## 程序退出时，静态变量的析构可能在主线程之外进行，而QTimer的析构函数试图停止计时器时就会产生警告:
+### 现象:
+	QObject::killTimer: Timers cannot be stopped from another thread
+	QObject::~QObject: Timers cannot be stopped from another thread
+
+### 解决方案:
+- 方案1：使用智能指针管理静态变量(函数结束后 静态局部变量不会析构,普通局部变量会执行析构)
+- 方案2：改为成员变量
+- 方案3：使用QTimer::singleShot（推荐）
+- 方案4：在程序退出前手动清理
