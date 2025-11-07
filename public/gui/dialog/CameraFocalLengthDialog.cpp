@@ -74,7 +74,7 @@ void CameraFocalLengthDialog::on_pushButton_start_clicked()
     QJsonArray param = params.at(row).toArray();
     QJsonObject res = scanner->parameter;
 
-    res[JSON_OriginalScanDir] = gShare.info.value("dir").toString() + "/config/faro/"+param.at(Name).toString();
+    res[JSON_OriginalScanDir] = gShare.info.value("dir").toString() + "/temp/faro/"+param.at(Name).toString();
     res[Json_NumCols] = 100;
 
     Session session(scanner->_module(), "SetParameter", res);
@@ -86,6 +86,7 @@ void CameraFocalLengthDialog::on_pushButton_start_clicked()
 
     Session session2(scanner->_module(), "ScanStart");
     if (gControl.SendAndWaitResult(session2,tr("正在启动,请确认等待执行完成后,再执行下一步"))) {
+        ToolTip::ShowText(tr("启动成功,等待预热"), 10);
     } else {
         ToolTip::ShowText(tr("启动失败"), -1);
         return;
@@ -109,7 +110,7 @@ void CameraFocalLengthDialog::on_pushButton_get_clicked()
     }
     QJsonArray param = params.at(row).toArray();
     QJsonObject res;
-    res["dir"] = gShare.info.value("dir").toString() + "/config/faro/"+param.at(Name).toString();
+    res[JSON_OriginalScanDir] = gShare.info.value("dir").toString() + "/temp/faro/"+param.at(Name).toString();
     // res["dir"] = "D:/Faro/Data";
     double Camera_Hight = param.at(CameraCenterHight).toString().toDouble();//相机中心到轨面的高度
     double Scanner_Hight = param.at(ScannerCenterHight).toString().toDouble();
@@ -117,6 +118,7 @@ void CameraFocalLengthDialog::on_pushButton_get_clicked()
     res["ScannerHight"] = Scanner_Hight;
     res["group"] = ui->comboBox_parts->currentText().toInt();//15机位 15个分组
 
+    qDebug() << res;
     Session session(scanner->_module(), "GetCameraPositionDistance",res);
     // gControl.sendTextMessage(session.GetRequest());
     if (gControl.SendAndWaitResult(session,tr("测量相机焦距"),tr("请等待执行完成"),-1)) {

@@ -308,7 +308,7 @@ Result FaroControl::SetParameters(QJsonObject param) {
     int SplitAfterLines = param.value(Json_SplitAfterLines).toInt(5000);
     scanCtrl->SplitAfterLines = SplitAfterLines;//The minimum number is 100. Smaller scan files are not supported.
     ret = scanCtrl->syncParam();// By calling syncParam they get synchronized with the scanner 
-    qDebug() << "扫描仪参数设置执行结果" << ret;
+    qDebug() << "扫描仪参数设置执行结果" << ret << "任务当前状态:" << gTaskState << "任务希望状态:"<<TaskState::TaskState_Running;//应该是 running
     if (ret == faro::OK && gTaskState != TaskState::TaskState_Waiting) startMonitoring(path);
     return ret;
 }

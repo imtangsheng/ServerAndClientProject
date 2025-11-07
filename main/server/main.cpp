@@ -7,13 +7,6 @@ int main(int argc, char* argv[])
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("WebSocketServer");
     QCoreApplication::setApplicationVersion("1.0");
-    // 安装消息处理钩子，重定向QDebug输出
-#ifdef QT_NO_DEBUG
-    gLog.init("../logs/", "log", static_cast<LogLevel>(gSettings->value("LogLevel", +LogLevel::Warning).toInt()), false);
-    gLog.InstallMessageHandler();
-#else
-    gLog.init("../logs/", "log", LogLevel::Debug, true);
-#endif // QT_DEBUG
     QCommandLineParser parser;
     parser.setApplicationDescription("QtWebSockets server");
     parser.addHelpOption();
@@ -29,8 +22,15 @@ int main(int argc, char* argv[])
     qDebug() << "当前应用程序的目录：" << appDir.absolutePath();
     qDebug() << "软件运行时间: " << __DATE__ << " " << __TIME__ << "Qt 版本:" << QT_VERSION_STR << "C++ 版本:" << __cplusplus;
     gShare.session_type_ = int(SessionType::Server);
-    gShare.awake(appDir.absolutePath(), "server");//初始化配置文件路径,名称
-    
+    gShare.awake(appDir.absolutePath(), "server");//初始化配置文件路径,名称, 变量gSettings 等
+    // 安装消息处理钩子，重定向QDebug输出
+#ifdef QT_NO_DEBUG
+    LogLevel logLevel = static_cast<LogLevel>(gSettings->value("LogLevel", static_cast<int>(LogLevel::Warning)).toInt());
+    gLog.init("../logs/", "log", logLevel, false);
+    gLog.InstallMessageHandler();
+#else
+    gLog.init("../logs/", "log", LogLevel::Debug, true);
+#endif // QT_NO_DEBUG
     // 设置语言
     QString language = gSettings->value("language").toString();
     if (language.isEmpty()) {

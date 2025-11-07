@@ -148,9 +148,9 @@ static double CalculateMedian(QVector<double>& values) {
 
 constexpr int col_focus = 40;//相机计算列,默认中间列
 void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
-    qDebug() << "进行相机角度焦距计算:" << QThread::currentThread();
+    qDebug() << QThread::currentThread() << "进行相机角度焦距计算:" << in;
 
-    QString flsFileDir = in.value("dir").toString(); 
+    QString flsFileDir = in.value(JSON_OriginalScanDir).toString();
     if (flsFileDir.isEmpty()) {
         LOG_ERROR(tr("检测到要输入的目录参数为空"));
         return;
@@ -159,7 +159,7 @@ void FaroHandle::CreateCameraFocalByScanFile(const QJsonObject& in) {
     QDir dir(flsFileDir);// 只监控 .txt 和 .log 文件
     QStringList filters; filters << "*.fls";
     QFileInfoList currentFiles = dir.entryInfoList(filters, QDir::Files | QDir::NoDotAndDotDot);//QDir::
-    if (currentFiles.isEmpty()) { LOG_ERROR(tr("没有找到FLS文件")); return; }
+    if (currentFiles.isEmpty()) { LOG_ERROR(tr("没有找到FLS文件:%1").arg(flsFileDir)); return; }
     if (currentFiles.size() > 1) { LOG_INFO(tr("找到%1个FLS文件,默认使用第一个").arg(currentFiles.size())); }
 
     double cameraHight = in.value("CameraHight").toDouble(1.8);//相机中心到轨面的高度
