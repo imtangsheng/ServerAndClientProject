@@ -73,3 +73,12 @@ inline static bool SafeHasKey(const QStringList& list,const QString& key) {
 - 方案2：改为成员变量
 - 方案3：使用QTimer::singleShot（推荐）
 - 方案4：在程序退出前手动清理
+
+---
+## Qt控制台app 关闭时不执行析构(Faro API的析构)
+
+核心原因是进程强制终止（如直接关闭CMD窗口）会调用Windows的TerminateProcess API，这会立即杀死进程，而不展开调用栈（unwind the stack），从而跳过全局/静态对象的析构函数、RAII清理和atexit注册的函数。 即使按Ctrl+C，在Windows上SIGINT信号处理也可能不总是可靠地触发正常退出路径，导致app.exec()不返回。
+
+- 解决方案:显式清理方法
+
+通过系统监听控制台事件(SetConsoleCtrlHandler),然后手动显示调用清理函数,但是无法管理全局静态变量等系统资源

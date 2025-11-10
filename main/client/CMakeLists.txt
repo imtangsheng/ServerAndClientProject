@@ -98,6 +98,7 @@ install(FILES ${qm_files}
 # 设置目标属性
 set_target_properties(${APP_NAME} PROPERTIES
     OUTPUT_NAME "${APP_NAME}${PROJECT_VERSION}" # 修改输出文件名
+    WIN32_EXECUTABLE TRUE  # 在Windows上创建GUI应用程序(不显示控制台窗口)
 )
 
 target_compile_definitions(${APP_NAME} PRIVATE
