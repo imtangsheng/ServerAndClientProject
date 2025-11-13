@@ -1,13 +1,13 @@
 # 设置可执行文件名称
 set(APP_NAME ProjectTest)
 # 查找所需的 Qt 组件
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Gui Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Gui Network)
 
 # 创建可执行文件
 add_executable(${APP_NAME}
     main.cpp
-    ${INCLUDE_DIR}common/FileReadAndSave.ixx
+    #${INCLUDE_DIR}common/FileReadAndSave.ixx
    "TCase.h" "TCase.cpp"
 )
 
@@ -18,5 +18,7 @@ endif()
 # 链接 Qt 库
 target_link_libraries(${APP_NAME} PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
-    ${SHARE_NAME}
+    Qt${QT_VERSION_MAJOR}::Gui
+    Qt${QT_VERSION_MAJOR}::Network
+    #${SHARE_NAME}
 )

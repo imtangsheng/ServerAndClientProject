@@ -41,6 +41,7 @@ public:
     QFileSystemWatcher watcher;
     QFileSystemWatcher watcherPreview;
     void startMonitoring(const QString& path) {
+        stopMonitoring();//先停止监控
         QDir flsDir(path);
         if (!flsDir.exists()) {
             qWarning() << "扫描文件监控文件夹路径不存在:" << path;

@@ -77,7 +77,6 @@ public:
     using SerialPortTemplate::SerialPortTemplate;
     //ActiveSerial() = default;
     ~ActiveSerial();
-
     /*继承基类方法*/
     Result SetConfig(const QJsonObject& config);
 
@@ -88,7 +87,7 @@ public:
     QString DeviceName() {
         //static QMetaEnum metaEnum = QMetaEnum::fromType<SerialDeviceType>();
         //return metaEnum.valueToKey(kSupportedSerialDevices);
-        return QVariant::fromValue(static_cast<SerialDeviceType>(uCurrentSerialDevice)).toString();
+        return QVariant::fromValue(static_cast<SerialDeviceType>(iCurrentSerialDevice)).toString();
     }
 
     //任务类的方法,需要回应

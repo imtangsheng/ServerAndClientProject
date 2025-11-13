@@ -53,6 +53,7 @@ Result SerialPlugin::Activate_(QJsonObject param) {
 
 Result SerialPlugin::initialize() {
     gSerial = new ActiveSerial(this, config_.value("port").toString());
+    //以是否打开串口作为激活的标志,不用协议,如果使用信号,得拆分初始化和信号链接,然后打开串口
     if(gSerial->isOpen()) state_ = StateEvent::Waiting;
     QJsonObject general = config_.value("general").toObject();
 #ifdef DEVICE_TYPE_CAR

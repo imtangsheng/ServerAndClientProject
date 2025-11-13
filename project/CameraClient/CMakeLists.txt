@@ -9,21 +9,21 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 设置输出目录
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # 可执行文件输出目�?
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs)  # 动态库输出目录
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态库输出目录
+# �������Ŀ¼
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # ��ִ���ļ����Ŀ
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs)  # ��̬�����Ŀ¼
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # ��̬�����Ŀ¼
 
 set(ProjectPath ../../)
 include_directories(${ProjectPath})
 include_directories(${ProjectPath}/include)
-##动态库依赖
+##��̬������
 set(SHARE_SOURCES
   ${ProjectPath}include/share_lib.h ${ProjectPath}include/logger.h
   ${ProjectPath}libs/share/share_lib.cpp ${ProjectPath}libs/share/log/logger.cpp
 )
 
-##客户端程�?
+##�ͻ���
 set(client CameraClient)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Network WebSockets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network WebSockets LinguistTools)
@@ -61,11 +61,11 @@ target_link_libraries(${client} PRIVATE
     Qt${QT_VERSION_MAJOR}::WebSockets
 )
 
-# 添加更新翻译的目�?
+# ���Ӹ��·���?
 qt_add_lupdate(${client}
     TS_FILES ${TS_FILES}
     OPTIONS
-    -no-obsolete        # 删除过时的翻�?
+    -no-obsolete        # ɾ����ʱ�ķ�?
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)

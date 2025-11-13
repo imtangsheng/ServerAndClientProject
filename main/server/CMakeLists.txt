@@ -30,6 +30,7 @@ add_executable(${APP_NAME}
     ${NETWORK_SOURCES}
     ${CONTROLLER_SOURCES}
     ${TS_FILES_}
+    ${PROJECT_SOURCE_DIR}/assets/app.rc
 )
 # 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。
 #target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
@@ -56,8 +57,8 @@ target_link_libraries(${APP_NAME} PUBLIC
 
 # 设置目标属性
 set_target_properties(${APP_NAME} PROPERTIES
-    OUTPUT_NAME "${APP_NAME}${PROJECT_VERSION}" # 修改输出文件名
+    OUTPUT_NAME "TCC Server ${PROJECT_VERSION}" # 修改输出文件名
 )
 
 # 确保插件和应用依赖共享库
-add_dependencies(${APP_NAME} Serial Faro)
+#add_dependencies(${APP_NAME} Serial Faro)

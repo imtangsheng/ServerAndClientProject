@@ -9,7 +9,7 @@ CameraFocalLengthDialog::CameraFocalLengthDialog(ScannerWidget *parent)
     , ui(new Ui::CameraFocalLengthDialog)
 {
     ui->setupUi(this);
-    setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog | Qt::WindowStaysOnTopHint); // 设置无边框
+    // setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog | Qt::WindowStaysOnTopHint); // 设置无边框
     // 添加单元格变化的信号槽连接
     // connect(ui->tableWidget_CameraFocal, &QTableWidget::cellChanged, this, &CameraFocalLengthDialog::onCellChanged);
 
@@ -34,6 +34,9 @@ void CameraFocalLengthDialog::UpdateTableDate()
         ui->tableWidget_CameraFocal->setItem(row,ScannerCenterHight,new QTableWidgetItem(param.at(ScannerCenterHight).toString()));
         ui->tableWidget_CameraFocal->setItem(row,Value,new QTableWidgetItem(param.at(Value).toString()));
     }
+
+    // 根据内容自动调整所有列宽
+    ui->tableWidget_CameraFocal->resizeColumnsToContents();
 }
 
 
@@ -85,19 +88,22 @@ void CameraFocalLengthDialog::on_pushButton_start_clicked()
     }
 
     Session session2(scanner->_module(), "ScanStart");
-    if (gControl.SendAndWaitResult(session2,tr("正在启动,请确认等待执行完成后,再执行下一步"))) {
-        ToolTip::ShowText(tr("启动成功,等待预热"), 10);
-    } else {
+    if (!gControl.SendAndWaitResult(session2,tr("正在启动,请确认预热完成后,再执行下一步"))) {
         ToolTip::ShowText(tr("启动失败"), -1);
         return;
     }
 
-    Session session3(scanner->_module(), "ScanRecord");
-    if (gControl.SendAndWaitResult(session3,tr("开始录制数据,请确认等待执行完成后,再执行下一步"))) {
-    } else {
-        ToolTip::ShowText(tr("录制失败"), -1);
-        return;
-    }
+    ToolTip::ShowText(tr("启动成功, 请等待串口自动预热开始录制"), 15000);
+    // ToolTip recordWait(ToolTip::Confirm,tr("录制自动等待"), tr("启动成功, 请等待串口自动预热,或者点击 \"取消\" 手动开始录制"), 15000);
+
+    // if (recordWait.exec() != ToolTip::Accepted) {
+    //     Session session3(scanner->_module(), "ScanRecord");
+    //     if (gControl.SendAndWaitResult(session3, tr("开始录制数据,请确认等待执行完成后,再执行下一步"))) {
+    //     } else {
+    //         ToolTip::ShowText(tr("录制失败"), -1);
+    //         return;
+    //     }
+    // }
 }
 
 
@@ -121,11 +127,12 @@ void CameraFocalLengthDialog::on_pushButton_get_clicked()
     qDebug() << res;
     Session session(scanner->_module(), "GetCameraPositionDistance",res);
     // gControl.sendTextMessage(session.GetRequest());
-    if (gControl.SendAndWaitResult(session,tr("测量相机焦距"),tr("请等待执行完成"),-1)) {
-    } else {
-    ToolTip::ShowText(tr("测量相机焦距失败"), -1);
+    if (!gControl.SendAndWaitResult(session,tr("测量相机焦距"),tr("请等待执行完成"),-1)) {
+        ToolTip::ShowText(tr("测量相机焦距失败"), -1);
         return;
     }
+
+    ToolTip::ShowText(tr("测量相机焦距成功"));
     QString ret = session.result.toString();
     ui->tableWidget_CameraFocal->setItem(row,Value,new QTableWidgetItem(ret));
 }

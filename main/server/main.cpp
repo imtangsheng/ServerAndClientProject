@@ -25,7 +25,8 @@ int main(int argc, char* argv[])
     gShare.awake(appDir.absolutePath(), "server");//初始化配置文件路径,名称, 变量gSettings 等
     // 安装消息处理钩子，重定向QDebug输出
 #ifdef QT_NO_DEBUG
-    LogLevel logLevel = static_cast<LogLevel>(gSettings->value("LogLevel", static_cast<int>(LogLevel::Warning)).toInt());
+    LogLevel logLevel = static_cast<LogLevel>(gSettings->value("LogLevel", static_cast<int>(LogLevel::Info)).toInt());
+    qDebug() << "当前日志等级:" << int(logLevel);
     gLog.init("../logs/", "log", logLevel, false);
     gLog.InstallMessageHandler();
 #else

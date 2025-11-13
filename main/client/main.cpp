@@ -1,3 +1,4 @@
+#include <QApplication>
 #include "MainWindow.h"
 // 在cpp文件中（如main.cpp）注册引用类型
 

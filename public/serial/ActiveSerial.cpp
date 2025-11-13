@@ -236,7 +236,7 @@ Result ActiveSerial::OnStopped(const CallbackResult& callback) {
 }
 
 bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data) {
-    qDebug() << "#Received Code:" << QString::number(code, 16).rightJustified(2, '0').toUpper() << "Data:" << data.toHex().toUpper();
+    //qDebug() << "#Received Code:" << QString::number(code, 16).rightJustified(2, '0').toUpper() << "Data:" << data.toHex().toUpper();
     //if (data.isEmpty()) return;
     static quint8 invoke_trolley = share::ModuleName::trolley;
     static auto push_car = [&code,&data]() -> void {
@@ -343,8 +343,8 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         stream >> left >> right;
         if (left.symbol != right.symbol) {
             LOG_WARNING(tr("[#串口]左右里程数据符号不一致 左: %1 右: %2").arg(left.symbol,0,16).arg(right.symbol,0,16));
-            qWarning() << left.symbol << left.pulse << left.time;
-            qWarning() << right.symbol << right.pulse << right.time;
+            //qWarning() << left.symbol << left.pulse << left.time;
+            //qWarning() << right.symbol << right.pulse << right.time;
             //return true;//这个时候抛弃掉数据就好了
         }
         left.time *= 10; right.time *= 10;//时间单位为10us,需要*10改为us的单位
@@ -356,7 +356,7 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
             emit gShare.sigSentBinary(bytes);//推送二进制数据
         }
         if (gTaskState == TaskState::TaskState_Running) {
-            qDebug() << "里程数据的任务处理:" << g_mileage_count << "mileage:" << mileage.pulse << "time:" << mileage.time;
+            //qDebug() << "里程数据的任务处理:" << g_mileage_count << "mileage:" << mileage.pulse << "time:" << mileage.time;
             MileageInfo  mileage_info(right.symbol, mileage.pulse, mileage.time);
             RecvSingleMileageData(g_mileage_count, mileage_info);
             RecvMileageData(g_mileage_count, left, right);//里程数据的任务处理
@@ -490,11 +490,10 @@ bool ActiveSerial::HandleProtocol(FunctionCodeType code, const QByteArray& data)
         stream >> type;
         value = type;//由界面设置设备类型
         qDebug() << "当前设备类型:" << type; // 1 中控 2三叶草相机 3 三叶草21机位
-        //if ((kSupportedSerialDevices & type) == 0) {
-            //LOG_ERROR(tr("The device type that is currently set is inconsistent with the device type that is currently supported!"));
-        //}
-        if (uCurrentSerialDevice != type) {
-            uCurrentSerialDevice = type;
+        if (iCurrentSerialDevice != type) {
+            if(iCurrentSerialDevice != -1)
+            LOG_ERROR(tr("当前设备类型:%1, 发生已更改,之前类型是:%2").arg(iCurrentSerialDevice).arg(type));
+            iCurrentSerialDevice = type;
             gShare.RegisterSettings->setValue("type", type);//注册表类型设置
         }
     }break;

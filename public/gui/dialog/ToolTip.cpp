@@ -11,7 +11,7 @@ ToolTip::ToolTip(TipType type, const QString &title, const QString &message, int
 {
     ui->setupUi(this);
     // 在你的Dialog构造函数中添加:
-    setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog | Qt::WindowStaysOnTopHint); // 设置无边框
+    // setWindowFlags(Qt::FramelessWindowHint | Qt::Dialog | Qt::WindowStaysOnTopHint); // 设置无边框
     setAttribute(Qt::WA_TranslucentBackground); // 设置背景透明,不然会有黑边
     // 局部变量是在栈上分配的，会自动管理生命周期 当使用WA_DeleteOnClose时，会导致对象被删除两次：一次是属性触发的删除，一次是栈自动清理
     // 移除该属性后，对象的生命周期完全由栈管理，避免了双重删除的问题

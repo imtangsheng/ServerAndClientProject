@@ -2,6 +2,8 @@
 #include "CameraWidget.h"
 #include "mainwindow.h"
 
+// #include "public/utils/ImageSharpness.h"
+
 CameraWidget::CameraWidget(MainWindow *parent)
     :ChildWidget(parent)
     , ui(new Ui::CameraWidget)

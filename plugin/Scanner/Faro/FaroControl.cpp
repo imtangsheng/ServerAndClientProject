@@ -235,6 +235,7 @@ FaroControl::FaroControl(QObject* parent)
 }
 
 FaroControl::~FaroControl() {
+    qDebug() << "[#FaroControl]::~FaroControl析构执行";
     if (scanCtrl) {
         //scanCtrl->Release();//With these pointers, you don’t have  to  call  Release  at  the end  of  usage.  Instead,  you  have  to  assign NULL  to  the  smart  interface pointer. 
         scanCtrl = nullptr;
@@ -308,7 +309,7 @@ Result FaroControl::SetParameters(QJsonObject param) {
     int SplitAfterLines = param.value(Json_SplitAfterLines).toInt(5000);
     scanCtrl->SplitAfterLines = SplitAfterLines;//The minimum number is 100. Smaller scan files are not supported.
     ret = scanCtrl->syncParam();// By calling syncParam they get synchronized with the scanner 
-    qDebug() << "扫描仪参数设置执行结果" << ret << "任务当前状态:" << gTaskState << "任务希望状态:"<<TaskState::TaskState_Running;//应该是 running
+    qInfo() << "扫描仪参数设置执行结果" << ret << "任务当前状态:" << gTaskState << "任务希望状态:"<<TaskState::TaskState_Running;//应该是 running
     if (ret == faro::OK && gTaskState != TaskState::TaskState_Waiting) startMonitoring(path);
     return ret;
 }
@@ -530,8 +531,21 @@ void FaroControl::addPreviewFile(const QString& path) {
         qDebug() << "文件不可读，等待权限:" << lastFilePath;
         return;
     }
-    // 检查文件是否正在被其他进程使用（Windows）
-
+    // 检查文件是否稳定 等待100ms后基本稳定了
+    qint64 lastSizes{ -1 };
+    qint64 currentSize = 0;
+    for (size_t i = 0; i < 10; i++) {
+        // 重新刷新文件信息以获取最新状态
+        fileInfo.refresh();  // 关键：刷新文件信息缓存
+        currentSize = fileInfo.size();
+        if (lastSizes == currentSize && currentSize > 0) {
+            qDebug() << "文件稳定，大小:" << currentSize;
+            break;//认为稳定了
+        }
+        qDebug() << i << "当前文件大小:" << currentSize << "上次文件大小:" << lastSizes << "等待文件稳定中...";
+        lastSizes = currentSize;
+        QThread::msleep(20);
+    }
     static quint8 invoke_module = share::ModuleName::scanner;
     static QByteArray data;
     //读取文件内容

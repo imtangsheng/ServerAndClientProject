@@ -139,12 +139,14 @@ void MainWindow::UpdateLayoutProjectWidget() {
 }
 
 bool MainWindow::UpdateProjects() {
-    Session session(_module, "GetTaskData", "");//关机函数执行
+    Session session(_module, "GetTaskData", "");
     if(!gControl.SendAndWaitResult(session)){
         return false;
     }
     QJsonObject obj = session.result.toObject();
     if(obj.isEmpty()) return false;
+
+    UpdateLayoutProjectWidget();//更新前刷新
     gTaskManager.data = obj;
     QJsonObject projects = gTaskManager.data[cKeyContent].toObject();
     foreach(const QString& key, projects.keys()){

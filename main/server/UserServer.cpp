@@ -105,6 +105,11 @@ void UserServer::initialize(quint16 port_ws, quint16 port_http) {
 }
 
 void UserServer::onTest() {
+    //QString filepath = "../data/唐.nfproj/test/PointCloud/Scan001.fls";
+    //QStringList args = { "-f", filepath };
+    //QString exePath = gShare.appPath + "/bin/FaroPreview.exe";
+    //qDebug() << "启动预览:" << exePath << args;
+    //gShare.shellProcess(exePath, args);
 }
 
 void UserServer::onDeviceStateChanged(const Session &session) {
@@ -278,6 +283,8 @@ void UserServer::AddCurrentTask(const Session& session) {
     project[cKeyContent] = tasks;//保存任务
     projects[projectName] = project;//更新项目
     gTaskManager.data[cKeyContent] = projects;//保存项目
+
+    gTaskState = TaskState::TaskState_PreStart; //任务预配置,创建目录,监控等
     return gShare.on_session(session.ResponseSuccess(SessionErrorNone, tr("添加任务成功")), session.socket);
 }
 

@@ -58,6 +58,7 @@ add_executable(${APP_NAME}
     ${CORE_FILES}
     ${TS_FILES_}
     ${UI_FILES}
+    ${PROJECT_SOURCE_DIR}/assets/app.rc
 )
 # 启用预编译头文件 必须在目标（如 add_executable 或 add_library）定义之后使用。预编译头文件自动包含到所有源文件中,相当于在每个 .cpp 文件的开头隐式添加了 #include "stdafx.h"
 target_precompile_headers(${APP_NAME} PRIVATE stdafx.h)
@@ -97,7 +98,7 @@ install(FILES ${qm_files}
 
 # 设置目标属性
 set_target_properties(${APP_NAME} PROPERTIES
-    OUTPUT_NAME "${APP_NAME}${PROJECT_VERSION}" # 修改输出文件名
+    OUTPUT_NAME "TCC Client ${PROJECT_VERSION}" # 修改输出文件名
     WIN32_EXECUTABLE TRUE  # 在Windows上创建GUI应用程序(不显示控制台窗口)
 )
 

@@ -949,7 +949,7 @@ background-repeat: no-repeat;
 }</string>
             </property>
             <property name="text">
-             <string>预留设置</string>
+             <string>测试按钮</string>
             </property>
             <property name="iconSize">
              <size>
@@ -1643,7 +1643,7 @@ background-image: url(:/assets/home/back.png);
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1390</width>
+             <width>281</width>
              <height>950</height>
             </rect>
            </property>
@@ -1756,8 +1756,8 @@ QToolBox&gt;QAbstractButton{
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1330</width>
-                 <height>200</height>
+                 <width>471</width>
+                 <height>100</height>
                 </rect>
                </property>
                <property name="sizePolicy">
@@ -2227,8 +2227,8 @@ border: 1px solid rgba(80, 95, 138, 1);</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1330</width>
-                 <height>200</height>
+                 <width>292</width>
+                 <height>100</height>
                 </rect>
                </property>
                <property name="sizePolicy">
@@ -2687,8 +2687,8 @@ padding-left: 30px;   /* 居中 */</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1330</width>
-                 <height>200</height>
+                 <width>227</width>
+                 <height>100</height>
                 </rect>
                </property>
                <property name="sizePolicy">
@@ -2948,8 +2948,8 @@ padding-right: 0px;</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1330</width>
-                 <height>200</height>
+                 <width>316</width>
+                 <height>100</height>
                 </rect>
                </property>
                <property name="styleSheet">
@@ -3242,8 +3242,8 @@ padding-left: 30px;   /* 居中 */</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1330</width>
-                 <height>200</height>
+                 <width>179</width>
+                 <height>100</height>
                 </rect>
                </property>
                <property name="styleSheet">
@@ -3509,8 +3509,8 @@ padding-right: 0px;</string>
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1330</width>
-                 <height>200</height>
+                 <width>524</width>
+                 <height>100</height>
                 </rect>
                </property>
                <property name="styleSheet">
@@ -3944,7 +3944,7 @@ background: rgba(15, 19, 26, 1);</string>
         <item>
          <widget class="QStackedWidget" name="StackedWidgetProjectHub">
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="ProjectHome">
            <property name="cursor">
@@ -6297,6 +6297,14 @@ QComboBox::down-arrow {
 	image: url(:/assets/TaskHub/pulldown.png);
     width: 24px;   /* 图标宽度 */
     height: 24px;  /* 图标高度 */
+}
+/* 下拉列表的样式 */
+QComboBox QAbstractItemView {
+    border: 1px solid rgba(80, 95, 138, 1);
+     /*border-radius: 5px; */
+    background-color: rgba(37, 46, 74, 1);  /* 下拉背景色 */
+    selection-background-color: rgba(80, 95, 138, 1);  /* 选中项背景色 */
+    /* color: rgba(129, 141, 179, 1);  文字颜色 */
 }
 </string>
                     </property>
@@ -9199,7 +9207,7 @@ text-align: center;</string>
 	border-image: url(:/assets/public/HomeTitleBackground.png);
 }</string>
               </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_35" stretch="0,0,0,0,0,0,0,0">
+              <layout class="QHBoxLayout" name="horizontalLayout_35" stretch="0,0,0,0,0,0,0">
                <property name="spacing">
                 <number>49</number>
                </property>
@@ -9246,97 +9254,6 @@ text-align: center;</string>
                  <property name="text">
                   <string>任务采集</string>
                  </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QWidget" name="widget_task_acquisition_tip" native="true">
-                 <property name="minimumSize">
-                  <size>
-                   <width>236</width>
-                   <height>60</height>
-                  </size>
-                 </property>
-                 <property name="maximumSize">
-                  <size>
-                   <width>236</width>
-                   <height>60</height>
-                  </size>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true">QWidget#widget_task_acquisition_tip{
-border-radius: 10px;
-background: rgba(255, 141, 26, 0.24);
-
-border: 1px solid rgba(255, 141, 26, 1);
-}</string>
-                 </property>
-                 <layout class="QHBoxLayout" name="horizontalLayout_46" stretch="1,10">
-                  <property name="spacing">
-                   <number>18</number>
-                  </property>
-                  <property name="leftMargin">
-                   <number>18</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>0</number>
-                  </property>
-                  <property name="rightMargin">
-                   <number>16</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>0</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label_75">
-                    <property name="minimumSize">
-                     <size>
-                      <width>24</width>
-                      <height>0</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>24</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="font">
-                     <font>
-                      <family>思源黑体</family>
-                      <pointsize>18</pointsize>
-                     </font>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">image: url(:/assets/TaskHub/tip.png);</string>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                    <property name="textFormat">
-                     <enum>Qt::TextFormat::AutoText</enum>
-                    </property>
-                    <property name="alignment">
-                     <set>Qt::AlignmentFlag::AlignCenter</set>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="label_76">
-                    <property name="font">
-                     <font>
-                      <family>思源黑体</family>
-                      <pointsize>15</pointsize>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>提示：请确认扫描设备已稳固安装。</string>
-                    </property>
-                    <property name="wordWrap">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
                 </widget>
                </item>
                <item>
@@ -12477,7 +12394,7 @@ text-align: center;</string>
                   <x>0</x>
                   <y>0</y>
                   <width>664</width>
-                  <height>687</height>
+                  <height>23</height>
                  </rect>
                 </property>
                 <property name="minimumSize">
@@ -12634,8 +12551,8 @@ QDoubleSpinBox::down-button {
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>678</width>
-               <height>779</height>
+               <width>665</width>
+               <height>775</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_38">

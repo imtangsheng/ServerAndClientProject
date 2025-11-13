@@ -62,7 +62,7 @@ void WebSocketServer::SentMessageToClients(const QString& message) {
 
 void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclient)
 {
-	qDebug() <<"#Sent:size is"<< message.size()<< QThread::currentThread();
+	//qDebug() <<"#Sent:size is"<< message.size()<< QThread::currentThread();
 	QPointer<QWebSocket> socket = qobject_cast<QWebSocket*>(wsclient);
 	//多线程下 加锁
 	static QMutex mutex_socket;
@@ -77,7 +77,7 @@ void WebSocketServer::handleMessageSent(const QString& message, QObject* wsclien
 }
 
 void WebSocketServer::handleBinarySent(const QByteArray& message, QObject* wsclient) {
-	qDebug() << "#Sent:size is" << message.size() << QThread::currentThread();
+	//qDebug() << "#Sent:size is" << message.size() << QThread::currentThread();
 	QPointer<QWebSocket> socket = qobject_cast<QWebSocket*>(wsclient);
 	//多线程下 加锁
 	static QMutex mutex_socket;

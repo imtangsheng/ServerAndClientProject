@@ -1,7 +1,5 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-
-#include <QApplication>
 #include <QTranslator>
 #include <QStyleFactory>
 inline QString g_language;

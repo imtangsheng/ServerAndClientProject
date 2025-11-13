@@ -124,7 +124,7 @@ public:
     }
     /*传入的值应该有效的值,时间为非0值*/
     struMileage Correct(qint64 left_time, qint64 left_pulse, qint64 right_time, qint64 right_pulse) {
-        qDebug() << "里程校准:" << left_time << left_pulse << right_time << right_pulse;
+        //qDebug() << "里程校准:" << left_time << left_pulse << right_time << right_pulse;
         struMileage left, right;
         left.time = left_time; left.pulse = left_pulse;
         right.time = right_time; right.pulse = right_pulse;

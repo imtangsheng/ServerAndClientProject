@@ -73,8 +73,8 @@ add_dependencies(${PLUGIN_NAME} ${SHARE_NAME})
 
 #设置编译编译定义是在编译过程中传递给预处理器的符号，可以用来控制代码中的条件编译。
 target_compile_definitions(${PLUGIN_NAME} PRIVATE
-    __DEVICE_TYPE_MS301__ # 设备类型定义,新设备使用新的协议和受支持的命令
-    #__DEVICE_TYPE_MS201__ #
+    #__DEVICE_TYPE_MS301__ # 设备类型定义,新设备使用新的协议和受支持的命令
+    __DEVICE_TYPE_MS201__ #
     $<$<BOOL:${SUPPORT_CAR}>:DEVICE_TYPE_CAR=1> #小车中控箱设备控制的串口控制板
     $<$<BOOL:${SUPPORT_CAMERA}>:DEVICE_TYPE_CAMERA=2> #三叶草相机设备类型的控制串口
     $<$<BOOL:${SUPPORT_LINE_SCAN_CAMERA}>:DEVICE_TYPE_LINE_SCAN_CAMERA=3> #线阵相机类型的控制串口(使用同一个串口)

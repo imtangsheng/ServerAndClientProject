@@ -258,6 +258,12 @@ QComboBox QAbstractItemView {
       </item>
       <item>
        <widget class="QTableWidget" name="tableWidget_CameraFocal">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <family>思源黑体</family>
@@ -295,6 +301,9 @@ QTableWidget::item:selected {
         </property>
         <property name="sizeAdjustPolicy">
          <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
+        </property>
+        <property name="autoScrollMargin">
+         <number>16</number>
         </property>
         <property name="editTriggers">
          <set>QAbstractItemView::EditTrigger::DoubleClicked</set>
@@ -350,6 +359,9 @@ QTableWidget::item:selected {
         <attribute name="verticalHeaderCascadingSectionResizes">
          <bool>false</bool>
         </attribute>
+        <attribute name="verticalHeaderMinimumSectionSize">
+         <number>20</number>
+        </attribute>
         <attribute name="verticalHeaderHighlightSections">
          <bool>false</bool>
         </attribute>
@@ -359,21 +371,6 @@ QTableWidget::item:selected {
         <attribute name="verticalHeaderStretchLastSection">
          <bool>false</bool>
         </attribute>
-        <row>
-         <property name="text">
-          <string>新建行</string>
-         </property>
-        </row>
-        <row>
-         <property name="text">
-          <string>新建行</string>
-         </property>
-        </row>
-        <row>
-         <property name="text">
-          <string>新建行</string>
-         </property>
-        </row>
         <row>
          <property name="text">
           <string>新建行</string>
@@ -417,21 +414,6 @@ QTableWidget::item:selected {
         <item row="0" column="3">
          <property name="text">
           <string>{0.898}</string>
-         </property>
-        </item>
-        <item row="1" column="2">
-         <property name="text">
-          <string>0.556</string>
-         </property>
-        </item>
-        <item row="2" column="2">
-         <property name="text">
-          <string>0.556</string>
-         </property>
-        </item>
-        <item row="3" column="2">
-         <property name="text">
-          <string>0.556</string>
          </property>
         </item>
        </widget>

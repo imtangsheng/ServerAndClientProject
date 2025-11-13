@@ -27,7 +27,7 @@ public:
         connect(serial, &QSerialPort::readyRead, this, &SerialPortTemplate::handleReadyRead);
         connect(serial, &QSerialPort::errorOccurred, this, &SerialPortTemplate::handleError);
 
-        uCurrentSerialDevice = gShare.RegisterSettings->value("type", 0).toInt();
+        iCurrentSerialDevice = gShare.RegisterSettings->value("type", -1).toInt();
     }
 
     virtual ~SerialPortTemplate() {
@@ -111,7 +111,7 @@ public:
     }
 
 protected:
-    quint8 uCurrentSerialDevice;//保存当前串口类的设备型号数字 1 中控 2 三叶草 3 三叶草21机位
+    qint8 iCurrentSerialDevice{-1};//保存当前串口类的设备型号数字 1 中控 2 三叶草 3 三叶草21机位
     QSerialPort* serial;
     qint8 i8result{ 0 };//缓存的执行结果,用于执行指令 -1 为失败 0 为成功 其他为错误码
     QString lastError;//0 正常, 非0为错误

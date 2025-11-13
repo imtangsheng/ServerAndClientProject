@@ -614,13 +614,13 @@ void ScannerWidget::addImageItem(const QByteArray &data)
     QString name;
     QByteArray fileBytes;
     stream >> name >> fileBytes;
+    qInfo() << "接收到图像数据,缩略图显示:"<<name;
     // 从字节数组创建 QPixmap
     QPixmap pixmap;
     if (!pixmap.loadFromData(fileBytes)) {
         qWarning() << "Failed to load image from data";
-        return;
+        // return;
     }
-    // 创建缩略图（可选，用于优化显示性能）
     // QPixmap thumbnail = pixmap.scaled(100, 100, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     // 创建 QListWidgetItem
     QListWidgetItem *item = new QListWidgetItem();

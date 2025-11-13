@@ -25,6 +25,7 @@ public:
     explicit ToolTip(TipType type,const QString& title,const QString& message,int msecShowTime = -1,QWidget *parent = nullptr);
     ~ToolTip();
 
+    //单位毫秒,默认3秒
     static int ShowText(const QString &text, int msecShowTime = 3000);
     static int ShowText(const QString& title,const QString& message,int msecShowTime = 3000);
 

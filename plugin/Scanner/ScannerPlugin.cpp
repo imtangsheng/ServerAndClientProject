@@ -8,9 +8,6 @@
 #include "Faro/FaroControl.h"
 static FaroControl* gFaroCtrl{nullptr};
 
-/*自动调焦的计算,应当放入工具集当中的方法,而不是模块,需要后期修改*/
-#include "Faro/FaroHandle.h"
-static FaroHandle* gFaroHandle{ nullptr };
 
 //#pragma execution_character_set("utf-8")
 ScannerPlugin::ScannerPlugin()
@@ -18,9 +15,7 @@ ScannerPlugin::ScannerPlugin()
     IPluginDevice::initialize();
     qDebug() << "[#Scanner]构造函数" << QThread::currentThread();
     gFaroCtrl = new FaroControl(this);
-    gFaroHandle = new FaroHandle();
-    
-    state_ = StateEvent::Waiting;//可以直接调用接口，而不需要先连接，测试使用（方便直接调用测试等功能）
+    //state_ = StateEvent::Waiting;//可以直接调用接口，而不需要先连接，测试使用（方便直接调用测试等功能）
 }
 
 ScannerPlugin::~ScannerPlugin()
@@ -234,30 +229,21 @@ void ScannerPlugin::GetProgressPercent(const Session& session) {
     gShare.on_success("获取进度百分比", s);
 }
 
-
+/*自动调焦的计算,应当放入工具集当中的方法,而不是模块,需要后期修改*/
+#include "Faro/FaroHandle.h"
 void ScannerPlugin::GetCameraPositionDistance(const Session& session) {
-    //QString dirpath;
     QJsonObject param = session.params.toObject();
-
-    //if (!param.contains(Json_Resolution)) {
-    //    param.insert(Json_Resolution, 1);
-    //}
-    //if (!param.contains(Json_MeasurementRate)) {
-    //    param.insert(Json_MeasurementRate, 8);
-    //}
-    //if (!param.contains(Json_NumCols)) {
-    //    param.insert(Json_NumCols, 100);
-    //}
-    //int ret = gFaroCtrl->SetParameters(param);
-    //qDebug() << "[#Scanner]获取>SetParameters结果" << ret;
-    //ret = gFaroCtrl->ScanStart();
-    //QThread::msleep(8000);
-    //ret = gFaroCtrl->ScanRecord();
-    //gFaroHandle->CreateCameraFocalByScanFile(param);
-    // 异步调用
-    gFaroHandle->awake();
-    gFaroHandle->session = session;
-    QMetaObject::invokeMethod(gFaroHandle, "CreateCameraFocalByScanFile",
+    static FaroHandle* sFaroHandle{ nullptr };
+    if(!sFaroHandle){
+        sFaroHandle = new FaroHandle();
+        if (!sFaroHandle) {
+            qWarning() << "new FaroHandle() 内存分配失败";
+            return; 
+        }
+        sFaroHandle->awake();
+    }
+    sFaroHandle->session = session;
+    QMetaObject::invokeMethod(sFaroHandle, "CreateCameraFocalByScanFile",
         Qt::QueuedConnection,
         Q_ARG(QJsonObject, param));
 }
