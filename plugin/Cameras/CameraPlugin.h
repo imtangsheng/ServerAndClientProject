@@ -7,8 +7,8 @@
 class CameraPlugin : public IPluginDevice
 {
     Q_OBJECT
-        Q_PLUGIN_METADATA(IID PluginDeviceInterface_iid FILE "CameraPlugin.json") //QPluginLoader 类来加载插件并读取元数据
-        Q_INTERFACES(IPluginDevice)
+    Q_PLUGIN_METADATA(IID PluginDeviceInterface_iid FILE "CameraPlugin.json") //QPluginLoader 类来加载插件并读取元数据
+    Q_INTERFACES(IPluginDevice)
 public:
     CameraPlugin();
     ~CameraPlugin() override;
@@ -17,19 +17,19 @@ public:
     QString GetModuleName() const override;    // 设备名称
     // 基本操作接口
     Result initialize() override;
-    Result disconnect() override;
+    Result disactivate() override;
     QString name() const override;    // 设备名称
     QString version() const override; // 版本
 
     //直接调用 使用回调函数在执行特定顺序的任务
-    Result OnStarted(CallbackResult callback = nullptr) final;
-    Result OnStopped(CallbackResult callback = nullptr) final;
+    Result OnStarted(const CallbackResult& callback = nullptr) final;
+    Result OnStopped(const CallbackResult& callback = nullptr) final;
     //#采集控制属性设置接口
     Q_INVOKABLE void GetImageFormat(const Session& session); // 设置图像格式
     Q_INVOKABLE void SetImageFormat(const Session& session); // 设置图像格式
 
 public slots:
-    void initUi(const Session& session) final;//初始化UI,返回配置信息
+    void onUpdateUi(const Session& session) final;//初始化UI,返回配置信息
     // 执行约定的方法
     void execute(const QString& method) final; // 执行特定功能
 

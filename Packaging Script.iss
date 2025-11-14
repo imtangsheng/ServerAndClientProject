@@ -7,22 +7,22 @@
 #define BuildClient
 ; #define BuildServer
 #ifdef BuildClient
-  #define ExeName "TCC"+Version+".exe"
+  #define ExeName "TCC Client "+Version+".exe"
   #define AppNameSuffix " Client"
   ; 客户端专用 AppId - 生成新的 GUID
-  #define AppId "{AEEE60E1-BE4D-48EB-9371-79A1FEAC8F0A}"
+  #define guid "{AEEE60E1-BE4D-48EB-9371-79A1FEAC8F0A}"
 #else
-  #define ExeName "server"+Version+".exe"
+  #define ExeName "TCC Server "+Version+".exe"
   #define AppNameSuffix " Server"
   ; 服务端专用 AppId - 生成新的 GUID
-  #define AppId "{B1234567-89AB-CDEF-0123-456789ABCDEF}"
+  #define guid "{B1234567-89AB-CDEF-0123-456789ABCDEF}"
 #endif
 
 [Setup]
 ; 注: AppId的值为单独标识该应用程序。
 ; 不要为其他安装程序使用相同的AppId值。
 ; (生成新的GUID，点击 工具|创建GUID 注册表)
-AppId={#AppId}
+AppId={{#guid}
 AppName={#Name}{#AppNameSuffix}
 AppVersion={#Version}
 AppPublisher={#Publisher}
@@ -78,15 +78,21 @@ Source: ".\out\build\release\out\*"; DestDir: "{app}"; Excludes: "*.pdb,*.lib,*.
 ;Source: ".\out\build\release\out\*"; DestDir: "{app}"; Excludes: "*.pdb,*.lib,*.exp,*.ilk,*.log,*.tmp,test_*,debug_*,logs\*,temp\*,backup\*";Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{commonprograms}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\bin\{#ExeName}"
-Name: "{commondesktop}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\bin\{#ExeName}"; Tasks: desktopicon
+#ifdef BuildClient
+Name: "{commonprograms}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\{#ExeName}"
+Name: "{commondesktop}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\{#ExeName}"; Tasks: desktopicon
 ;在系统的 "启动" {commonstartup}文件夹 中创建一个快捷方式  
 ;修改为用户的启动{userstartup}文件夹
 ;{userstartup}: 当前用户的启动文件夹
 ;{commonstartup}: 所有用户的公共启动文件夹
 ;{userprograms}: 当前用户的程序文件夹
 ;{commonprograms}: 所有用户的公共程序文件夹
+Name: "{userstartup}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\{#ExeName}"; Tasks: startupicon
+#else
+Name: "{commonprograms}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\bin\{#ExeName}"
+Name: "{commondesktop}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\bin\{#ExeName}"; Tasks: desktopicon
 Name: "{userstartup}\{#Name}{#AppNameSuffix}{#Version}"; Filename: "{app}\bin\{#ExeName}"; Tasks: startupicon
+#endif
 
 [Run]
 Filename: "{app}\bin\{#ExeName}"; Description: "{cm:LaunchProgram,{#StringChange(Name+AppNameSuffix, '&', '&&')}}"; Flags: nowait postinstall skipifsilent

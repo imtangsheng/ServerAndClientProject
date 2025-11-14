@@ -42,7 +42,7 @@ Result CameraPlugin::initialize() {
     return gCameraSDK->initialize();
 }
 
-Result CameraPlugin::disconnect() {
+Result CameraPlugin::disactivate() {
     qDebug() << "#PluginCamera断开函数";
     return Result();
 }
@@ -55,19 +55,19 @@ QString CameraPlugin::version() const {
     return QString("0.0.1");
 }
 
-Result CameraPlugin::OnStarted(CallbackResult callback) {
+Result CameraPlugin::OnStarted(const CallbackResult& callback) {
     return gCameraSDK->OnStarted(callback);
 }
 
-Result CameraPlugin::OnStopped(CallbackResult callback) {
+Result CameraPlugin::OnStopped(const CallbackResult& callback) {
     return gCameraSDK->OnStopped(callback);
 }
 
-void CameraPlugin::initUi(const Session& session) {
+void CameraPlugin::onUpdateUi(const Session& session) {
     QJsonObject obj;// = session.params.toObject();
     obj["format"] = gCameraSDK->has_image_format;
 
-    emit gSigSent(session.ResponseString(obj, tr("succeed")), session.socket);
+    emit gSigSent(session.ResponseSuccess(obj, tr("succeed")), session.socket);
 
     //onConfigChanged();//界面参数变化主动获取更新
     emit gSigSent(Session::RequestString(2, GetModuleName(), "onConfigChanged", QJsonArray{ config_ }), session.socket);
@@ -80,7 +80,7 @@ void CameraPlugin::execute(const QString& method) {
 
 void CameraPlugin::GetImageFormat(const Session& session) {
     //获取照片格式
-    gShare.on_session(session.ResponseString(g_image_format), session.socket);
+    gShare.on_session(session.ResponseSuccess(g_image_format), session.socket);
 }
 
 void CameraPlugin::SetImageFormat(const Session& session) {
@@ -101,7 +101,7 @@ void CameraPlugin::SetImageFormat(const Session& session) {
 void CameraPlugin::scan(const Session& session) {
     Result result = gCameraSDK->scan();
     if (result) {
-        emit gSigSent(session.ResponseString(gCameraSDK->GetDeviceIdList()));
+        emit gSigSent(session.ResponseSuccess(gCameraSDK->GetDeviceIdList()));
     } else {
         emit gSigSent(session.Finished(result.code, result.message));
     }

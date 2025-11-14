@@ -21,3 +21,12 @@
 #define gSouth south::Share::instance()
 #define gSouth south::ShareLib::instance()
 #define DefineFunction(name) funtion##name(const QByteArray& data)
+#define MODULE_ENUM(name)
+#define Q_INTERFACES(x) QT_ANNOTATE_CLASS(qt_interfaces, x)
+#define Q_INTERFACES(x) Q_INTERFACES(x)
+#define Q_PLUGIN_METADATA(x) QT_ANNOTATE_CLASS(qt_plugin_metadata, x)
+#define TaskEnumName(name)
+#define NULL
+#define NULL ((void *)0)
+#define gShare share::Shared::instance()
+#define signals

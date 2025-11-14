@@ -438,13 +438,13 @@ void DvpLineScanCamera::stop(const Session& session) {
 
 Result DvpLineScanCamera::OnStarted(CallbackResult callback) {
     Result result = start();
-    if (callback) { callback(result); }
+    if (callback) { callback(result.code,result.message); }
     return result;
 }
 
 Result DvpLineScanCamera::OnStopped(CallbackResult callback) {
     Result result = stop();
-    if (callback) { callback(result); }
+    if (callback) { callback(result.code, result.message); }
     return result;
 }
 

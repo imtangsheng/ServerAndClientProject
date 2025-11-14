@@ -46,7 +46,7 @@ static void RecvRadarFrameData(const RadarFrame& data) {
     static SavaRawData radar_frame_file(QString("%1/radar.bin").arg(kTaskDirCameraName));
     static quint8 data_len = sizeof(RadarFrame);
     //雷达数据
-    if (gTaskState == TaskState_Running && radar_frame_file.initialize()) {
+    if (gTaskState == TaskState_Running && radar_frame_file.create_file()) {
         //雷达数据 数据量很大,基本都会粘包
         radar_frame_file.Write(reinterpret_cast<const char*>(&data), data_len);
     }

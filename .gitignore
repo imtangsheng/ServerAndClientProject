@@ -40,3 +40,4 @@ CMakeLists.txt.user
 *.app
 
 /project/CameraClient/build
+/assets

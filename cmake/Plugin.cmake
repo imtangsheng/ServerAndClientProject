@@ -7,4 +7,11 @@ set(CONFIG_OUTPUT_DIR ${CMAKE_BINARY_DIR}/out/config)
 
 add_subdirectory(plugin/Serial)
 add_subdirectory(plugin/Scanner)
-#add_subdirectory(plugin/Cameras)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    # 这里添加 Debug 模式下的特定代码
+    add_subdirectory(plugin/Cameras)
+else()
+    # 这里添加 Release 或其他模式下的代码
+endif()
+

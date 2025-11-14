@@ -34,25 +34,24 @@ set(CMAKE_DEBUG_POSTFIX "d")
 #    DEBUG_POSTFIX "d"
 #)
 
-#set(CMAKE_PREFIX_PATH "E:/Qt/6.8.2/msvc2022_64") # Qt Kit Dir for vscode
+#set(CMAKE_PREFIX_PATH "E:/Qt/6.10.0/msvc2022_64") # Qt Kit Dir for vscode
 # 添加cmake模块路径 默认只在 CMAKE_MODULE_PATH 中查找模块，而当前目录不在 CMAKE_MODULE_PATH 中。
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-# 设置可执行文件名称
+# 设置共享模块名称
 set(SHARE_NAME Shared)
 
 include(ProjectSettings)
 #添加插件目录
 include(Plugin)
-add_subdirectory("include")
 # 添加子项目
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # 重新设置可执行文件输出目录
-add_subdirectory(example)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     # 这里添加 Debug 模式下的特定代码
-    #add_dependencies(server )
+    add_subdirectory("include") #接口头文件库
+    # 添加示例项目
+    add_subdirectory(example)
 else()
-    
     # 这里添加 Release 或其他模式下的代码
 endif()

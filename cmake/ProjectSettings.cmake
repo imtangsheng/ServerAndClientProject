@@ -7,8 +7,8 @@ endif()
 #${CMAKE_BINARY_DIR}：构建目录
 # 设置输出目录
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/bin)  # 可执行文件输出目录
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/dll)  # 动态库输出目录
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态库输出目录
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/dll)  # 动态库输出目录
+#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/out/libs/lib)  # 静态库输出目录
 
 # 启用 Qt 的自动 moc、rcc 和 uic
 set(CMAKE_AUTOMOC ON)
@@ -36,3 +36,5 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 add_subdirectory(libs/share)
 add_subdirectory(main/server)
 add_subdirectory(main/client)
+
+add_subdirectory(programs/FaroPreview)
